@@ -61,3 +61,17 @@
  .personal-profile-card{padding:17px}
 }
 @media(prefers-reduced-motion:reduce){.personal-calendar-day,.personal-month-nav,.personal-today{transition:none}}
+
+.personal-notification-toolbar{display:flex;justify-content:flex-end;gap:8px;margin:-2px 0 12px}
+.personal-notification-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;flex:none;max-width:240px}
+.personal-action-primary{border-color:#222;background:#222;color:#fff}
+.personal-action-primary:hover{border-color:#444;background:#444;color:#fff}
+.personal-notification-pinned{display:inline-flex;margin-top:7px;padding:3px 7px;border:1px solid #e5dfc8;border-radius:4px;background:#faf8ef;color:#796a38;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.personal-notification.is-pinned{border-color:#ddd5b7;background:rgba(255,254,248,.94)}
+.personal-notification.is-read .personal-notification-main>strong{color:#777}
+@media(max-width:760px){
+ .personal-notification-actions{width:100%;max-width:none;justify-content:stretch}
+ .personal-notification-actions .personal-action{flex:1}
+ .personal-notification-toolbar{justify-content:stretch}
+ .personal-notification-toolbar .personal-action{width:100%}
+}
