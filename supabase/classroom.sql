@@ -136,6 +136,10 @@ using (
   public.is_echo_owner()
   or public.is_echo_professor()
   or exists (
+    select 1 from public.classes c
+    where c.id = class_materials.class_id and c.allow_unassigned and not c.is_demo
+  )
+  or exists (
     select 1 from public.class_enrollments ce
     where ce.class_id = class_materials.class_id
       and ce.student_id = auth.uid() and not ce.is_demo
@@ -317,6 +321,7 @@ begin
     and (
       public.is_echo_owner()
       or public.is_echo_professor()
+      or c.allow_unassigned
       or exists (
         select 1 from public.class_enrollments mine
         where mine.class_id = ce.class_id
