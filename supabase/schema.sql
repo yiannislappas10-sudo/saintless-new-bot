@@ -248,3 +248,18 @@ grant execute on function public.is_echo_owner() to authenticated;
 grant execute on function public.is_echo_professor(uuid) to authenticated;
 grant execute on function public.set_echo_professor(uuid, boolean) to authenticated;
 grant execute on function public.get_echo_role_candidates() to authenticated;
+
+-- Enable instant private-message updates through Supabase Realtime.
+do $
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1 from pg_publication_tables
+       where pubname = 'supabase_realtime'
+         and schemaname = 'public'
+         and tablename = 'private_messages'
+     ) then
+    alter publication supabase_realtime add table public.private_messages;
+  end if;
+end;
+$;
