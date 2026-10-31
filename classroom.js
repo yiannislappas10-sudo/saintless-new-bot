@@ -588,8 +588,9 @@ async function showDetail(id){
   if(c.liveRoom){
    const end=document.createElement('button');end.type='button';end.className='btn class-danger';end.textContent=t('endClass');
    end.addEventListener('click',async()=>{
-    end.disabled=true;const {error}=await db.rpc('end_echo_classroom',{target_class_id:c.id});
-    if(error){end.disabled=false;const note=document.createElement('p');note.className='class-form-status error';note.textContent=error.message;detail.append(note);return;}
+    end.disabled=true;
+    try{await callApi('/api/classroom/end',{classId:c.id});}
+    catch(error){end.disabled=false;const note=document.createElement('p');note.className='class-form-status error';note.textContent=error.message;detail.append(note);return;}
     if(activeRoom?.classId===c.id)await leaveRoom({automatic:true});
     await loadClasses();void showDetail(c.id);
    });roomActions.append(end);
@@ -625,8 +626,8 @@ async function showDetail(id){
    cancel.onclick=async()=>{
     if(!confirm(t('confirmCancel')))return;cancel.disabled=true;
     if(c.liveRoom){
-     const ended=await db.rpc('end_echo_classroom',{target_class_id:c.id});
-     if(ended.error){alert(ended.error.message);cancel.disabled=false;return;}
+     try{await callApi('/api/classroom/end',{classId:c.id});}
+     catch(error){alert(error.message);cancel.disabled=false;return;}
      if(activeRoom?.classId===c.id)await leaveRoom({automatic:true});
     }
     const {error}=await db.from('classes').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',c.id);
