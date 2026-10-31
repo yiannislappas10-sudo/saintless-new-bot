@@ -422,7 +422,7 @@ function addRoomTile(userId,name,local=false){
 }
 function renderRoomRoster(room,participants){
  const area=document.getElementById('class-room-roster-list');area.replaceChildren();
- const active=new Map(participants.filter(p=>p.status==='active').map(p=>[p.user_id,p]));
+ const active=new Map(participants.filter(p=>p.status==='active'&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<45000).map(p=>[p.user_id,p]));
  const assigned=(room.klass.roster||[]).filter(p=>p.id);const seen=new Set();
  for(const person of assigned){
   const row=document.createElement('div');row.className='class-room-person';
@@ -459,9 +459,9 @@ async function syncClassroom(room){
  try{
   const {data:live,error:liveError}=await db.from('class_live_rooms').select('status').eq('class_id',room.classId).eq('status','live').limit(1);
   if(liveError)throw liveError;if(!live?.length){setRoomStatus(t('mediaEnded'));await leaveRoom({automatic:true});return;}
-  const {data:participants,error}=await db.from('class_room_participants').select('user_id,display_name,session_id,status').eq('class_id',room.classId);
+  const {data:participants,error}=await db.from('class_room_participants').select('user_id,display_name,session_id,status,joined_at,last_seen_at').eq('class_id',room.classId);
   if(error)throw error;
-  const active=(participants||[]).filter(p=>p.status==='active'&&p.user_id!==user.id);
+  const active=(participants||[]).filter(p=>p.status==='active'&&p.user_id!==user.id&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<45000);
   renderRoomRoster(room,participants||[]);
   for(const person of active)if(!room.subscriptions.has(person.user_id)){
    try{await subscribeToParticipant(room,person);}catch(e){setRoomStatus(e.message||t('mediaConnecting'),true);}
@@ -495,12 +495,14 @@ async function enterRoom(){
   if(pc.connectionState==='failed')throw new Error(t('mediaDisconnected'));
   setRoomStatus(pc.connectionState==='connected'?t('mediaConnected'):t('mediaConnecting'));
   document.getElementById('class-room-connection').textContent=pc.connectionState==='connected'?t('mediaConnected'):t('mediaConnecting');document.getElementById('class-live-mic').textContent=t('mute');document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length;
-  room.poller=setInterval(()=>{void syncClassroom(room);},2500);await syncClassroom(room);
+  room.poller=setInterval(()=>{void syncClassroom(room);},2500);
+  room.heartbeat=setInterval(()=>{void db.from('class_room_participants').update({last_seen_at:new Date().toISOString()}).eq('class_id',room.classId).eq('user_id',user.id);},12000);
+  await syncClassroom(room);
  }catch(error){
   setRoomStatus(error.message||t('callError'),true);
   if(room.sessionId)try{await callApi('/api/classroom/leave',{classId:room.classId,sessionId:room.sessionId,attendanceId:room.attendanceId});}catch{}
   if(room.publisher){room.publisher.close();room.publisher=null;}
-  if(room.poller)clearInterval(room.poller);
+  if(room.poller)clearInterval(room.poller);if(room.heartbeat)clearInterval(room.heartbeat);
   room.previewStream?.getTracks().forEach(track=>track.stop());room.previewStream=null;
   room.sessionId=null;room.attendanceId=null;room.inClass=false;
   document.getElementById('class-preview-video').srcObject=null;
@@ -510,7 +512,7 @@ async function enterRoom(){
 }
 async function leaveRoom({automatic=false}={}){
  const room=activeRoom;if(!room)return;activeRoom=null;callJoinPending=false;
- if(room.poller)clearInterval(room.poller);
+ if(room.poller)clearInterval(room.poller);if(room.heartbeat)clearInterval(room.heartbeat);
  if(room.publisher){room.publisher.close();room.publisher=null;}
  for(const sub of room.subscriptions.values())sub.pc.close();room.subscriptions.clear();
  room.previewStream?.getTracks().forEach(track=>track.stop());
