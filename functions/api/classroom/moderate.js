@@ -31,10 +31,15 @@ export async function onRequestPost({ request, env }) {
     try { body = await request.json(); } catch { throw new ClassroomError("Invalid request body."); }
     const { classId, targetUserId, action } = body || {};
     if (!validId(classId) || !validId(targetUserId)) throw new ClassroomError("Choose a valid participant.");
-    if (!["mute","unmute","remove","lower-hand"].includes(action)) throw new ClassroomError("Unknown moderation action.");
+    if (!["mute","unmute","remove","lower-hand","readmit"].includes(action)) throw new ClassroomError("Unknown moderation action.");
 
     const teacher = await dbRpc(ctx, "is_echo_professor", {});
     if (teacher !== true) throw new ClassroomError("Only the professor can moderate this meeting.", 403);
+
+    if (action === "readmit") {
+      await writeControl(ctx, classId, targetUserId, { teacher_muted:false, removed:false });
+      return response({ action, targetUserId, restored:true });
+    }
 
     const participantRows = await dbRequest(ctx,
       "class_room_participants?class_id=eq."+classId+"&user_id=eq."+targetUserId+"&select=session_id,status&limit=1");
