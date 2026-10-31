@@ -226,6 +226,11 @@ begin
   ) and not class_row.allow_unassigned then
     raise exception 'You are not assigned to this class.';
   end if;
+  select a.id into attendance_id
+  from public.class_attendance a
+  where a.class_id = target_class_id and a.student_id = auth.uid() and a.left_at is null
+  order by a.joined_at desc limit 1;
+  if attendance_id is not null then return attendance_id; end if;
   insert into public.class_attendance(class_id, student_id, source)
   values (target_class_id, auth.uid(), 'classroom')
   returning id into attendance_id;
@@ -388,6 +393,7 @@ drop policy if exists "ECHO users can mark their own attendance" on public.class
 drop policy if exists "ECHO users can end their own attendance" on public.class_attendance;
 revoke insert, update, delete on public.class_attendance from authenticated;
 grant select on public.class_attendance to authenticated;
+grant select, insert, delete on public.class_demo_participants to authenticated;
 create unique index if not exists class_attendance_one_open_session_idx
   on public.class_attendance(class_id, student_id)
   where left_at is null;
