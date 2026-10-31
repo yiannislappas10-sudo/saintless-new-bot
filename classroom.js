@@ -601,12 +601,37 @@ async function showDetail(id){
  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function professorMode(){return isOwner||profile?.role==='professor';}
+async function runSpeakerCheck(){
+ const button=document.getElementById('class-speaker-check');button.disabled=true;
+ const area=document.getElementById('class-test-results');
+ const row=document.createElement('div');row.className='class-test-row';
+ const name=document.createElement('span');name.textContent=t('speakerOutput');
+ const result=document.createElement('strong');result.className='not-tested';result.textContent=t('notTested');
+ row.append(name,result);area.prepend(row);
+ try{
+  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  if(!AudioContextClass)throw new Error('Audio output testing is not supported in this browser.');
+  const context=new AudioContextClass();await context.resume();
+  const oscillator=context.createOscillator(),gain=context.createGain();
+  oscillator.frequency.value=660;gain.gain.value=0.12;oscillator.connect(gain);gain.connect(context.destination);
+  oscillator.start();oscillator.stop(context.currentTime+0.8);
+  await new Promise(resolve=>setTimeout(resolve,950));
+  const heard=confirm(t('speakerQuestion'));
+  result.textContent=t(heard?'passed':'failed');result.className=heard?'passed':'failed';
+  await context.close();
+ }catch(error){result.textContent=t('failed')+' · '+(error.message||'Error');result.className='failed';}
+ finally{button.disabled=false;}
+}
 async function runChecks(){
  const area=document.getElementById('class-test-results');area.replaceChildren();
  const tests=[
   {name:t('authCheck'),run:async()=>{const r=await db.auth.getSession();if(r.error)throw r.error;if(!r.data.session)throw new Error('No active session');return true;}},
   {name:t('dbCheck'),run:async()=>{const r=await db.from('classes').select('id').limit(1);if(r.error)throw r.error;return true;}},
   {name:t('roleCheck'),run:async()=>{const r=await db.rpc('is_echo_owner');if(r.error)throw r.error;if(!r.data)throw new Error('Owner permission check returned false');return true;}},
+  {name:t('profileCheck'),run:async()=>{const r=await db.from('profiles').select('id').eq('id',user.id).single();if(r.error)throw r.error;if(r.data.id!==user.id)throw new Error('Profile does not match the signed-in account.');return true;}},
+  {name:t('announcementCheck'),run:async()=>{const r=await db.from('announcements').select('id').limit(1);if(r.error)throw r.error;return true;}},
+  {name:t('messageCheck'),run:async()=>{const r=await db.from('private_messages').select('id').limit(1);if(r.error)throw r.error;return true;}},
+  {name:t('sfuCheck'),run:async()=>{const r=await callApi('/api/classroom/health',{});if(!r.reachable||!r.sessionInspected)throw new Error('SFU API health check did not complete.');return true;}},
   {name:t('demoCrudCheck'),run:async()=>{
     const start=new Date(Date.now()+3600000),end=new Date(Date.now()+7200000);
     const row={title:'ECHO isolated system test',subject:'System check',description:'Temporary owner-only test record.',starts_at:start.toISOString(),ends_at:end.toISOString(),timezone:ZONE,is_demo:true,created_by:user.id};
@@ -618,7 +643,14 @@ async function runChecks(){
       const updated=await db.from('classes').update({title:'ECHO test updated'}).eq('id',id);if(updated.error)throw updated.error;
       const check=await db.from('classes').select('title').eq('id',id).single();if(check.error)throw check.error;if(check.data.title!=='ECHO test updated')throw new Error('Update did not persist.');
       return true;
-    }finally{if(id){await db.from('class_demo_participants').delete().eq('class_id',id);await db.from('classes').delete().eq('id',id);}}
+    }finally{
+      if(id){
+        const removedParticipants=await db.from('class_demo_participants').delete().eq('class_id',id);
+        if(removedParticipants.error)throw removedParticipants.error;
+        const removedClass=await db.from('classes').delete().eq('id',id);
+        if(removedClass.error)throw removedClass.error;
+      }
+    }
   }},
   {name:t('mediaCheck'),run:async()=>{
     if(!navigator.mediaDevices?.getUserMedia)throw new Error('Browser media APIs are unavailable.');
@@ -639,6 +671,7 @@ function applyLanguage(){
  document.getElementById('class-new').textContent=t('create');
  document.querySelectorAll('[data-view]').forEach(b=>b.textContent=t(b.dataset.view));
  document.getElementById('class-run-checks').textContent=t('runChecks');
+ document.getElementById('class-speaker-check').textContent=t('speakerOutput');
 document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  const labels=panel.querySelectorAll('.class-form-grid label');
  const labelCopy=[t('name'),t('subject'),t('description'),t('image'),t('start'),t('end')];
