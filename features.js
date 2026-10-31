@@ -13,7 +13,7 @@ const text = {
     bodyPlaceholder:'Write your announcement...', professorOnly:'Only professors can publish announcements.',
     publish:'Publish announcement', emptyAnnouncements:'There are no announcements yet.',
     delete:'Delete', confirmDelete:'Delete this announcement?', published:'Announcement published.',
-    deleted:'Announcement deleted.', edit:'Edit', pin:'Pin', unpin:'Unpin', pinned:'Pinned', update:'Save changes', cancelEdit:'Cancel edit', audience:'Audience', everyone:'Everyone', selectedStudents:'Selected students', chooseStudents:'Choose students', recipientsRequired:'Select at least one student.', newAnnouncement:'New', markRead:'Mark as read', markedRead:'Announcement marked as read.', unread:'Unread', failedAnnouncements:'Could not load announcements. Run the ECHO setup SQL first.',
+    deleted:'Announcement deleted.', updated:'Announcement updated.', edit:'Edit', pin:'Pin', unpin:'Unpin', pinned:'Pinned', update:'Save changes', cancelEdit:'Cancel edit', audience:'Audience', everyone:'Everyone', selectedStudents:'Selected students', chooseStudents:'Choose students', recipientsRequired:'Select at least one student.', newAnnouncement:'New', markRead:'Mark as read', markedRead:'Announcement marked as read.', unread:'Unread', failedAnnouncements:'Could not load announcements. Run the ECHO setup SQL first.',
     messages:'Private messages', messagesIntro:'A private conversation between you and your professor.',
     conversations:'CONVERSATIONS', selectConversation:'Choose a conversation',
     emptyMessages:'Your private messages will appear here.', messagePlaceholder:'Write a private message...',
@@ -40,7 +40,7 @@ const text = {
     bodyPlaceholder:'Γράψτε την ανακοίνωσή σας...', professorOnly:'Μόνο οι καθηγητές μπορούν να δημοσιεύουν ανακοινώσεις.',
     publish:'Δημοσίευση ανακοίνωσης', emptyAnnouncements:'Δεν υπάρχουν ακόμη ανακοινώσεις.',
     delete:'Διαγραφή', confirmDelete:'Να διαγραφεί αυτή η ανακοίνωση;', published:'Η ανακοίνωση δημοσιεύτηκε.',
-    deleted:'Η ανακοίνωση διαγράφηκε.', edit:'Επεξεργασία', pin:'Καρφίτσωμα', unpin:'Ξεκαρφίτσωμα', pinned:'Καρφιτσωμένο', update:'Αποθήκευση αλλαγών', cancelEdit:'Ακύρωση', audience:'Κοινό', everyone:'Όλοι', selectedStudents:'Επιλεγμένοι μαθητές', chooseStudents:'Επιλέξτε μαθητές', recipientsRequired:'Επιλέξτε τουλάχιστον έναν μαθητή.', newAnnouncement:'Νέο', markRead:'Σήμανση ως αναγνωσμένο', markedRead:'Η ανακοίνωση σημειώθηκε ως αναγνωσμένη.', unread:'Μη αναγνωσμένο', failedAnnouncements:'Δεν ήταν δυνατή η φόρτωση. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
+    deleted:'Η ανακοίνωση διαγράφηκε.', updated:'Η ανακοίνωση ενημερώθηκε.', edit:'Επεξεργασία', pin:'Καρφίτσωμα', unpin:'Ξεκαρφίτσωμα', pinned:'Καρφιτσωμένο', update:'Αποθήκευση αλλαγών', cancelEdit:'Ακύρωση', audience:'Κοινό', everyone:'Όλοι', selectedStudents:'Επιλεγμένοι μαθητές', chooseStudents:'Επιλέξτε μαθητές', recipientsRequired:'Επιλέξτε τουλάχιστον έναν μαθητή.', newAnnouncement:'Νέο', markRead:'Σήμανση ως αναγνωσμένο', markedRead:'Η ανακοίνωση σημειώθηκε ως αναγνωσμένη.', unread:'Μη αναγνωσμένο', failedAnnouncements:'Δεν ήταν δυνατή η φόρτωση. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
     messages:'Προσωπικά μηνύματα', messagesIntro:'Ιδιωτική συνομιλία ανάμεσα σε εσάς και τον καθηγητή σας.',
     conversations:'ΣΥΝΟΜΙΛΙΕΣ', selectConversation:'Επιλέξτε συνομιλία',
     emptyMessages:'Τα προσωπικά σας μηνύματα θα εμφανίζονται εδώ.', messagePlaceholder:'Γράψτε ένα προσωπικό μήνυμα...',
@@ -110,7 +110,7 @@ const panelsMarkup = `
       <select id="announcement-audience"><option value="everyone"></option><option value="selected"></option></select>
       <div class="announcement-recipients hidden" id="announcement-students"></div>
       <label class="announcement-pin-option"><input id="announcement-pinned" type="checkbox"> <span id="announcement-pinned-label"></span></label>
-      <div class="compose-actions"><span class="compose-note" id="announcement-professor-only"></span><button class="btn" id="announcement-cancel-edit" type="button"></button><button class="btn btn-dark" id="announcement-submit" type="submit"></button></div>
+      <div class="compose-actions"><span class="compose-note" id="announcement-professor-only"></span><button class="btn hidden" id="announcement-cancel-edit" type="button"></button><button class="btn btn-dark" id="announcement-submit" type="submit"></button></div>
     </form>
   </div>
   <div class="announcement-list" id="announcement-list" aria-live="polite"></div>
@@ -768,6 +768,7 @@ async function loadForSession(session) {
   }
   document.getElementById('announcement-admin').classList.toggle('hidden', !professorMode());
   await Promise.all([loadAnnouncements(), loadContacts()]);
+  if (professorMode()) await loadAnnouncementStudents();
   if (isOwner) await loadOwnerAccounts();
   startMessageRefresh();
   startIncomingCallRefresh();
@@ -788,16 +789,26 @@ document.getElementById('announcement-cancel-edit').addEventListener('click',res
 document.getElementById('announcement-form').addEventListener('submit', async event => {
   event.preventDefault();
   if (!professorMode() || !user) return;
-  const title = document.getElementById('announcement-title').value.trim();
-  const body = document.getElementById('announcement-body').value.trim();
-  if (!title || !body) return;
-  const button = document.getElementById('announcement-submit');
-  button.disabled = true;
-  const {error} = await supabase.from('announcements').insert({title, body, created_by:user.id});
-  button.disabled = false;
-  if (error) { status('announcement-status', error.message, true); return; }
-  event.currentTarget.reset();
-  status('announcement-status', tr('published'));
+  const title=document.getElementById('announcement-title').value.trim();
+  const body=document.getElementById('announcement-body').value.trim();
+  const audience=document.getElementById('announcement-audience').value;
+  const recipients=[...document.querySelectorAll('#announcement-students input:checked')].map(x=>x.value);
+  if(!title||!body)return;
+  if(audience==='selected'&&!recipients.length){status('announcement-status',tr('recipientsRequired'),true);return;}
+  const button=document.getElementById('announcement-submit');button.disabled=true;
+  const wasEditing=!!editingAnnouncementId;
+  const {error}=await supabase.rpc('save_echo_announcement',{
+    announcement_title:title,
+    announcement_body:body,
+    announcement_pinned:document.getElementById('announcement-pinned').checked,
+    announcement_audience:audience,
+    recipient_ids:recipients,
+    target_announcement_id:editingAnnouncementId
+  });
+  button.disabled=false;
+  if(error){status('announcement-status',error.message,true);return;}
+  resetAnnouncementEditor();
+  status('announcement-status',wasEditing?tr('updated'):tr('published'));
   await loadAnnouncements();
 });
 document.getElementById('message-form').addEventListener('submit', async event => {
