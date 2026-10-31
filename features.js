@@ -79,9 +79,6 @@ css.rel = 'stylesheet';
 css.href = '/features.css';
 document.head.append(css);
 
-let editingAnnouncementId = null;
-let announcementStudents = [];
-let unreadCounts = new Map();
 const nav = document.querySelector('.nav-tabs');
 const joinPanel = document.getElementById('panel-join');
 if (!nav || !joinPanel) throw new Error('ECHO dashboard layout was not found.');
