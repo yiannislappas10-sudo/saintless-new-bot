@@ -149,13 +149,29 @@ function toggleDemoEditor(){
  document.getElementById('class-real-student-picker').classList.toggle('hidden',demo);
  document.getElementById('class-demo-picker').classList.toggle('hidden',!demo);
 }
-function moveCursor(n){cursor=new Date(cursor);if(view==='day')cursor.setDate(cursor.getDate()+n);else if(view==='week')cursor.setDate(cursor.getDate()+n*7);else cursor.setMonth(cursor.getMonth()+n);renderClasses();}
+function shiftAthensDate(value,days){
+ const [y,m,d]=value.split('-').map(Number);
+ return new Date(Date.UTC(y,m-1,d+days)).toISOString().slice(0,10);
+}
+function moveCursor(n){
+ const p=athensParts(cursor);let date=p.year+'-'+p.month+'-'+p.day;
+ if(view==='month'){
+  const next=new Date(Date.UTC(Number(p.year),Number(p.month)-1+n,15));
+  date=next.toISOString().slice(0,10);
+ }else date=shiftAthensDate(date,n*(view==='week'?7:1));
+ cursor=new Date(toAthensISO(date+'T12:00'));renderClasses();
+}
 function periodBounds(){
- const d=new Date(cursor);let start=new Date(d),end=new Date(d);
- if(view==='day'){start.setHours(0,0,0,0);end.setHours(23,59,59,999);}
- if(view==='week'){const day=(d.getDay()+6)%7;start.setDate(d.getDate()-day);start.setHours(0,0,0,0);end=new Date(start);end.setDate(start.getDate()+7);}
- if(view==='month'){start=new Date(d.getFullYear(),d.getMonth(),1);end=new Date(d.getFullYear(),d.getMonth()+1,1);}
- return [start,end];
+ const p=athensParts(cursor),date=p.year+'-'+p.month+'-'+p.day;
+ if(view==='day')return [new Date(toAthensISO(date+'T00:00')),new Date(toAthensISO(shiftAthensDate(date,1)+'T00:00'))];
+ if(view==='week'){
+  const utcDay=new Date(Date.UTC(Number(p.year),Number(p.month)-1,Number(p.day))).getUTCDay();
+  const monday=shiftAthensDate(date,-((utcDay+6)%7));
+  return [new Date(toAthensISO(monday+'T00:00')),new Date(toAthensISO(shiftAthensDate(monday,7)+'T00:00'))];
+ }
+ const first=p.year+'-'+p.month+'-01';
+ const next=new Date(Date.UTC(Number(p.year),Number(p.month),1)).toISOString().slice(0,10);
+ return [new Date(toAthensISO(first+'T00:00')),new Date(toAthensISO(next+'T00:00'))];
 }
 function classStatus(c){if(c.status==='cancelled')return 'cancelled';if(c.liveRoom?.status==='live')return 'live';if(Date.now()>new Date(c.ends_at).getTime())return 'completed';return 'upcoming';}
 function dateKey(value){
@@ -198,19 +214,19 @@ function renderClasses(){
  for(let i=0;i<7;i++){const h=document.createElement('div');h.className='class-calendar-weekday';h.textContent=lang()==='el'?['Δευ','Τρί','Τετ','Πέμ','Παρ','Σάβ','Κυρ'][i]:headings[i];grid.append(h);}
  if(view==='week'){
   for(let i=0;i<7;i++){
-   const day=new Date(start);day.setDate(start.getDate()+i);day.setHours(12,0,0,0);
+   const startDate=dateKey(start),dayDate=shiftAthensDate(startDate,i),day=new Date(toAthensISO(dayDate+'T12:00'));
    const cell=document.createElement('section');cell.className='class-calendar-cell';
    const head=document.createElement('div');head.className='class-calendar-day-title';head.textContent=new Intl.DateTimeFormat(lang()==='el'?'el-GR':'en-GB',{timeZone:ZONE,weekday:'short',day:'numeric',month:'short'}).format(day);cell.append(head);
-   const key=dateKey(day);const dayRows=rows.filter(x=>dateKey(x.starts_at)===key);
+   const key=dayDate;const dayRows=rows.filter(x=>dateKey(x.starts_at)===key);
    if(!dayRows.length){const empty=document.createElement('span');empty.className='class-calendar-none';empty.textContent='—';cell.append(empty);}
    else for(const item of dayRows)cell.append(makeCalendarEvent(item));
    grid.append(cell);
   }
  }else{
-  const year=start.getFullYear(),month=start.getMonth(),days=new Date(year,month+1,0).getDate(),offset=(new Date(year,month,1).getDay()+6)%7;
+  const parts=athensParts(start),year=Number(parts.year),month=Number(parts.month),days=new Date(Date.UTC(year,month,0)).getUTCDate(),offset=(new Date(Date.UTC(year,month-1,1)).getUTCDay()+6)%7;
   for(let i=0;i<offset;i++){const blank=document.createElement('div');blank.className='class-calendar-cell blank';grid.append(blank);}
   for(let dayNo=1;dayNo<=days;dayNo++){
-   const day=new Date(year,month,dayNo,12);const cell=document.createElement('section');cell.className='class-calendar-cell';
+   const day=new Date(toAthensISO(String(year).padStart(4,'0')+'-'+String(month).padStart(2,'0')+'-'+String(dayNo).padStart(2,'0')+'T12:00'));const cell=document.createElement('section');cell.className='class-calendar-cell';
    const head=document.createElement('div');head.className='class-calendar-day-title';head.textContent=String(dayNo);cell.append(head);
    for(const item of rows.filter(x=>dateKey(x.starts_at)===dateKey(day)))cell.append(makeCalendarEvent(item));
    grid.append(cell);
