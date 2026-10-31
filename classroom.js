@@ -350,16 +350,16 @@ async function openPrejoin(classId){
  document.getElementById('class-room-enter').disabled=true;
  roomOverlay.classList.remove('hidden');setRoomStatus(t('mediaConnecting'));
  try{
-  let stream;
+  const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+  let cameraAvailable=false;
   try{
-   stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}});
-  }catch(videoError){
-   if(['NotAllowedError','SecurityError','NotReadableError'].includes(videoError?.name))throw videoError;
-   stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
-  }
+   const camera=await navigator.mediaDevices.getUserMedia({audio:false,video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}});
+   const cameraTrack=camera.getVideoTracks()[0];
+   if(cameraTrack){stream.addTrack(cameraTrack);cameraAvailable=true;}
+  }catch(_){}
   if(activeRoom!==room){stream.getTracks().forEach(track=>track.stop());return;}
   room.previewStream=stream;
-  const video=document.getElementById('class-preview-video'),hasVideo=stream.getVideoTracks().length>0;
+  const video=document.getElementById('class-preview-video'),hasVideo=cameraAvailable&&stream.getVideoTracks().length>0;
   video.srcObject=stream;video.classList.toggle('hidden',!hasVideo);
   document.getElementById('class-preview-placeholder').textContent=hasVideo?'':t('cameraUnavailable');
   document.getElementById('class-mic-toggle').textContent=t('mute');
