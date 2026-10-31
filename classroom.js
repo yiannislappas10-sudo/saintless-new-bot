@@ -1,5 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+const classroomStyle = document.createElement('link');
+classroomStyle.rel = 'stylesheet';
+classroomStyle.href = '/classroom.css';
+document.head.append(classroomStyle);
+
 const OWNER_EMAIL = 'yiannislappas8@gmail.com';
 const ZONE = 'Europe/Athens';
 const lang = () => localStorage.getItem('echo-language') === 'el' ? 'el' : 'en';
@@ -20,9 +25,9 @@ const words = {
     occurrences:'Number of weeks',status:'Status',professor:'Professor',participants:'participants',
     noTitle:'Enter a class name.',invalidTime:'End time must be after start time.',
     studentsRequired:'Assign at least one student, or explicitly allow unassigned students.',
-    demoMode:'Demo classes are visible only to the Primary Owner.',
+    demoMode:'Demo classes are visible only to the Primary Owner.',demoStudents:'Demo participants (one name per line)',allowUnassigned:'Allow students not assigned to this class',noMaterials:'No learning materials added yet.',materialTitle:'Material title',materialURL:'Secure link (https://)',addMaterial:'Add material',attendance:'Attendance',noAttendance:'No attendance recorded yet.',
     testTab:'Testing Center',testTitle:'Platform checks',testIntro:'Checks report actual service responses. No test will change real classes.',
-    authCheck:'Authentication session',dbCheck:'Class database access',roleCheck:'Owner permissions',
+    authCheck:'Authentication session',dbCheck:'Class database access',roleCheck:'Owner permissions',demoCrudCheck:'Isolated demo create, read, update and delete',mediaCheck:'Camera and microphone permissions',
     runChecks:'Run checks',passed:'Passed',failed:'Failed',notTested:'Not tested',
     migration:'Classroom database migration is required before classes can be used.',
     liveUnavailable:'Live audio/video is not configured yet. The class schedule and attendance are separate and remain available.',
@@ -44,9 +49,9 @@ const words = {
     occurrences:'Αριθμός εβδομάδων',status:'Κατάσταση',professor:'Καθηγητής',participants:'συμμετέχοντες',
     noTitle:'Συμπληρώστε το όνομα του μαθήματος.',invalidTime:'Η ώρα λήξης πρέπει να είναι μετά την έναρξη.',
     studentsRequired:'Αναθέστε τουλάχιστον έναν μαθητή ή επιτρέψτε ρητά τη συμμετοχή χωρίς ανάθεση.',
-    demoMode:'Οι δοκιμαστικές τάξεις είναι ορατές μόνο στον Κύριο Ιδιοκτήτη.',
+    demoMode:'Οι δοκιμαστικές τάξεις είναι ορατές μόνο στον Κύριο Ιδιοκτήτη.',demoStudents:'Δοκιμαστικοί συμμετέχοντες (ένα όνομα ανά γραμμή)',allowUnassigned:'Επιτρέπονται μαθητές χωρίς ανάθεση',noMaterials:'Δεν έχουν προστεθεί εκπαιδευτικά αρχεία.',materialTitle:'Τίτλος υλικού',materialURL:'Ασφαλής σύνδεσμος (https://)',addMaterial:'Προσθήκη υλικού',attendance:'Παρουσίες',noAttendance:'Δεν υπάρχουν καταχωρημένες παρουσίες.',
     testTab:'Κέντρο δοκιμών',testTitle:'Έλεγχοι πλατφόρμας',testIntro:'Οι έλεγχοι βασίζονται σε πραγματικές απαντήσεις υπηρεσιών.',
-    authCheck:'Συνεδρία σύνδεσης',dbCheck:'Πρόσβαση στη βάση μαθημάτων',roleCheck:'Δικαιώματα ιδιοκτήτη',
+    authCheck:'Συνεδρία σύνδεσης',dbCheck:'Πρόσβαση στη βάση μαθημάτων',roleCheck:'Δικαιώματα ιδιοκτήτη',demoCrudCheck:'Δημιουργία, ανάγνωση, επεξεργασία και διαγραφή demo',mediaCheck:'Άδειες κάμερας και μικροφώνου',
     runChecks:'Εκτέλεση ελέγχων',passed:'Επιτυχία',failed:'Αποτυχία',notTested:'Δεν ελέγχθηκε',
     migration:'Απαιτείται η μεταφορά της βάσης μαθημάτων.',liveUnavailable:'Δεν έχει ρυθμιστεί ακόμη η ζωντανή κλήση ήχου/εικόνας.',
     rosterError:'Δεν ήταν δυνατή η ενημέρωση των μαθητών.'
@@ -68,8 +73,11 @@ function toAthensISO(value){
 function fromISO(value){const p=athensParts(new Date(value));return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute;}
 let db=null,user=null,profile=null,isOwner=false,classes=[],students=[],selected=null,view='week',cursor=new Date();
 const nav=document.querySelector('.nav-tabs');
-const after=document.getElementById('owner-tab')||nav.lastElementChild;
-const tab=document.createElement('button');tab.className='tab';tab.type='button';tab.dataset.tab='classes';tab.textContent=t('tab');nav.append(tab);
+nav.querySelector('[data-tab="schedule"]')?.remove();
+nav.querySelector('[data-tab="join"]')?.remove();
+document.getElementById('panel-schedule')?.remove();
+document.getElementById('panel-join')?.remove();
+const tab=document.createElement('button');tab.className='tab';tab.type='button';tab.dataset.tab='classes';tab.textContent=t('tab');nav.insertBefore(tab,nav.children[1]||null);
 const testTab=document.createElement('button');testTab.className='tab hidden';testTab.type='button';testTab.dataset.tab='testing';testTab.textContent=t('testTab');nav.append(testTab);
 const host=document.querySelector('.app-main');
 const panel=document.createElement('section');panel.className='panel';panel.id='panel-classes';
@@ -85,7 +93,8 @@ panel.innerHTML=`
    <label>${t('start')}<input id="class-start" type="datetime-local" required></label>
    <label>${t('end')}<input id="class-end" type="datetime-local" required></label>
   </div>
-  <div class="class-student-picker"><strong>${t('students')}</strong><div id="class-student-options"></div></div>
+  <div class="class-student-picker" id="class-real-student-picker"><strong>${t('students')}</strong><div id="class-student-options"></div></div>
+  <div class="class-demo-picker hidden" id="class-demo-picker"><label>${t('demoStudents')}<textarea id="class-demo-names" rows="3" maxlength="1200" placeholder="Demo Student 1&#10;Demo Student 2"></textarea></label></div>
   <div class="class-form-options"><label class="class-inline"><input id="class-open" type="checkbox"> Allow students not assigned to this class</label>
    <label class="class-inline"><input id="class-demo" type="checkbox"> ${t('demo')}</label>
    <label class="class-inline"><input id="class-repeat" type="checkbox"> ${t('recurrence')} <input id="class-repeat-count" type="number" min="2" max="16" value="4" class="class-repeat-count"></label>
@@ -106,7 +115,13 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
 document.getElementById('class-prev').addEventListener('click',()=>moveCursor(-1));
 document.getElementById('class-next').addEventListener('click',()=>moveCursor(1));
 document.getElementById('class-form').addEventListener('submit',saveClass);
+document.getElementById('class-demo').addEventListener('change',toggleDemoEditor);
 document.getElementById('class-run-checks').addEventListener('click',runChecks);
+function toggleDemoEditor(){
+ const demo=isOwner&&document.getElementById('class-demo').checked;
+ document.getElementById('class-real-student-picker').classList.toggle('hidden',demo);
+ document.getElementById('class-demo-picker').classList.toggle('hidden',!demo);
+}
 function moveCursor(n){cursor=new Date(cursor);if(view==='day')cursor.setDate(cursor.getDate()+n);else if(view==='week')cursor.setDate(cursor.getDate()+n*7);else cursor.setMonth(cursor.getMonth()+n);renderClasses();}
 function periodBounds(){
  const d=new Date(cursor);let start=new Date(d),end=new Date(d);
@@ -144,14 +159,23 @@ async function loadStudents(){
 async function loadClasses(){
  const query=db.from('classes').select('id,title,subject,description,image_url,starts_at,ends_at,status,allow_unassigned,is_demo,created_by').order('starts_at',{ascending:true});
  const {data,error}=await query;if(error)throw error;
- const rows=data||[];
- if(rows.length){
-  const ids=rows.map(x=>x.id);
-  const {data:enrollments,error:e}=await db.from('class_enrollments').select('class_id,student_id,is_demo').in('class_id',ids);
-  if(e)throw e;
-  const profiles=students.length?students:((await db.from('profiles').select('id,display_name,role')).data||[]);
-  const names=new Map(profiles.map(p=>[p.id,p.display_name]));
-  for(const row of rows)row.roster=(enrollments||[]).filter(x=>x.class_id===row.id).map(x=>({id:x.student_id,display_name:names.get(x.student_id)||'Student'}));
+ const rows=data||[], ids=rows.map(x=>x.id);
+ for(const row of rows)row.roster=[];
+ if(ids.length){
+  const {data:rosters,error:rosterError}=await db.rpc('get_echo_class_rosters',{target_class_ids:ids});
+  if(rosterError)throw rosterError;
+  for(const person of rosters||[]){
+   const row=rows.find(x=>x.id===person.class_id);
+   if(row)row.roster.push({id:person.student_id,display_name:person.display_name||'Student'});
+  }
+  if(isOwner){
+   const {data:demoRows,error:demoError}=await db.rpc('get_echo_demo_rosters',{target_class_ids:ids});
+   if(demoError)throw demoError;
+   for(const person of demoRows||[]){
+    const row=rows.find(x=>x.id===person.class_id);
+    if(row)row.roster.push({id:null,display_name:person.display_name});
+   }
+  }
  }
  classes=rows;renderClasses();
 }
@@ -169,7 +193,9 @@ function openEditor(c=null){
  document.getElementById('class-open').checked=!!c?.allow_unassigned;
  document.getElementById('class-demo').checked=!!c?.is_demo&&isOwner;
  document.getElementById('class-demo').disabled=!isOwner;
- const assigned=new Set((c?.roster||[]).map(x=>x.id));const opts=document.getElementById('class-student-options');opts.replaceChildren();
+ document.getElementById('class-demo-names').value=(c?.is_demo?(c.roster||[]).map(x=>x.display_name).join('\n'):'');
+ toggleDemoEditor();
+ const assigned=new Set((c?.roster||[]).map(x=>x.id).filter(Boolean));const opts=document.getElementById('class-student-options');opts.replaceChildren();
  if(!students.length){opts.textContent=t('noStudents');}
  for(const student of students){const label=document.createElement('label');label.className='class-student-option';const box=document.createElement('input');box.type='checkbox';box.value=student.id;box.checked=assigned.has(student.id);const span=document.createElement('span');span.textContent=student.display_name||'Student';label.append(box,span);opts.append(label);}
  document.getElementById('class-repeat').checked=false;document.getElementById('class-repeat').disabled=!!c;
@@ -178,16 +204,22 @@ function openEditor(c=null){
  document.getElementById('class-editor').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function closeEditor(){document.getElementById('class-editor').classList.add('hidden');selected=null;}
+function addWeeksLocal(value,weeks){
+ const [date,time]=value.split('T'),[y,m,d]=date.split('-').map(Number);
+ const next=new Date(Date.UTC(y,m-1,d+weeks*7));
+ return next.toISOString().slice(0,10)+'T'+time;
+}
 async function saveClass(event){
  event.preventDefault();const status=document.getElementById('class-form-status');status.textContent='';
  const title=document.getElementById('class-title').value.trim(),subject=document.getElementById('class-subject').value.trim();
  if(!title){status.textContent=t('noTitle');return;}
  let starts_at,ends_at;try{starts_at=toAthensISO(document.getElementById('class-start').value);ends_at=toAthensISO(document.getElementById('class-end').value);}catch{status.textContent=t('invalidTime');return;}
  if(new Date(ends_at)<=new Date(starts_at)){status.textContent=t('invalidTime');return;}
- const picked=[...document.querySelectorAll('#class-student-options input:checked')].map(x=>x.value);
- const allow=document.getElementById('class-open').checked;
- if(!picked.length&&!allow){status.textContent=t('studentsRequired');return;}
  const demo=isOwner&&document.getElementById('class-demo').checked;
+ const picked=demo?[]:[...document.querySelectorAll('#class-student-options input:checked')].map(x=>x.value);
+ const demoNames=demo?[...new Set(document.getElementById('class-demo-names').value.split('\n').map(x=>x.trim()).filter(Boolean))]:[];
+ const allow=document.getElementById('class-open').checked;
+ if((demo?!demoNames.length:!picked.length)&&!allow){status.textContent=t('studentsRequired');return;}
  const base={title,subject,description:document.getElementById('class-description').value.trim(),image_url:document.getElementById('class-image').value.trim()||null,starts_at,ends_at,timezone:ZONE,allow_unassigned:allow,is_demo:demo,status:'scheduled',created_by:user.id};
  const button=document.getElementById('class-save');button.disabled=true;
  try{
@@ -196,13 +228,17 @@ async function saveClass(event){
    const {data,error}=await db.from('classes').update({...base,created_by:undefined,updated_at:new Date().toISOString()}).eq('id',selected).select('id').single();
    if(error)throw error;savedRows=[data];
    const {error:delError}=await db.from('class_enrollments').delete().eq('class_id',selected);if(delError)throw delError;
+   const {error:demoDelError}=await db.from('class_demo_participants').delete().eq('class_id',selected);if(demoDelError)throw demoDelError;
   }else{
    const repeat=document.getElementById('class-repeat').checked?Math.max(2,Math.min(16,Number(document.getElementById('class-repeat-count').value)||4)):1;
-   const records=Array.from({length:repeat},(_,i)=>({...base,starts_at:new Date(new Date(starts_at).getTime()+i*7*86400000).toISOString(),ends_at:new Date(new Date(ends_at).getTime()+i*7*86400000).toISOString()}));
+   const records=Array.from({length:repeat},(_,i)=>({...base,starts_at:toAthensISO(addWeeksLocal(document.getElementById('class-start').value,i)),ends_at:toAthensISO(addWeeksLocal(document.getElementById('class-end').value,i))}));
    const {data,error}=await db.from('classes').insert(records).select('id');if(error)throw error;savedRows=data||[];
   }
-  if(picked.length){
-   const enrollments=savedRows.flatMap(r=>picked.map(student_id=>({class_id:r.id,student_id,assigned_by:user.id,is_demo:demo})));
+  if(demo&&demoNames.length){
+   const demoRows=savedRows.flatMap(r=>demoNames.map(display_name=>({class_id:r.id,display_name})));
+   const {error}=await db.from('class_demo_participants').insert(demoRows);if(error)throw error;
+  }else if(picked.length){
+   const enrollments=savedRows.flatMap(r=>picked.map(student_id=>({class_id:r.id,student_id,assigned_by:user.id,is_demo:false})));
    const {error}=await db.from('class_enrollments').insert(enrollments);if(error)throw error;
   }
   closeEditor();status.textContent=t('saved');await loadClasses();
@@ -215,13 +251,38 @@ function showDetail(id){
  const head=document.createElement('div');head.className='class-detail-head';
  const title=document.createElement('h3');title.textContent=c.title;
  const close=document.createElement('button');close.className='btn';close.type='button';close.textContent=t('close');close.onclick=()=>detail.classList.add('hidden');head.append(title,close);
+ if(c.image_url){
+  try{const imageURL=new URL(c.image_url);if(imageURL.protocol==='https:'){const img=document.createElement('img');img.className='class-detail-image';img.src=imageURL.href;img.alt=c.title;img.loading='lazy';img.referrerPolicy='no-referrer';detail.append(img);}}catch{}
+ }
  const desc=document.createElement('p');desc.textContent=c.description||c.subject;
+ const state=classStatus(c),stateLine=document.createElement('p');stateLine.className='class-detail-meta';stateLine.textContent=t(state)+' · '+t('professor');
  const info=document.createElement('p');info.textContent=fmt(c.starts_at)+' – '+fmt(c.ends_at)+' · '+c.subject;
  const roster=document.createElement('div');roster.className='class-detail-roster';const rosterTitle=document.createElement('strong');rosterTitle.textContent=t('roster');roster.append(rosterTitle);
  for(const person of c.roster||[]){const p=document.createElement('p');p.textContent=person.display_name;roster.append(p);}
  if(!c.roster?.length){const p=document.createElement('p');p.textContent=t('noRoster');roster.append(p);}
- detail.append(head,info,desc,roster);
- const state=classStatus(c);const join=document.createElement('button');join.type='button';join.className='btn btn-dark';join.textContent=t('join');join.disabled=state==='cancelled'||state==='completed';
+ detail.append(head,info,stateLine,desc,roster);
+ const materialArea=document.createElement('div');materialArea.className='class-detail-roster';const materialsTitle=document.createElement('strong');materialsTitle.textContent=t('materials');materialArea.append(materialsTitle);
+ const {data:materials,error:materialsError}=await db.from('class_materials').select('id,title,description,resource_url,created_at').eq('class_id',c.id).order('created_at',{ascending:false});
+ if(materialsError){const m=document.createElement('p');m.textContent=materialsError.message; m.className='class-form-status error';materialArea.append(m);}
+ else if(!materials?.length){const m=document.createElement('p');m.textContent=t('noMaterials');materialArea.append(m);}
+ else for(const item of materials){const p=document.createElement('p');const a=document.createElement('a');a.href=item.resource_url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=item.title;p.append(a);if(item.description)p.append(document.createTextNode(' — '+item.description));materialArea.append(p);}
+ if(professorMode()){
+  const add=document.createElement('form');add.className='class-material-form';
+  const nm=document.createElement('input');nm.placeholder=t('materialTitle');nm.maxLength=160;nm.required=true;
+  const url=document.createElement('input');url.type='url';url.placeholder=t('materialURL');url.required=true;
+  const submit=document.createElement('button');submit.type='submit';submit.className='btn btn-dark';submit.textContent=t('addMaterial');
+  add.append(nm,url,submit);add.addEventListener('submit',async ev=>{ev.preventDefault();let parsed;try{parsed=new URL(url.value)}catch{return;}if(parsed.protocol!=='https:')return;submit.disabled=true;const {error}=await db.from('class_materials').insert({class_id:c.id,title:nm.value.trim(),resource_url:parsed.href,created_by:user.id});submit.disabled=false;if(error){alert(error.message);return;}showDetail(c.id);});materialArea.append(add);
+ }
+ detail.append(materialArea);
+ if(professorMode()){
+  const attendance=document.createElement('div');attendance.className='class-detail-roster';const ah=document.createElement('strong');ah.textContent=t('attendance');attendance.append(ah);
+  const {data:records,error:attendanceError}=await db.rpc('get_echo_class_attendance',{target_class_id:c.id});
+  if(attendanceError){const p=document.createElement('p');p.textContent=attendanceError.message;attendance.append(p);}
+  else if(!records?.length){const p=document.createElement('p');p.textContent=t('noAttendance');attendance.append(p);}
+  else for(const record of records){const p=document.createElement('p');p.textContent=record.display_name+' · '+fmt(record.joined_at)+(record.left_at?' – '+fmt(record.left_at):' · '+t('live'));attendance.append(p);}
+  detail.append(attendance);
+ }
+ const join=document.createElement('button');join.type='button';join.className='btn btn-dark';join.textContent=t('join');join.disabled=state==='cancelled'||state==='completed';
  join.addEventListener('click',async()=>{
   join.disabled=true;
   const {data,error}=await db.rpc('join_echo_class',{target_class_id:c.id});
@@ -240,7 +301,31 @@ function showDetail(id){
 function professorMode(){return isOwner||profile?.role==='professor';}
 async function runChecks(){
  const area=document.getElementById('class-test-results');area.replaceChildren();
- const tests=[{name:t('authCheck'),run:async()=>!!(await db.auth.getSession()).data.session},{name:t('dbCheck'),run:async()=>{const r=await db.from('classes').select('id').limit(1);if(r.error)throw r.error;return true;}},{name:t('roleCheck'),run:async()=>{const r=await db.rpc('is_echo_owner');if(r.error)throw r.error;if(!r.data)throw new Error('Owner permission check returned false');return true;}}];
+ const tests=[
+  {name:t('authCheck'),run:async()=>{const r=await db.auth.getSession();if(r.error)throw r.error;if(!r.data.session)throw new Error('No active session');return true;}},
+  {name:t('dbCheck'),run:async()=>{const r=await db.from('classes').select('id').limit(1);if(r.error)throw r.error;return true;}},
+  {name:t('roleCheck'),run:async()=>{const r=await db.rpc('is_echo_owner');if(r.error)throw r.error;if(!r.data)throw new Error('Owner permission check returned false');return true;}},
+  {name:t('demoCrudCheck'),run:async()=>{
+    const start=new Date(Date.now()+3600000),end=new Date(Date.now()+7200000);
+    const row={title:'ECHO isolated system test',subject:'System check',description:'Temporary owner-only test record.',starts_at:start.toISOString(),ends_at:end.toISOString(),timezone:ZONE,is_demo:true,created_by:user.id};
+    let id=null;
+    try{
+      const created=await db.from('classes').insert(row).select('id').single();if(created.error)throw created.error;id=created.data.id;
+      const participant=await db.from('class_demo_participants').insert({class_id:id,display_name:'Demo Student'});if(participant.error)throw participant.error;
+      const read=await db.from('classes').select('title').eq('id',id).single();if(read.error)throw read.error;if(read.data.title!==row.title)throw new Error('Saved record did not match.');
+      const updated=await db.from('classes').update({title:'ECHO test updated'}).eq('id',id);if(updated.error)throw updated.error;
+      const check=await db.from('classes').select('title').eq('id',id).single();if(check.error)throw check.error;if(check.data.title!=='ECHO test updated')throw new Error('Update did not persist.');
+      return true;
+    }finally{if(id){await db.from('class_demo_participants').delete().eq('class_id',id);await db.from('classes').delete().eq('id',id);}}
+  }},
+  {name:t('mediaCheck'),run:async()=>{
+    if(!navigator.mediaDevices?.getUserMedia)throw new Error('Browser media APIs are unavailable.');
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
+    const tracks=stream.getTracks();const hasAudio=tracks.some(x=>x.kind==='audio'),hasVideo=tracks.some(x=>x.kind==='video');
+    tracks.forEach(x=>x.stop());if(!hasAudio||!hasVideo)throw new Error('A camera or microphone track was not returned.');
+    return true;
+  }}
+ ];
  for(const test of tests){const row=document.createElement('div');row.className='class-test-row';const name=document.createElement('span');name.textContent=test.name;const result=document.createElement('strong');result.textContent=t('notTested');result.className='not-tested';row.append(name,result);area.append(row);
   try{const ok=await test.run();result.textContent=t(ok?'passed':'failed');result.className=ok?'passed':'failed';}
   catch(e){result.textContent=t('failed')+' · '+(e.message||'Error');result.className='failed';}
@@ -252,6 +337,17 @@ function applyLanguage(){
  document.getElementById('class-new').textContent=t('create');
  document.querySelectorAll('[data-view]').forEach(b=>b.textContent=t(b.dataset.view));
  document.getElementById('class-run-checks').textContent=t('runChecks');
+ const labels=panel.querySelectorAll('.class-form-grid label');
+ const labelCopy=[t('name'),t('subject'),t('description'),t('image'),t('start'),t('end')];
+ labels.forEach((node,i)=>{if(labelCopy[i])node.childNodes[0].textContent=labelCopy[i];});
+ panel.querySelector('.class-student-picker strong').textContent=t('students');
+ panel.querySelector('#class-demo-picker label').childNodes[0].textContent=t('demoStudents');
+ document.getElementById('class-cancel').textContent=t('cancel');
+ document.getElementById('class-save').textContent=t('save');
+ document.querySelector('.class-inline #class-open').parentElement.childNodes[1].textContent=' '+t('allowUnassigned');
+ document.querySelector('.class-inline #class-demo').parentElement.childNodes[1].textContent=' '+t('demo');
+ document.querySelector('.class-inline #class-repeat').parentElement.childNodes[1].textContent=' '+t('recurrence')+' ';
+ toggleDemoEditor();
 }
 async function boot(session){
  user=session.user;isOwner=(user.email||'').toLowerCase()===OWNER_EMAIL;
