@@ -32,7 +32,7 @@ const words = {
     migration:'Classroom database migration is required before classes can be used.',
     liveUnavailable:'Live audio/video is not configured yet. The class schedule and attendance are separate and remain available.',
     rosterError:'Could not update the student list. Review the class and try again.',
-    fullScreen:'Full screen',exitFullScreen:'Exit full screen',shareScreen:'Share screen',stopSharing:'Stop sharing',screenShareUnavailable:'Screen sharing is not available in this browser.',screenShareDenied:'Screen sharing permission was denied.',raiseHand:'Raise hand',lowerHand:'Lower hand',handRaised:'Hand raised',reactions:'Reactions',muteParticipant:'Mute participant',unmuteParticipant:'Allow microphone',stopParticipantShare:'Stop screen share',removeParticipant:'Remove from meeting',readmit:'Restore meeting access',removedFromMeeting:'The teacher removed you from this meeting.',mutedByTeacher:'Your microphone was muted by the teacher.',teacherMuted:'The teacher has muted your microphone.',reactionSent:'Reaction sent',meetingControls:'Meeting controls',sharing:'Sharing screen',noScreenShare:'No one is sharing a screen.',
+    fullScreen:'Full screen',exitFullScreen:'Exit full screen',shareScreen:'Share screen',stopSharing:'Stop sharing',screenShareUnavailable:'Screen sharing is not available in this browser.',screenShareDenied:'Screen sharing permission was denied.',raiseHand:'Raise hand',lowerHand:'Lower hand',handRaised:'Hand raised',reactions:'Reactions',muteParticipant:'Mute participant',unmuteParticipant:'Allow microphone',turnCameraOff:'Turn camera off',allowCamera:'Allow camera',stopParticipantShare:'Stop screen share',removeParticipant:'Remove from meeting',readmit:'Restore meeting access',removedFromMeeting:'The teacher removed you from this meeting.',mutedByTeacher:'Your microphone was muted by the teacher.',teacherMuted:'The teacher has muted your microphone.',reactionSent:'Reaction sent',meetingControls:'Meeting controls',sharing:'Sharing screen',noScreenShare:'No one is sharing a screen.',
   },
   el:{
     tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',speakerOutput:'Έλεγχος ήχου ηχείων',sfuCheck:'Σύνδεση με τον διακομιστή ζωντανής μετάδοσης',announcementCheck:'Πρόσβαση στη βάση ανακοινώσεων',messageCheck:'Πρόσβαση στη βάση μηνυμάτων',profileCheck:'Πρόσβαση στο προφίλ σας',speakerQuestion:'Ακούσατε καθαρά τον δοκιμαστικό ήχο;',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε ή έληξε. Ελέγξτε το δίκτυο, τις άδειες και τη συσκευή σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',tapUnmute:'Πατήστε στο βίντεο ενός συμμετέχοντα για ενεργοποίηση του ήχου.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
@@ -56,7 +56,7 @@ const words = {
     runChecks:'Εκτέλεση ελέγχων',passed:'Επιτυχία',failed:'Αποτυχία',notTested:'Δεν ελέγχθηκε',
     migration:'Απαιτείται η μεταφορά της βάσης μαθημάτων.',liveUnavailable:'Δεν έχει ρυθμιστεί ακόμη η ζωντανή κλήση ήχου/εικόνας.',
     rosterError:'Δεν ήταν δυνατή η ενημέρωση των μαθητών.',
-    fullScreen:'Πλήρης οθόνη',exitFullScreen:'Έξοδος πλήρους οθόνης',shareScreen:'Κοινή χρήση οθόνης',stopSharing:'Διακοπή κοινής χρήσης',screenShareUnavailable:'Η κοινή χρήση οθόνης δεν υποστηρίζεται σε αυτό το πρόγραμμα περιήγησης.',screenShareDenied:'Δεν δόθηκε άδεια για κοινή χρήση οθόνης.',raiseHand:'Σήκωμα χεριού',lowerHand:'Κατέβασμα χεριού',handRaised:'Σηκωμένο χέρι',reactions:'Αντιδράσεις',muteParticipant:'Σίγαση συμμετέχοντα',unmuteParticipant:'Ενεργοποίηση μικροφώνου',stopParticipantShare:'Διακοπή κοινής χρήσης οθόνης',removeParticipant:'Αφαίρεση από τη συνάντηση',readmit:'Επαναφορά πρόσβασης στη συνάντηση',removedFromMeeting:'Ο καθηγητής σας αφαίρεσε από τη συνάντηση.',mutedByTeacher:'Ο καθηγητής έκανε σίγαση στο μικρόφωνό σας.',teacherMuted:'Ο καθηγητής έχει κάνει σίγαση στο μικρόφωνό σας.',reactionSent:'Η αντίδραση στάλθηκε',meetingControls:'Έλεγχος συνάντησης',sharing:'Κοινή χρήση οθόνης',noScreenShare:'Κανείς δεν μοιράζεται την οθόνη του.'
+    fullScreen:'Πλήρης οθόνη',exitFullScreen:'Έξοδος πλήρους οθόνης',shareScreen:'Κοινή χρήση οθόνης',stopSharing:'Διακοπή κοινής χρήσης',screenShareUnavailable:'Η κοινή χρήση οθόνης δεν υποστηρίζεται σε αυτό το πρόγραμμα περιήγησης.',screenShareDenied:'Δεν δόθηκε άδεια για κοινή χρήση οθόνης.',raiseHand:'Σήκωμα χεριού',lowerHand:'Κατέβασμα χεριού',handRaised:'Σηκωμένο χέρι',reactions:'Αντιδράσεις',muteParticipant:'Σίγαση συμμετέχοντα',unmuteParticipant:'Ενεργοποίηση μικροφώνου',turnCameraOff:'Απενεργοποίηση κάμερας',allowCamera:'Ενεργοποίηση κάμερας',stopParticipantShare:'Διακοπή κοινής χρήσης οθόνης',removeParticipant:'Αφαίρεση από τη συνάντηση',readmit:'Επαναφορά πρόσβασης στη συνάντηση',removedFromMeeting:'Ο καθηγητής σας αφαίρεσε από τη συνάντηση.',mutedByTeacher:'Ο καθηγητής έκανε σίγαση στο μικρόφωνό σας.',teacherMuted:'Ο καθηγητής έχει κάνει σίγαση στο μικρόφωνό σας.',reactionSent:'Η αντίδραση στάλθηκε',meetingControls:'Έλεγχος συνάντησης',sharing:'Κοινή χρήση οθόνης',noScreenShare:'Κανείς δεν μοιράζεται την οθόνη του.'
   }
 };
 const t = key => words[lang()][key] || words.en[key] || key;
@@ -410,7 +410,7 @@ async function openPrejoin(classId){
  if(activeRoom||callJoinPending)return;
  const c=classes.find(item=>item.id===classId);if(!c||c.is_demo)return;
  callJoinPending=true;
- const room={classId,klass:c,previewStream:null,publisher:null,subscriptions:new Map(),poller:null,attendanceId:null,sessionId:null,inClass:false,syncing:false,channel:null,screenStream:null,screenSender:null,screenTransceiver:null,screenStopping:false,teacherMuted:false,localMicMuted:false,handRaised:false,controlsMap:new Map(),sharingUsers:new Set()};
+ const room={classId,klass:c,previewStream:null,publisher:null,subscriptions:new Map(),poller:null,attendanceId:null,sessionId:null,inClass:false,syncing:false,channel:null,screenStream:null,screenSender:null,screenTransceiver:null,screenStopping:false,teacherMuted:false,teacherCameraOff:false,localMicMuted:false,localCameraOff:false,handRaised:false,controlsMap:new Map(),sharingUsers:new Set()};
  activeRoom=room;
  document.getElementById('class-room-title').textContent=c.title;
  document.getElementById('class-room-prejoin').classList.remove('hidden');
@@ -456,8 +456,19 @@ function setTeacherMuted(muted){
  else setRoomStatus(t('mediaConnected'));
 }
 function toggleRoomCamera(){
- const track=activeRoom?.previewStream?.getVideoTracks()[0];if(!track)return;
- track.enabled=!track.enabled;document.getElementById('class-camera-toggle').textContent=track.enabled?t('cameraOff'):t('cameraOn');document.getElementById('class-live-camera').textContent=track.enabled?t('cameraOff'):t('cameraOn');
+ const room=activeRoom,track=room?.previewStream?.getVideoTracks()[0];if(!track)return;
+ if(room.teacherCameraOff){setRoomStatus(t('teacherMuted'),true);return;}
+ room.localCameraOff=!room.localCameraOff;track.enabled=!room.localCameraOff;
+ const label=track.enabled?t('cameraOff'):t('cameraOn');
+ document.getElementById('class-camera-toggle').textContent=label;document.getElementById('class-live-camera').textContent=label;
+}
+function setTeacherCameraOff(disabled){
+ const room=activeRoom;if(!room)return;room.teacherCameraOff=!!disabled;
+ const track=room.previewStream?.getVideoTracks()[0];if(track)track.enabled=!room.teacherCameraOff&&!room.localCameraOff;
+ const button=document.getElementById('class-live-camera');
+ if(button){button.textContent=room.teacherCameraOff?t('cameraOff'):(room.localCameraOff?t('cameraOn'):t('cameraOff'));button.disabled=room.teacherCameraOff||!track;}
+ if(room.teacherCameraOff)setRoomStatus(t('teacherMuted'),true);
+ else setRoomStatus(t('mediaConnected'));
 }
 async function testRoomSpeaker(){
  try{
@@ -519,6 +530,7 @@ function renderRoomRoster(room,participants){
     addRosterAction(row,t('readmit'),()=>{void moderateParticipant(id,'readmit');});
    }else if(active.has(id)){
     addRosterAction(row,control.teacher_muted?t('unmuteParticipant'):t('muteParticipant'),()=>{void moderateParticipant(id,control.teacher_muted?'unmute':'mute');});
+    addRosterAction(row,control.teacher_camera_off?t('allowCamera'):t('turnCameraOff'),()=>{void moderateParticipant(id,control.teacher_camera_off?'camera-on':'camera-off');});
     if(room.sharingUsers.has(id))addRosterAction(row,t('stopParticipantShare'),()=>{void moderateParticipant(id,'stop-share');},true);
     if(person?.hand_raised)addRosterAction(row,t('lowerHand'),()=>{void moderateParticipant(id,'lower-hand');});
     addRosterAction(row,t('removeParticipant'),()=>{void moderateParticipant(id,'remove');},true);
@@ -590,6 +602,8 @@ async function receiveRoomEvent(room,payload){
  if(payload.type==='moderation'&&payload.targetUserId===user.id){
   if(payload.action==='mute')setTeacherMuted(true);
   if(payload.action==='unmute')setTeacherMuted(false);
+  if(payload.action==='camera-off')setTeacherCameraOff(true);
+  if(payload.action==='camera-on')setTeacherCameraOff(false);
   if(payload.action==='remove'){setRoomStatus(t('removedFromMeeting'),true);await leaveRoom({automatic:true});return;}
   if(payload.action==='stop-share')await stopScreenShare(room,{serverAlreadyStopped:true,remoteEnded:true});
  }
@@ -614,11 +628,11 @@ async function moderateParticipant(targetUserId,action){
   const result=action==='stop-share'
    ? await callApi('/api/classroom/stop-share',{classId:room.classId,targetUserId})
    : await callApi('/api/classroom/moderate',{classId:room.classId,targetUserId,action});
-  if(action==='mute'||action==='unmute'||action==='remove'||action==='stop-share'){
+  if(action==='mute'||action==='unmute'||action==='camera-off'||action==='camera-on'||action==='remove'||action==='stop-share'){
    await broadcastRoomEvent({type:'moderation',action,targetUserId});
   }
   if(action==='lower-hand')setRoomStatus(t('lowerHand'));
-  else setRoomStatus(action==='remove'?t('removeParticipant'):action==='readmit'?t('readmit'):action==='stop-share'?t('stopParticipantShare'):action==='mute'?t('muteParticipant'):t('unmuteParticipant'));
+  else setRoomStatus(action==='remove'?t('removeParticipant'):action==='readmit'?t('readmit'):action==='stop-share'?t('stopParticipantShare'):action==='camera-off'?t('turnCameraOff'):action==='camera-on'?t('allowCamera'):action==='mute'?t('muteParticipant'):t('unmuteParticipant'));
   await syncClassroom(room);
   return result;
  }catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
@@ -678,7 +692,7 @@ async function syncClassroom(room){
   const [participantResult,publicationResult,controlResult]=await Promise.all([
    db.from('class_room_participants').select('user_id,display_name,session_id,status,joined_at,last_seen_at,hand_raised,hand_raised_at').eq('class_id',room.classId),
    db.from('class_room_publications').select('user_id,session_id,track_name').eq('class_id',room.classId),
-   db.from('class_room_controls').select('user_id,teacher_muted,removed').eq('class_id',room.classId)
+   db.from('class_room_controls').select('user_id,teacher_muted,teacher_camera_off,removed').eq('class_id',room.classId)
   ]);
   if(participantResult.error)throw participantResult.error;if(publicationResult.error)throw publicationResult.error;if(controlResult.error)throw controlResult.error;
   const participants=participantResult.data||[],publications=publicationResult.data||[],controls=controlResult.data||[];
@@ -687,6 +701,7 @@ async function syncClassroom(room){
   const ownControl=room.controlsMap.get(user.id);
   if(ownControl?.removed){setRoomStatus(t('removedFromMeeting'),true);await leaveRoom({automatic:true});return;}
   if(ownControl?.teacher_muted!==room.teacherMuted)setTeacherMuted(!!ownControl?.teacher_muted);
+  if(ownControl?.teacher_camera_off!==room.teacherCameraOff)setTeacherCameraOff(!!ownControl?.teacher_camera_off);
   const self=participants.find(p=>p.user_id===user.id);
   if(self?.status==='left'){await leaveRoom({automatic:true});return;}
   room.handRaised=!!self?.hand_raised;document.getElementById('class-raise-hand').textContent=room.handRaised?t('lowerHand'):t('raiseHand');
@@ -717,8 +732,9 @@ async function enterRoom(){
  const button=document.getElementById('class-room-enter');button.disabled=true;setRoomStatus(t('mediaConnecting'));
  try{
   const session=await callApi('/api/classroom/session',{classId:room.classId});
-  room.sessionId=session.sessionId;room.attendanceId=session.attendanceId;room.teacherMuted=!!session.teacherMuted;
+  room.sessionId=session.sessionId;room.attendanceId=session.attendanceId;room.teacherMuted=!!session.teacherMuted;room.teacherCameraOff=!!session.teacherCameraOff;
   const microphone=room.previewStream.getAudioTracks()[0];if(microphone)microphone.enabled=!room.teacherMuted&&!room.localMicMuted;
+  const camera=room.previewStream.getVideoTracks()[0];if(camera)camera.enabled=!room.teacherCameraOff&&!room.localCameraOff;
   const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});room.publisher=pc;
   const transceivers=room.previewStream.getTracks().map(track=>({track,transceiver:pc.addTransceiver(track,{direction:'sendonly'})}));
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);await waitForIceGathering(pc);
@@ -735,7 +751,7 @@ async function enterRoom(){
   localVideo.srcObject=room.previewStream;void localVideo.play().catch(()=>{});
   await waitForPeerConnection(pc,{timeout:18000});
   setRoomStatus(t('mediaConnected'));
-  document.getElementById('class-room-connection').textContent=t('mediaConnected');document.getElementById('class-live-mic').textContent=room.teacherMuted?t('mutedByTeacher'):(room.localMicMuted?t('unmute'):t('mute'));document.getElementById('class-live-mic').disabled=room.teacherMuted;document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length;
+  document.getElementById('class-room-connection').textContent=t('mediaConnected');document.getElementById('class-live-mic').textContent=room.teacherMuted?t('mutedByTeacher'):(room.localMicMuted?t('unmute'):t('mute'));document.getElementById('class-live-mic').disabled=room.teacherMuted;document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length||room.teacherCameraOff;
   try{await subscribeToClassRoom(room);}catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
   room.poller=setInterval(()=>{void syncClassroom(room);},2500);
   room.heartbeat=setInterval(()=>{void db.from('class_room_participants').update({last_seen_at:new Date().toISOString()}).eq('class_id',room.classId).eq('user_id',user.id);},12000);
@@ -985,7 +1001,8 @@ document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  document.getElementById('class-camera-toggle').textContent=t('cameraOff');
  document.getElementById('class-speaker-test').textContent=t('speakerTest');
  document.getElementById('class-live-mic').textContent=activeRoom?.previewStream?.getAudioTracks()[0]?.enabled===false?t('unmute'):t('mute');
- document.getElementById('class-live-camera').textContent=activeRoom?.previewStream?.getVideoTracks()[0]?.enabled===false?t('cameraOn'):t('cameraOff');
+ document.getElementById('class-live-camera').textContent=activeRoom?.teacherCameraOff?t('cameraOff'):(activeRoom?.localCameraOff?t('cameraOn'):t('cameraOff'));
+ document.getElementById('class-live-camera').disabled=!!activeRoom?.teacherCameraOff||!activeRoom?.previewStream?.getVideoTracks().length;
 }
 async function boot(session){
  if(waitingRoomTimer){clearInterval(waitingRoomTimer);waitingRoomTimer=null;}
