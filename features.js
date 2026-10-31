@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const OWNER_EMAIL = 'yiannislappas8@gmail.com';
+const OWNER_EMAILS = new Set(['yiannislappas8@gmail.com', 'yiannislappas10@gmail.com']);
 const language = () => {
   try { return localStorage.getItem('echo-language') === 'el' ? 'el' : 'en'; }
   catch (_) { return 'en'; }
@@ -695,7 +695,7 @@ async function loadOwnerAccounts() {
   if (!isOwner) { status('owner-status', tr('denied'), true); return; }
   const {data, error} = await supabase.rpc('get_echo_role_candidates');
   if (error) { status('owner-status', tr('failedOwner'), true); return; }
-  const candidates = (data || []).filter(item => (item.email || '').toLowerCase() !== OWNER_EMAIL);
+  const candidates = (data || []).filter(item => !OWNER_EMAILS.has((item.email || '').toLowerCase()));
   if (!candidates.length) { list.append(el('p', 'message-empty-note', tr('noAccounts'))); return; }
   for (const account of candidates) {
     const row = el('div', 'owner-role-item');
@@ -734,7 +734,7 @@ function startMessageRefresh() {
 async function loadForSession(session) {
   if (!session?.user || !supabase) return;
   user = session.user;
-  isOwner = (user.email || '').toLowerCase() === OWNER_EMAIL;
+  isOwner = OWNER_EMAILS.has((user.email || '').toLowerCase());
   document.getElementById('owner-tab').classList.toggle('hidden', !isOwner);
   const {data, error} = await supabase.from('profiles')
     .select('id,display_name,role').eq('id', user.id).maybeSingle();
