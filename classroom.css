@@ -76,3 +76,69 @@
  .class-material-form .btn{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.class-card,.class-view-switch button,.class-date-nav button{transition:none}}
+
+
+/* Weekly and monthly calendar surfaces */
+.class-week-grid,.class-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.class-calendar-weekday{padding:7px 3px;color:#888;text-align:center;font-size:10px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.class-calendar-cell{display:flex;min-width:0;min-height:118px;flex-direction:column;gap:7px;padding:9px;border:1px solid #e9e9e9;border-radius:7px;background:rgba(255,255,255,.84)}
+.class-month-grid .class-calendar-cell{min-height:104px}
+.class-calendar-cell.blank{border-color:transparent;background:transparent}
+.class-calendar-day-title{color:#555;font-size:10px;font-weight:700}
+.class-calendar-none{margin:auto;color:#c2c2c2;font-size:11px}
+.class-calendar-event{display:block;width:100%;min-width:0;padding:7px 6px;border:1px solid #e3e3e3;border-left:3px solid #8f8f8f;border-radius:5px;background:#f9f9f9;color:#333;text-align:left;font-size:10px;line-height:1.35;overflow-wrap:anywhere;cursor:pointer;transition:transform .15s,border-color .15s,background .15s}
+.class-calendar-event:hover{transform:translateY(-1px);border-color:#aaa;background:#f2f2f2}
+.class-calendar-event.live{border-left-color:#238552;background:#f2fbf5}
+.class-calendar-event.cancelled{border-left-color:#b42318;text-decoration:line-through;opacity:.75}
+.class-calendar-event.completed{border-left-color:#aaa;color:#888}
+.class-test-actions{display:flex;gap:8px;flex-wrap:wrap}
+.class-test-actions .btn{width:auto;min-height:38px;padding:0 14px;font-size:11px}
+.class-room-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(15,17,20,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.class-room-shell{display:flex;width:min(1120px,100%);max-height:min(92vh,900px);min-height:520px;flex-direction:column;overflow:auto;border:1px solid rgba(255,255,255,.7);border-radius:13px;background:#fbfbfb;box-shadow:0 24px 80px rgba(0,0,0,.24)}
+.class-room-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:21px 24px;border-bottom:1px solid #ececec;background:rgba(255,255,255,.88)}
+.class-room-eyebrow{margin:0 0 7px;color:#999;font-size:9px;font-weight:800;letter-spacing:.16em}
+.class-room-header h2{margin:0;color:#181818;font-size:19px;font-weight:700;letter-spacing:-.03em}
+.class-room-header p:last-child{margin:7px 0 0;color:#777;font-size:12px}
+.class-room-header .btn{width:auto;min-height:35px;padding:0 13px;font-size:11px}
+.class-room-prejoin{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(210px,.65fr);gap:20px;padding:23px;align-items:center}
+.class-room-preview{position:relative;display:grid;min-height:310px;place-items:center;overflow:hidden;border:1px solid #e2e2e2;border-radius:10px;background:radial-gradient(ellipse at 30% 20%,#e9edf1,#dce0e5 45%,#161a20 120%);color:#555}
+.class-room-preview video{width:100%;height:100%;max-height:440px;aspect-ratio:16/9;object-fit:cover}
+.class-room-preview #class-preview-placeholder{position:absolute;max-width:80%;color:#666;text-align:center;font-size:12px}
+.class-room-controls{display:grid;gap:9px}
+.class-room-controls .btn{width:100%;min-height:43px;font-size:11px}
+.class-room-stage{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:18px;padding:20px;min-height:280px}
+.class-room-videos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));align-content:start;gap:12px}
+.class-room-tile{position:relative;min-width:0;overflow:hidden;border:1px solid #e2e2e2;border-radius:9px;background:#171a1e;aspect-ratio:16/10}
+.class-room-tile video{display:block;width:100%;height:100%;object-fit:cover;background:#171a1e}
+.class-room-tile-label{position:absolute;right:8px;bottom:8px;max-width:80%;padding:5px 8px;border:1px solid rgba(255,255,255,.18);border-radius:4px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;overflow-wrap:anywhere}
+.class-room-roster{min-width:0;padding:14px;border:1px solid #e6e6e6;border-radius:8px;background:#fff}
+.class-room-roster>strong{display:block;margin-bottom:12px;font-size:12px}
+#class-room-roster-list{display:grid;gap:9px}
+.class-room-person{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px}
+.class-room-person span{min-width:0;color:#333;overflow-wrap:anywhere}
+.class-room-person small{flex:none;color:#888;font-size:9px}
+.class-room-footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:15px 20px;border-top:1px solid #ececec;background:#fff}
+.class-room-footer span{margin-right:auto;color:#777;font-size:11px}
+.class-room-footer .btn{width:auto;min-height:37px;padding:0 13px;font-size:10px}
+#class-room-status.error{color:#b42318}
+@media(max-width:760px){
+ .class-week-grid,.class-month-grid{gap:3px}
+ .class-calendar-cell{min-height:90px;padding:5px;gap:5px}
+ .class-month-grid .class-calendar-cell{min-height:74px}
+ .class-calendar-day-title{font-size:9px}
+ .class-calendar-weekday{font-size:8px;letter-spacing:0}
+ .class-calendar-event{padding:5px 4px;font-size:9px}
+ .class-room-overlay{padding:0;align-items:stretch}
+ .class-room-shell{width:100%;max-height:100%;min-height:100%;border-radius:0}
+ .class-room-header{padding:16px;align-items:flex-start}
+ .class-room-header h2{font-size:16px}
+ .class-room-prejoin{grid-template-columns:1fr;padding:15px;gap:14px}
+ .class-room-preview{min-height:210px}
+ .class-room-stage{grid-template-columns:1fr;padding:12px}
+ .class-room-videos{grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+ .class-room-roster{padding:12px}
+ .class-room-footer{flex-wrap:wrap;padding:12px}
+ .class-room-footer span{width:100%;margin:0 0 4px}
+ .class-room-footer .btn{flex:1;padding:0 8px}
+}
+@media(prefers-reduced-motion:reduce){.class-calendar-event{transition:none}}
