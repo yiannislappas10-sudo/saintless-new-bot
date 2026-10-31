@@ -405,8 +405,14 @@ async function loadNotifications() {
   const status = $('personal-notification-status');
   status.textContent = '';
   try {
-    const [announcementResult,readResult,messageResult,pinResult] = await Promise.all([
-      db.from('announcements').select('id,title,created_at,created_by').eq('published',true).order('created_at',{ascending:false}).limit(1000),
+    let announcementResult=await db.from('announcements')
+      .select('id,title,created_at,created_by,notify_in_notifications')
+      .eq('published',true).eq('notify_in_notifications',true).order('created_at',{ascending:false}).limit(1000);
+    if(announcementResult.error&&/notify_in_notifications/i.test(announcementResult.error.message)){
+      announcementResult=await db.from('announcements').select('id,title,created_at,created_by')
+        .eq('published',true).order('created_at',{ascending:false}).limit(1000);
+    }
+    const [readResult,messageResult,pinResult] = await Promise.all([
       db.from('announcement_reads').select('announcement_id').eq('user_id',user.id),
       db.from('private_messages').select('id,sender_id,recipient_id,body,created_at,read_at')
         .eq('recipient_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(1000),
