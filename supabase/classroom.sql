@@ -263,3 +263,135 @@ grant select, insert, delete on public.class_enrollments to authenticated;
 grant select, insert, update, delete on public.class_materials to authenticated;
 grant select, insert, update on public.class_attendance to authenticated;
 grant select, insert, delete on public.announcement_recipients to authenticated;
+
+-- Security corrections and owner-only simulated roster support.
+drop policy if exists "ECHO users can read published announcements" on public.announcements;
+drop policy if exists "ECHO announcement audience visibility" on public.announcements;
+create policy "ECHO announcement audience visibility"
+on public.announcements for select to authenticated
+using (
+  public.is_echo_professor()
+  or (
+    published = true
+    and (
+      (class_id is null and audience = 'everyone')
+      or exists (
+        select 1 from public.announcement_recipients ar
+        where ar.announcement_id = announcements.id and ar.student_id = auth.uid()
+      )
+      or exists (
+        select 1 from public.class_enrollments ce
+        where ce.class_id = announcements.class_id
+          and ce.student_id = auth.uid()
+          and not ce.is_demo
+      )
+    )
+  )
+);
+
+-- Student-safe class rosters: a student can only request names for a class
+-- that is already visible to them. Database UUIDs are never rendered in the UI.
+create or replace function public.get_echo_class_rosters(target_class_ids uuid[])
+returns table(class_id uuid, student_id uuid, display_name text)
+language plpgsql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  if auth.uid() is null then raise exception 'Sign in required.'; end if;
+  return query
+  select ce.class_id, ce.student_id, p.display_name
+  from public.class_enrollments ce
+  join public.profiles p on p.id = ce.student_id
+  join public.classes c on c.id = ce.class_id
+  where ce.class_id = any(coalesce(target_class_ids, array[]::uuid[]))
+    and not ce.is_demo
+    and not c.is_demo
+    and (
+      public.is_echo_owner()
+      or public.is_echo_professor()
+      or exists (
+        select 1 from public.class_enrollments mine
+        where mine.class_id = ce.class_id
+          and mine.student_id = auth.uid()
+          and not mine.is_demo
+      )
+    );
+end;
+$$;
+revoke all on function public.get_echo_class_rosters(uuid[]) from public;
+grant execute on function public.get_echo_class_rosters(uuid[]) to authenticated;
+
+create table if not exists public.class_demo_participants (
+  id uuid primary key default gen_random_uuid(),
+  class_id uuid not null references public.classes(id) on delete cascade,
+  display_name text not null check (char_length(trim(display_name)) between 1 and 80),
+  created_at timestamptz not null default now()
+);
+create index if not exists class_demo_participants_class_idx
+  on public.class_demo_participants(class_id);
+alter table public.class_demo_participants enable row level security;
+drop policy if exists "ECHO owner manages isolated demo participants" on public.class_demo_participants;
+create policy "ECHO owner manages isolated demo participants"
+on public.class_demo_participants for all to authenticated
+using (public.is_echo_owner())
+with check (public.is_echo_owner());
+
+create or replace function public.get_echo_demo_rosters(target_class_ids uuid[])
+returns table(class_id uuid, display_name text)
+language plpgsql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  if not public.is_echo_owner() then raise exception 'Only the ECHO owner may inspect demo data.'; end if;
+  return query
+  select d.class_id, d.display_name
+  from public.class_demo_participants d
+  join public.classes c on c.id = d.class_id
+  where d.class_id = any(coalesce(target_class_ids, array[]::uuid[]))
+    and c.is_demo;
+end;
+$$;
+revoke all on function public.get_echo_demo_rosters(uuid[]) from public;
+grant execute on function public.get_echo_demo_rosters(uuid[]) to authenticated;
+
+create or replace function public.get_echo_class_attendance(target_class_id uuid)
+returns table(display_name text, joined_at timestamptz, left_at timestamptz)
+language plpgsql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  if not (public.is_echo_owner() or public.is_echo_professor()) then
+    raise exception 'Only teaching staff can view class attendance.';
+  end if;
+  if not exists (select 1 from public.classes c where c.id = target_class_id) then
+    raise exception 'Class not found.';
+  end if;
+  return query
+  select p.display_name, a.joined_at, a.left_at
+  from public.class_attendance a
+  join public.profiles p on p.id = a.student_id
+  where a.class_id = target_class_id
+  order by a.joined_at desc;
+end;
+$$;
+revoke all on function public.get_echo_class_attendance(uuid) from public;
+grant execute on function public.get_echo_class_attendance(uuid) to authenticated;
+
+-- Attendance mutations happen only through the checked RPC functions above.
+drop policy if exists "ECHO users can mark their own attendance" on public.class_attendance;
+drop policy if exists "ECHO users can end their own attendance" on public.class_attendance;
+revoke insert, update, delete on public.class_attendance from authenticated;
+grant select on public.class_attendance to authenticated;
+create unique index if not exists class_attendance_one_open_session_idx
+  on public.class_attendance(class_id, student_id)
+  where left_at is null;
+
+-- Prevent arbitrary student-side updates of class records via table grants.
+revoke insert, update, delete on public.classes from authenticated;
+grant select on public.classes to authenticated;
