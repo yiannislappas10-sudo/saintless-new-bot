@@ -1,7 +1,7 @@
--- ECHO collaboration setup
--- Run this entire file once in Supabase Dashboard > SQL Editor.
--- After the professor signs in to ECHO at least once, replace the email below
--- with the professor's login email and run the final UPDATE statement.
+-- ECHO collaboration and access control
+-- Run this entire file in Supabase Dashboard > SQL Editor.
+-- The account yiannislappas8@gmail.com is the sole ECHO owner.
+-- That account alone can grant or revoke professor permissions.
 
 create extension if not exists pgcrypto;
 
@@ -39,7 +39,6 @@ create trigger on_auth_user_created_echo
 after insert on auth.users
 for each row execute procedure public.handle_new_echo_user();
 
--- Backfill users who signed in before this setup was installed.
 insert into public.profiles (id, display_name)
 select
   u.id,
@@ -52,17 +51,37 @@ select
 from auth.users u
 on conflict (id) do nothing;
 
+create or replace function public.is_echo_owner()
+returns boolean
+language sql
+stable
+security definer
+set search_path = auth, public, pg_temp
+as $$
+  select exists (
+    select 1
+    from auth.users u
+    where u.id = auth.uid()
+      and lower(coalesce(u.email, '')) = lower('yiannislappas8@gmail.com')
+  );
+$$;
+
 create or replace function public.is_echo_professor(target_id uuid default auth.uid())
 returns boolean
 language sql
 stable
 security definer
-set search_path = public, pg_temp
+set search_path = public, auth, pg_temp
 as $$
   select exists (
     select 1
     from public.profiles p
-    where p.id = target_id and p.role = 'professor'
+    join auth.users u on u.id = p.id
+    where p.id = target_id
+      and (
+        p.role = 'professor'
+        or lower(coalesce(u.email, '')) = lower('yiannislappas8@gmail.com')
+      )
   );
 $$;
 
@@ -105,6 +124,7 @@ using (
   id = auth.uid()
   or public.is_echo_professor(id)
   or public.is_echo_professor()
+  or public.is_echo_owner()
 );
 
 drop policy if exists "ECHO users can read published announcements" on public.announcements;
@@ -160,13 +180,71 @@ with check (
   )
 );
 
+-- The owner-only RPC is the only permitted way to change account roles.
+create or replace function public.set_echo_professor(target_user_id uuid, make_professor boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  if not public.is_echo_owner() then
+    raise exception 'Only the ECHO owner can change professor permissions.';
+  end if;
+
+  if target_user_id is null then
+    raise exception 'A user must be selected.';
+  end if;
+
+  if exists (
+    select 1 from auth.users u
+    where u.id = target_user_id
+      and lower(coalesce(u.email, '')) = lower('yiannislappas8@gmail.com')
+  ) then
+    raise exception 'The ECHO owner account cannot be changed here.';
+  end if;
+
+  update public.profiles
+  set role = case when make_professor then 'professor' else 'student' end
+  where id = target_user_id;
+
+  if not found then
+    raise exception 'That ECHO account could not be found.';
+  end if;
+end;
+$$;
+
+-- Email addresses are exposed only through this owner-checked RPC,
+-- not through the public profile table.
+create or replace function public.get_echo_role_candidates()
+returns table(user_id uuid, display_name text, email text, role text)
+language plpgsql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  if not public.is_echo_owner() then
+    raise exception 'Only the ECHO owner can view role management.';
+  end if;
+
+  return query
+  select p.id, p.display_name, u.email::text, p.role
+  from public.profiles p
+  join auth.users u on u.id = p.id
+  order by lower(coalesce(u.email, ''));
+end;
+$$;
+
+revoke all on function public.is_echo_owner() from public;
+revoke all on function public.is_echo_professor(uuid) from public;
+revoke all on function public.set_echo_professor(uuid, boolean) from public;
+revoke all on function public.get_echo_role_candidates() from public;
+
 grant select on public.profiles to authenticated;
 grant select, insert, update, delete on public.announcements to authenticated;
 grant select, insert on public.private_messages to authenticated;
+grant execute on function public.is_echo_owner() to authenticated;
 grant execute on function public.is_echo_professor(uuid) to authenticated;
-
--- IMPORTANT: Run this after the professor has logged in once.
--- Replace the sample email with the professor's exact ECHO login email.
--- update public.profiles
--- set role = 'professor'
--- where id = (select id from auth.users where lower(email) = lower('PROFESSOR_EMAIL_HERE'));
+grant execute on function public.set_echo_professor(uuid, boolean) to authenticated;
+grant execute on function public.get_echo_role_candidates() to authenticated;
