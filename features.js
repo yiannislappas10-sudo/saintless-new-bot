@@ -18,6 +18,13 @@ const text = {
     conversations:'CONVERSATIONS', selectConversation:'Choose a conversation',
     emptyMessages:'Your private messages will appear here.', messagePlaceholder:'Write a private message...',
     send:'Send', noContacts:'No eligible conversations are available yet.',
+    call:'Call', endCall:'End call', incomingCall:'Incoming voice call', incomingSuffix:'is calling you.',
+    accept:'Accept', decline:'Decline', ringing:'Calling…', connecting:'Connecting audio…', inCall:'Connected',
+    callNoAnswer:'No answer. The call was ended.', callRejected:'The call was declined.', callEnded:'Call ended.',
+    callPeerEnded:'The other person ended the call.', callExpired:'This call is no longer available.',
+    callMicDenied:'Microphone permission is required for voice calls.', callMicMissing:'This browser cannot access a microphone.',
+    callError:'Could not connect. Check your microphone and network, then try again.',
+    callSecureError:'Could not open a private call channel. Run the updated ECHO SQL and disable public Realtime channel access.',
     failedMessages:'Could not load private messages. Run the ECHO setup SQL first.', sent:'Message sent.',
     owner:'Professor access', ownerIntro:'Grant or remove professor permissions for ECHO accounts.',
     ownerNotice:'Owner-only controls · Only the designated ECHO account can change roles.',
@@ -38,6 +45,13 @@ const text = {
     conversations:'ΣΥΝΟΜΙΛΙΕΣ', selectConversation:'Επιλέξτε συνομιλία',
     emptyMessages:'Τα προσωπικά σας μηνύματα θα εμφανίζονται εδώ.', messagePlaceholder:'Γράψτε ένα προσωπικό μήνυμα...',
     send:'Αποστολή', noContacts:'Δεν υπάρχουν ακόμη διαθέσιμες συνομιλίες.',
+    call:'Κλήση', endCall:'Τερματισμός', incomingCall:'Εισερχόμενη φωνητική κλήση', incomingSuffix:'σας καλεί.',
+    accept:'Αποδοχή', decline:'Απόρριψη', ringing:'Κλήση…', connecting:'Σύνδεση ήχου…', inCall:'Σε κλήση',
+    callNoAnswer:'Δεν υπήρξε απάντηση. Η κλήση τερματίστηκε.', callRejected:'Η κλήση απορρίφθηκε.', callEnded:'Η κλήση τερματίστηκε.',
+    callPeerEnded:'Ο άλλος χρήστης τερμάτισε την κλήση.', callExpired:'Η κλήση δεν είναι πλέον διαθέσιμη.',
+    callMicDenied:'Απαιτείται άδεια μικροφώνου για τις φωνητικές κλήσεις.', callMicMissing:'Αυτός ο browser δεν έχει πρόσβαση σε μικρόφωνο.',
+    callError:'Η σύνδεση απέτυχε. Ελέγξτε το μικρόφωνο και το δίκτυό σας και δοκιμάστε ξανά.',
+    callSecureError:'Δεν ήταν δυνατή η δημιουργία ιδιωτικής σύνδεσης. Εκτελέστε το νέο SQL του ECHO και απενεργοποιήστε τη δημόσια πρόσβαση στα Realtime κανάλια.',
     failedMessages:'Δεν ήταν δυνατή η φόρτωση των μηνυμάτων. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.', sent:'Το μήνυμα στάλθηκε.',
     owner:'Πρόσβαση καθηγητών', ownerIntro:'Δώστε ή αφαιρέστε δικαιώματα καθηγητή από λογαριασμούς ECHO.',
     ownerNotice:'Μόνο για τον ιδιοκτήτη · Μόνο ο καθορισμένος λογαριασμός ECHO μπορεί να αλλάζει ρόλους.',
@@ -106,7 +120,14 @@ const panelsMarkup = `
       <div id="message-contacts-list"></div>
     </aside>
     <section class="message-conversation">
-      <div class="message-thread-heading" id="message-thread-heading"></div>
+      <div class="message-thread-heading">
+        <span id="message-thread-heading"></span>
+        <div class="call-controls">
+          <span class="call-status" id="call-status" role="status" aria-live="polite"></span>
+          <button class="call-button" id="start-call" type="button" disabled></button>
+          <button class="call-button call-button-end hidden" id="end-call" type="button"></button>
+        </div>
+      </div>
       <div class="message-list" id="message-list" aria-live="polite"></div>
       <form class="message-compose" id="message-form">
         <textarea id="message-input" rows="2" maxlength="4000" required disabled></textarea>
@@ -121,7 +142,20 @@ const panelsMarkup = `
   <div class="owner-notice" id="owner-notice"></div>
   <div class="owner-role-list" id="owner-role-list"></div>
   <p class="data-status" id="owner-status" role="status" aria-live="polite"></p>
-</section>`;
+</section>
+<div class="call-overlay hidden" id="incoming-call" role="dialog" aria-modal="true" aria-labelledby="incoming-call-title">
+  <div class="call-dialog">
+    <div class="call-symbol" aria-hidden="true">♪</div>
+    <p class="call-eyebrow">ECHO · VOICE</p>
+    <h2 id="incoming-call-title"></h2>
+    <p class="call-incoming-copy"><strong id="incoming-caller"></strong> <span id="incoming-call-description"></span></p>
+    <div class="call-actions">
+      <button class="call-button call-button-accept" id="accept-call" type="button"></button>
+      <button class="call-button call-button-end" id="decline-call" type="button"></button>
+    </div>
+  </div>
+</div>
+<audio id="remote-audio" autoplay playsinline></audio>`;
 joinPanel.insertAdjacentHTML('afterend', panelsMarkup);
 
 function applyFeatureLanguage() {
@@ -143,6 +177,12 @@ function applyFeatureLanguage() {
   set('owner-heading', tr('owner'));
   set('owner-intro', tr('ownerIntro'));
   set('owner-notice', tr('ownerNotice'));
+  set('start-call', tr('call'));
+  set('end-call', tr('endCall'));
+  set('incoming-call-title', tr('incomingCall'));
+  set('incoming-call-description', tr('incomingSuffix'));
+  set('accept-call', tr('accept'));
+  set('decline-call', tr('decline'));
   for (const button of nav.querySelectorAll('[data-feature-tab]')) {
     button.textContent = tr(button.dataset.featureTab);
   }
@@ -161,6 +201,347 @@ let isOwner = false;
 let contactId = null;
 let contacts = [];
 let messagePoller = null;
+let incomingCallPoller = null;
+let activeCallPoller = null;
+let activeCall = null;
+let incomingCall = null;
+const remoteAudio = document.getElementById('remote-audio');
+
+function showCallStatus(message, error = false) {
+  const node = document.getElementById('call-status');
+  if (node) {
+    node.textContent = message || '';
+    node.classList.toggle('error', !!error);
+  }
+  if (activeCall) activeCall.statusText = message || '';
+}
+function syncCallControls() {
+  const start = document.getElementById('start-call');
+  const end = document.getElementById('end-call');
+  if (!start || !end) return;
+  start.disabled = !user || !contactId || !contacts.some(item => item.id === contactId) || !!activeCall || !!incomingCall;
+  end.classList.toggle('hidden', !activeCall);
+  end.disabled = !activeCall;
+}
+function hideIncomingCall() {
+  document.getElementById('incoming-call')?.classList.add('hidden');
+  syncCallControls();
+}
+async function subscribeToCall(callId) {
+  const {data:{session}} = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error(tr('callSecureError'));
+  await supabase.realtime.setAuth(session.access_token);
+  return await new Promise((resolve, reject) => {
+    const channel = supabase.channel('echo-call:' + callId, {
+      config: { private: true, broadcast: { ack: true } }
+    });
+    channel.on('broadcast', {event:'signal'}, ({payload}) => {
+      if (payload && payload.from !== user?.id) void receiveCallSignal(payload);
+    });
+    channel.subscribe((state, error) => {
+      if (state === 'SUBSCRIBED') resolve(channel);
+      else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(state)) {
+        void supabase.removeChannel(channel);
+        reject(error || new Error(tr('callSecureError')));
+      }
+    });
+  });
+}
+async function sendCallSignal(type, data = {}) {
+  const call = activeCall;
+  if (!call?.channel) throw new Error(tr('callSecureError'));
+  const result = await call.channel.send({
+    type: 'broadcast',
+    event: 'signal',
+    payload: {type, from:user.id, ...data}
+  });
+  if (result !== 'ok') throw new Error(tr('callSecureError'));
+}
+async function fetchCallIceServers() {
+  const {data:{session}} = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error(tr('callSecureError'));
+  const response = await fetch('/api/turn-credentials', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + session.access_token,
+      'Content-Type': 'application/json'
+    },
+    body: '{}',
+    cache: 'no-store'
+  });
+  if (!response.ok) throw new Error(tr('callError'));
+  const data = await response.json();
+  if (!Array.isArray(data.iceServers) || !data.iceServers.length) throw new Error(tr('callError'));
+  return data.iceServers;
+}
+async function ensureCallMicrophone(call) {
+  if (call.localStream) return;
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error(tr('callMicMissing'));
+  try {
+    call.localStream = await navigator.mediaDevices.getUserMedia({
+      audio: {echoCancellation:true, noiseSuppression:true, autoGainControl:true},
+      video: false
+    });
+  } catch (error) {
+    if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') {
+      throw new Error(tr('callMicMissing'));
+    }
+    throw new Error(tr('callMicDenied'));
+  }
+}
+async function createCallPeerConnection(call) {
+  const iceServers = await fetchCallIceServers();
+  if (activeCall !== call) return;
+  const pc = new RTCPeerConnection({iceServers});
+  call.pc = pc;
+  for (const track of call.localStream.getTracks()) pc.addTrack(track, call.localStream);
+  pc.ontrack = event => {
+    if (activeCall !== call) return;
+    const stream = event.streams?.[0] || new MediaStream([event.track]);
+    remoteAudio.srcObject = stream;
+    void remoteAudio.play().catch(() => showCallStatus(tr('connecting')));
+    showCallStatus(tr('inCall'));
+  };
+  pc.onicecandidate = event => {
+    if (event.candidate && activeCall === call) {
+      void sendCallSignal('ice', {candidate:event.candidate.toJSON()}).catch(() => {});
+    }
+  };
+  pc.onconnectionstatechange = () => {
+    if (activeCall !== call) return;
+    if (pc.connectionState === 'connected') showCallStatus(tr('inCall'));
+    else if (pc.connectionState === 'connecting' || pc.connectionState === 'new') showCallStatus(tr('connecting'));
+    else if (pc.connectionState === 'failed') {
+      showCallStatus(tr('callError'), true);
+      void finishCall({updateServer:true, signal:true, statusText:tr('callError')});
+    }
+  };
+}
+async function flushCallIce(call) {
+  if (!call.pc?.remoteDescription) return;
+  const queued = call.pendingCandidates.splice(0);
+  for (const candidate of queued) {
+    try { await call.pc.addIceCandidate(new RTCIceCandidate(candidate)); }
+    catch (_) {}
+  }
+}
+async function receiveCallSignal(payload) {
+  const call = activeCall;
+  if (!call || payload.from === user?.id) return;
+  try {
+    if (payload.type === 'ice' && payload.candidate) {
+      if (call.pc?.remoteDescription) {
+        await call.pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+      } else {
+        call.pendingCandidates.push(payload.candidate);
+      }
+      return;
+    }
+    if (payload.type === 'offer' && call.role === 'callee' && !call.offerHandled) {
+      call.offerHandled = true;
+      if (!call.pc) {
+        await ensureCallMicrophone(call);
+        await createCallPeerConnection(call);
+      }
+      if (activeCall !== call || !call.pc) return;
+      await call.pc.setRemoteDescription(new RTCSessionDescription(payload.description));
+      await flushCallIce(call);
+      const answer = await call.pc.createAnswer();
+      await call.pc.setLocalDescription(answer);
+      await sendCallSignal('answer', {description:call.pc.localDescription});
+      showCallStatus(tr('connecting'));
+      return;
+    }
+    if (payload.type === 'answer' && call.role === 'caller' && call.pc && !call.pc.remoteDescription) {
+      await call.pc.setRemoteDescription(new RTCSessionDescription(payload.description));
+      await flushCallIce(call);
+      showCallStatus(tr('connecting'));
+      return;
+    }
+    if (payload.type === 'hangup') {
+      await finishCall({updateServer:false, signal:false, statusText:tr('callPeerEnded')});
+    }
+  } catch (error) {
+    const message = error?.message || tr('callError');
+    showCallStatus(message, true);
+    await finishCall({updateServer:true, signal:true, statusText:message});
+  }
+}
+async function makeCallerOffer(call) {
+  if (activeCall !== call || call.offerSent || call.offerStarting) return;
+  call.offerStarting = true;
+  try {
+    await ensureCallMicrophone(call);
+    if (activeCall !== call) return;
+    await createCallPeerConnection(call);
+    if (activeCall !== call || !call.pc) return;
+    const offer = await call.pc.createOffer();
+    await call.pc.setLocalDescription(offer);
+    await sendCallSignal('offer', {description:call.pc.localDescription});
+    call.offerSent = true;
+    showCallStatus(tr('connecting'));
+  } catch (error) {
+    const message = error?.message || tr('callError');
+    showCallStatus(message, true);
+    await finishCall({updateServer:true, signal:true, statusText:message});
+  } finally {
+    call.offerStarting = false;
+  }
+}
+async function pollActiveCall() {
+  const call = activeCall;
+  if (!call) return;
+  const {data, error} = await supabase.from('echo_calls')
+    .select('status').eq('id', call.id).maybeSingle();
+  if (error || activeCall !== call || !data) return;
+  if (call.role === 'caller' && data.status === 'accepted') {
+    await makeCallerOffer(call);
+  } else if (data.status === 'rejected') {
+    await finishCall({updateServer:false, signal:false, statusText:tr('callRejected')});
+  } else if (data.status === 'ended') {
+    await finishCall({updateServer:false, signal:false, statusText:tr('callPeerEnded')});
+  }
+}
+function startActiveCallRefresh() {
+  if (activeCallPoller) window.clearInterval(activeCallPoller);
+  activeCallPoller = window.setInterval(() => { void pollActiveCall(); }, 1200);
+}
+async function finishCall({updateServer=true, signal=true, statusText=tr('callEnded')} = {}) {
+  const call = activeCall;
+  if (!call) return;
+  activeCall = null;
+  if (activeCallPoller) { window.clearInterval(activeCallPoller); activeCallPoller = null; }
+  if (call.timeoutId) window.clearTimeout(call.timeoutId);
+  if (signal && call.channel) {
+    try {
+      await call.channel.send({
+        type:'broadcast', event:'signal', payload:{type:'hangup', from:user?.id}
+      });
+    } catch (_) {}
+  }
+  if (updateServer && user) {
+    try { await supabase.rpc('end_echo_call', {target_call_id:call.id}); } catch (_) {}
+  }
+  if (call.pc) {
+    call.pc.ontrack = null;
+    call.pc.onicecandidate = null;
+    call.pc.onconnectionstatechange = null;
+    call.pc.close();
+  }
+  call.localStream?.getTracks().forEach(track => track.stop());
+  if (remoteAudio) {
+    remoteAudio.pause();
+    remoteAudio.srcObject = null;
+  }
+  if (call.channel) void supabase.removeChannel(call.channel);
+  showCallStatus(statusText);
+  syncCallControls();
+}
+async function startVoiceCall() {
+  const peer = contacts.find(item => item.id === contactId);
+  if (!user || !peer || activeCall || incomingCall) return;
+  const button = document.getElementById('start-call');
+  button.disabled = true;
+  showCallStatus(tr('ringing'));
+  const {data:callId, error} = await supabase.rpc('create_echo_call', {target_user_id:peer.id});
+  if (error || !callId) {
+    showCallStatus(error?.message || tr('callError'), true);
+    syncCallControls();
+    return;
+  }
+  const call = {
+    id:callId, role:'caller', peerId:peer.id, peerName:peer.display_name || tr('signedIn'),
+    channel:null, pc:null, localStream:null, pendingCandidates:[], offerSent:false, offerStarting:false
+  };
+  activeCall = call;
+  syncCallControls();
+  try {
+    call.channel = await subscribeToCall(call.id);
+    if (activeCall !== call) return;
+    showCallStatus(tr('ringing'));
+    startActiveCallRefresh();
+    call.timeoutId = window.setTimeout(() => {
+      if (activeCall === call && call.role === 'caller' && !call.offerSent) {
+        void finishCall({updateServer:true, signal:true, statusText:tr('callNoAnswer')});
+      }
+    }, 45000);
+  } catch (error) {
+    const message = error?.message || tr('callSecureError');
+    showCallStatus(message, true);
+    await finishCall({updateServer:true, signal:false, statusText:message});
+  }
+}
+async function pollIncomingCalls() {
+  if (!user || activeCall) return;
+  if (incomingCall) {
+    const {data} = await supabase.from('echo_calls').select('status')
+      .eq('id', incomingCall.id).maybeSingle();
+    if (!data || data.status !== 'ringing') {
+      incomingCall = null;
+      hideIncomingCall();
+      showCallStatus(tr('callExpired'));
+    }
+    return;
+  }
+  const cutoff = new Date(Date.now() - 60000).toISOString();
+  const {data, error} = await supabase.from('echo_calls')
+    .select('id,caller_id,created_at,status')
+    .eq('callee_id', user.id).eq('status','ringing')
+    .gte('created_at', cutoff).order('created_at', {ascending:false}).limit(1);
+  if (error || !data?.length) return;
+  const row = data[0];
+  const peer = contacts.find(item => item.id === row.caller_id);
+  const {data:profileData} = peer ? {data:peer} : await supabase.from('profiles')
+    .select('id,display_name,role').eq('id', row.caller_id).maybeSingle();
+  incomingCall = {...row, peerName:profileData?.display_name || tr('signedIn')};
+  document.getElementById('incoming-caller').textContent = incomingCall.peerName;
+  document.getElementById('incoming-call').classList.remove('hidden');
+  syncCallControls();
+}
+function startIncomingCallRefresh() {
+  if (incomingCallPoller) window.clearInterval(incomingCallPoller);
+  void pollIncomingCalls();
+  incomingCallPoller = window.setInterval(() => { void pollIncomingCalls(); }, 1800);
+}
+async function acceptIncomingCall() {
+  const pending = incomingCall;
+  if (!pending || activeCall) return;
+  incomingCall = null;
+  hideIncomingCall();
+  activateTab('messages');
+  await openConversation(pending.caller_id);
+  const call = {
+    id:pending.id, role:'callee', peerId:pending.caller_id, peerName:pending.peerName,
+    channel:null, pc:null, localStream:null, pendingCandidates:[], offerHandled:false
+  };
+  activeCall = call;
+  syncCallControls();
+  showCallStatus(tr('connecting'));
+  try {
+    call.channel = await subscribeToCall(call.id);
+    if (activeCall !== call) return;
+    await ensureCallMicrophone(call);
+    if (activeCall !== call) return;
+    await createCallPeerConnection(call);
+    if (activeCall !== call) return;
+    const {error} = await supabase.rpc('accept_echo_call', {target_call_id:call.id});
+    if (error) throw error;
+    startActiveCallRefresh();
+    showCallStatus(tr('connecting'));
+  } catch (error) {
+    const message = error?.message || tr('callError');
+    showCallStatus(message, true);
+    await finishCall({updateServer:true, signal:true, statusText:message});
+  }
+}
+async function declineIncomingCall() {
+  const pending = incomingCall;
+  if (!pending) return;
+  incomingCall = null;
+  hideIncomingCall();
+  const {error} = await supabase.rpc('reject_echo_call', {target_call_id:pending.id});
+  showCallStatus(error?.message || tr('callRejected'), !!error);
+}
 
 function renderContacts() {
   const list = document.getElementById('message-contacts-list');
@@ -171,6 +552,7 @@ function renderContacts() {
     button.addEventListener('click', () => openConversation(contact.id));
     list.append(button);
   }
+  syncCallControls();
 }
 async function loadAnnouncements() {
   const list = document.getElementById('announcement-list');
@@ -222,6 +604,7 @@ async function openConversation(id) {
   document.getElementById('message-thread-heading').textContent = contact?.display_name || tr('selectConversation');
   document.getElementById('message-input').disabled = !contact;
   document.getElementById('message-send').disabled = !contact;
+  syncCallControls();
   await loadMessages();
 }
 async function loadContacts() {
@@ -237,6 +620,7 @@ async function loadContacts() {
     document.getElementById('message-list').replaceChildren(el('p', 'message-empty', tr('noContacts')));
     document.getElementById('message-input').disabled = true;
     document.getElementById('message-send').disabled = true;
+    syncCallControls();
     return;
   }
   status('messages-status', '');
@@ -299,9 +683,14 @@ async function loadForSession(session) {
   await Promise.all([loadAnnouncements(), loadContacts()]);
   if (isOwner) await loadOwnerAccounts();
   startMessageRefresh();
+  startIncomingCallRefresh();
 }
 function resetFeatureState() {
   if (messagePoller) { window.clearInterval(messagePoller); messagePoller = null; }
+  if (incomingCallPoller) { window.clearInterval(incomingCallPoller); incomingCallPoller = null; }
+  if (activeCall) void finishCall({updateServer:true, signal:false, statusText:tr('callEnded')});
+  incomingCall = null;
+  hideIncomingCall();
   user = null; profile = null; isOwner = false; contactId = null; contacts = [];
   document.getElementById('owner-tab').classList.add('hidden');
   document.getElementById('announcement-admin').classList.add('hidden');
@@ -337,6 +726,12 @@ document.getElementById('message-form').addEventListener('submit', async event =
   status('messages-status', tr('sent'));
   await loadMessages();
 });
+document.getElementById('start-call').addEventListener('click', () => { void startVoiceCall(); });
+document.getElementById('end-call').addEventListener('click', () => {
+  void finishCall({updateServer:true, signal:true, statusText:tr('callEnded')});
+});
+document.getElementById('accept-call').addEventListener('click', () => { void acceptIncomingCall(); });
+document.getElementById('decline-call').addEventListener('click', () => { void declineIncomingCall(); });
 
 function activateTab(name) {
   for (const button of nav.querySelectorAll('[data-tab]')) {
