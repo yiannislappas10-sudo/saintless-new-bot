@@ -5,7 +5,7 @@ classroomStyle.rel = 'stylesheet';
 classroomStyle.href = '/classroom.css';
 document.head.append(classroomStyle);
 
-const OWNER_EMAIL = 'yiannislappas8@gmail.com';
+const OWNER_EMAILS = new Set(['yiannislappas8@gmail.com', 'yiannislappas10@gmail.com']);
 const ZONE = 'Europe/Athens';
 const lang = () => localStorage.getItem('echo-language') === 'el' ? 'el' : 'en';
 const words = {
@@ -769,7 +769,7 @@ document.getElementById('class-speaker-check').textContent=t('speakerOutput');
 async function boot(session){
  if(waitingRoomTimer){clearInterval(waitingRoomTimer);waitingRoomTimer=null;}
  ownerPreviewRole=null;
- user=session.user;isOwner=(user.email||'').toLowerCase()===OWNER_EMAIL;
+ user=session.user;isOwner=OWNER_EMAILS.has((user.email||'').toLowerCase());
  const {data,error}=await db.from('profiles').select('id,display_name,role').eq('id',user.id).maybeSingle();
  profile=data||{id:user.id,role:'student'};
  tab.classList.toggle('hidden',!user);testTab.classList.toggle('hidden',!isOwner);
