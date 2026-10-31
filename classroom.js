@@ -10,7 +10,7 @@ const ZONE = 'Europe/Athens';
 const lang = () => localStorage.getItem('echo-language') === 'el' ? 'el' : 'en';
 const words = {
   en:{
-    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',speakerOutput:'Speaker output test',sfuCheck:'Live media server API connection',announcementCheck:'Announcements database access',messageCheck:'Private messaging database access',profileCheck:'Your profile access',speakerQuestion:'Did you hear the test tone clearly?',startClass:'Start class',endClass:'End class',waitingProfessor:'Waiting for professor',prejoinTitle:'Prepare to join',joinNow:'Enter classroom',leave:'Leave classroom',microphone:'Microphone',camera:'Camera',speakerTest:'Test speakers',cameraUnavailable:'Camera unavailable — joining with audio only.',mediaDenied:'Microphone or camera permission was denied.',mediaReady:'Your devices are ready.',mediaConnecting:'Connecting to classroom…',mediaConnected:'Connected to live classroom.',mediaDisconnected:'Connection lost. Check your network.',mediaEnded:'The professor ended this class.',joined:'Joined',notJoined:'Not joined',mute:'Mute',unmute:'Unmute',cameraOff:'Camera off',cameraOn:'Camera on',materials:'Learning materials',
+    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',speakerOutput:'Speaker output test',sfuCheck:'Live media server API connection',announcementCheck:'Announcements database access',messageCheck:'Private messaging database access',profileCheck:'Your profile access',speakerQuestion:'Did you hear the test tone clearly?',startClass:'Start class',endClass:'End class',waitingProfessor:'Waiting for professor',prejoinTitle:'Prepare to join',joinNow:'Enter classroom',leave:'Leave classroom',microphone:'Microphone',camera:'Camera',speakerTest:'Test speakers',cameraUnavailable:'Camera unavailable — joining with audio only.',mediaDenied:'Microphone or camera permission was denied.',mediaReady:'Your devices are ready.',mediaConnecting:'Connecting to classroom…',mediaConnected:'Connected to live classroom.',mediaDisconnected:'Connection lost or timed out. Check your network, permissions and device, then retry.',mediaEnded:'The professor ended this class.',tapUnmute:'Tap a participant video to enable audio playback.',joined:'Joined',notJoined:'Not joined',mute:'Mute',unmute:'Unmute',cameraOff:'Camera off',cameraOn:'Camera on',materials:'Learning materials',
     create:'Create a class',edit:'Edit class',name:'Class name',subject:'Subject',description:'Description',
     image:'Image URL (optional)',start:'Starts',end:'Ends',students:'Assign students',save:'Save class',
     cancel:'Cancel',delete:'Delete class',cancelClass:'Cancel class',confirmCancel:'Cancel this class?',confirmDelete:'Delete this class and its assignments?',
@@ -34,7 +34,7 @@ const words = {
     rosterError:'Could not update the student list. Review the class and try again.'
   },
   el:{
-    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',speakerOutput:'Έλεγχος ήχου ηχείων',sfuCheck:'Σύνδεση με τον διακομιστή ζωντανής μετάδοσης',announcementCheck:'Πρόσβαση στη βάση ανακοινώσεων',messageCheck:'Πρόσβαση στη βάση μηνυμάτων',profileCheck:'Πρόσβαση στο προφίλ σας',speakerQuestion:'Ακούσατε καθαρά τον δοκιμαστικό ήχο;',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε. Ελέγξτε το δίκτυό σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
+    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',speakerOutput:'Έλεγχος ήχου ηχείων',sfuCheck:'Σύνδεση με τον διακομιστή ζωντανής μετάδοσης',announcementCheck:'Πρόσβαση στη βάση ανακοινώσεων',messageCheck:'Πρόσβαση στη βάση μηνυμάτων',profileCheck:'Πρόσβαση στο προφίλ σας',speakerQuestion:'Ακούσατε καθαρά τον δοκιμαστικό ήχο;',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε ή έληξε. Ελέγξτε το δίκτυο, τις άδειες και τη συσκευή σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',tapUnmute:'Πατήστε στο βίντεο ενός συμμετέχοντα για ενεργοποίηση του ήχου.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
     create:'Δημιουργία μαθήματος',edit:'Επεξεργασία μαθήματος',name:'Όνομα μαθήματος',subject:'Αντικείμενο',description:'Περιγραφή',
     image:'Σύνδεσμος εικόνας (προαιρετικό)',start:'Έναρξη',end:'Λήξη',students:'Ανάθεση μαθητών',save:'Αποθήκευση',
     cancel:'Ακύρωση',delete:'Διαγραφή μαθήματος',cancelClass:'Ακύρωση μαθήματος',confirmCancel:'Να ακυρωθεί αυτό το μάθημα;',confirmDelete:'Να διαγραφεί αυτό το μάθημα και οι αναθέσεις του;',
@@ -360,6 +360,16 @@ function waitForIceGathering(pc,timeout=8000){
   pc.addEventListener('icegatheringstatechange',check);
  });
 }
+function waitForPeerConnection(pc,{requireTrack=false,timeout=16000}={}){
+ return new Promise((resolve,reject)=>{
+  let gotTrack=!requireTrack,done=false;
+  const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);pc.removeEventListener('connectionstatechange',check);pc.removeEventListener('track',track);error?reject(error):resolve();};
+  const check=()=>{if(pc.connectionState==='connected'&&gotTrack)finish();else if(pc.connectionState==='failed'||pc.connectionState==='closed')finish(new Error(t('mediaDisconnected')));};
+  const track=()=>{gotTrack=true;check();};
+  const timer=setTimeout(()=>finish(new Error(t('mediaDisconnected'))),timeout);
+  pc.addEventListener('connectionstatechange',check);pc.addEventListener('track',track);check();
+ });
+}
 function setRoomStatus(message,error=false){
  const node=document.getElementById('class-room-status');if(node){node.textContent=message;node.classList.toggle('error',!!error);}
 }
@@ -456,13 +466,15 @@ async function subscribeToParticipant(room,person){
  pc.ontrack=event=>{
   const tracks=event.streams?.[0]?.getTracks()||[event.track];
   for(const track of tracks)if(!stream.getTracks().some(x=>x.id===track.id))stream.addTrack(track);
-  video.srcObject=stream;void video.play().catch(()=>{});
+  video.srcObject=stream;void video.play().catch(()=>{setRoomStatus(t('tapUnmute'));});
+  video.addEventListener('click',()=>{void video.play().catch(()=>{});});
  };
  pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed')setRoomStatus(t('mediaDisconnected'),true);};
  try{
   await pc.setRemoteDescription(new RTCSessionDescription(data.sessionDescription));
   const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await waitForIceGathering(pc);
   await callApi('/api/classroom/renegotiate',{classId:room.classId,sessionId:data.sessionId,sessionDescription:pc.localDescription});
+  await waitForPeerConnection(pc,{requireTrack:true,timeout:18000});
   room.subscriptions.set(person.user_id,{pc,sessionId:data.sessionId,tile});
  }catch(error){pc.close();tile.remove();throw error;}
 }
@@ -479,7 +491,11 @@ async function syncClassroom(room){
    try{await subscribeToParticipant(room,person);}catch(e){setRoomStatus(e.message||t('mediaConnecting'),true);}
   }
   const ids=new Set(active.map(p=>p.user_id));
-  for(const [id,sub] of room.subscriptions)if(!ids.has(id)){sub.pc.close();sub.tile.remove();room.subscriptions.delete(id);}
+  for(const [id,sub] of room.subscriptions)if(!ids.has(id)){
+   sub.pc.close();sub.tile.remove();room.subscriptions.delete(id);
+   try{await callApi('/api/classroom/unsubscribe',{classId:room.classId,publisherId:id});}
+   catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
+  }
  }catch(error){if(activeRoom===room)setRoomStatus(error.message||t('mediaDisconnected'),true);}
  finally{room.syncing=false;}
 }
@@ -503,10 +519,9 @@ async function enterRoom(){
   document.getElementById('class-room-footer').classList.remove('hidden');
   const localTile=addRoomTile(user.id,session.displayName||profile?.display_name||'You',true),localVideo=localTile.querySelector('video');
   localVideo.srcObject=room.previewStream;void localVideo.play().catch(()=>{});
-  const until=Date.now()+16000;while(Date.now()<until&&pc.connectionState!=='connected'&&pc.connectionState!=='failed')await new Promise(resolve=>setTimeout(resolve,300));
-  if(pc.connectionState==='failed')throw new Error(t('mediaDisconnected'));
-  setRoomStatus(pc.connectionState==='connected'?t('mediaConnected'):t('mediaConnecting'));
-  document.getElementById('class-room-connection').textContent=pc.connectionState==='connected'?t('mediaConnected'):t('mediaConnecting');document.getElementById('class-live-mic').textContent=t('mute');document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length;
+  await waitForPeerConnection(pc,{timeout:18000});
+  setRoomStatus(t('mediaConnected'));
+  document.getElementById('class-room-connection').textContent=t('mediaConnected');document.getElementById('class-live-mic').textContent=t('mute');document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length;
   room.poller=setInterval(()=>{void syncClassroom(room);},2500);
   room.heartbeat=setInterval(()=>{void db.from('class_room_participants').update({last_seen_at:new Date().toISOString()}).eq('class_id',room.classId).eq('user_id',user.id);},12000);
   await syncClassroom(room);
