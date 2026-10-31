@@ -673,7 +673,7 @@ async function openConversation(id) {
 }
 async function loadContacts() {
   const {data, error} = await supabase.from('profiles').select('id,display_name,role').order('display_name');
-  if (error) { status('messages-status', tr('failedMessages'), true); return; }
+  if (error) { status('messages-status', tr('failedMessages')+' '+error.message, true); return; }
   const requiredRole = professorMode() ? 'student' : 'professor';
   contacts = (data || []).filter(item => item.id !== user.id && item.role === requiredRole);
   if (!contacts.some(item => item.id === contactId)) contactId = contacts[0]?.id || null;
@@ -695,7 +695,7 @@ async function loadOwnerAccounts() {
   list.replaceChildren();
   if (!isOwner) { status('owner-status', tr('denied'), true); return; }
   const {data, error} = await supabase.rpc('get_echo_role_candidates');
-  if (error) { status('owner-status', tr('failedOwner'), true); return; }
+  if (error) { status('owner-status', tr('failedOwner')+' '+error.message, true); return; }
   const candidates = (data || []).filter(item => !OWNER_EMAILS.has((item.email || '').toLowerCase()));
   if (!candidates.length) { list.append(el('p', 'message-empty-note', tr('noAccounts'))); return; }
   for (const account of candidates) {
@@ -735,8 +735,15 @@ function startMessageRefresh() {
 async function loadForSession(session) {
   if (!session?.user || !supabase) return;
   user = session.user;
-  isOwner = OWNER_EMAILS.has((user.email || '').toLowerCase());
+  const emailOwner = OWNER_EMAILS.has((user.email || '').trim().toLowerCase());
+  // Database is authoritative; email matching is a safe UI fallback so the
+  // owner panel remains visible if the RPC grant itself is the problem.
+  const ownerCheck = await supabase.rpc('is_echo_owner');
+  isOwner = ownerCheck.data === true || emailOwner;
   document.getElementById('owner-tab').classList.toggle('hidden', !isOwner);
+  if (emailOwner && ownerCheck.error) {
+    status('owner-status', 'Owner check needs database attention: '+ownerCheck.error.message, true);
+  }
   const {data, error} = await supabase.from('profiles')
     .select('id,display_name,role').eq('id', user.id).maybeSingle();
   profile = data || {id:user.id, display_name:user.email, role:'student'};
