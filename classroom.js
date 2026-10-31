@@ -10,7 +10,7 @@ const ZONE = 'Europe/Athens';
 const lang = () => localStorage.getItem('echo-language') === 'el' ? 'el' : 'en';
 const words = {
   en:{
-    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',materials:'Learning materials',
+    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',startClass:'Start class',endClass:'End class',waitingProfessor:'Waiting for professor',prejoinTitle:'Prepare to join',joinNow:'Enter classroom',leave:'Leave classroom',microphone:'Microphone',camera:'Camera',speakerTest:'Test speakers',cameraUnavailable:'Camera unavailable — joining with audio only.',mediaDenied:'Microphone or camera permission was denied.',mediaReady:'Your devices are ready.',mediaConnecting:'Connecting to classroom…',mediaConnected:'Connected to live classroom.',mediaDisconnected:'Connection lost. Check your network.',mediaEnded:'The professor ended this class.',joined:'Joined',notJoined:'Not joined',mute:'Mute',unmute:'Unmute',cameraOff:'Camera off',cameraOn:'Camera on',materials:'Learning materials',
     create:'Create a class',edit:'Edit class',name:'Class name',subject:'Subject',description:'Description',
     image:'Image URL (optional)',start:'Starts',end:'Ends',students:'Assign students',save:'Save class',
     cancel:'Cancel',delete:'Delete class',cancelClass:'Cancel class',confirmCancel:'Cancel this class?',confirmDelete:'Delete this class and its assignments?',
@@ -34,7 +34,7 @@ const words = {
     rosterError:'Could not update the student list. Review the class and try again.'
   },
   el:{
-    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',materials:'Εκπαιδευτικό υλικό',
+    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε. Ελέγξτε το δίκτυό σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
     create:'Δημιουργία μαθήματος',edit:'Επεξεργασία μαθήματος',name:'Όνομα μαθήματος',subject:'Αντικείμενο',description:'Περιγραφή',
     image:'Σύνδεσμος εικόνας (προαιρετικό)',start:'Έναρξη',end:'Λήξη',students:'Ανάθεση μαθητών',save:'Αποθήκευση',
     cancel:'Ακύρωση',delete:'Διαγραφή μαθήματος',cancelClass:'Ακύρωση μαθήματος',confirmCancel:'Να ακυρωθεί αυτό το μάθημα;',confirmDelete:'Να διαγραφεί αυτό το μάθημα και οι αναθέσεις του;',
@@ -107,6 +107,24 @@ panel.innerHTML=`
 const testing=document.createElement('section');testing.className='panel';testing.id='panel-testing';
 testing.innerHTML=`<div class="panel-heading"><div><h2>${t('testTitle')}</h2><p>${t('testIntro')}</p></div><button class="btn btn-dark" id="class-run-checks">${t('runChecks')}</button></div><div class="class-test-results" id="class-test-results"></div>`;
 host.append(panel,testing);
+const roomOverlay=document.createElement('div');
+roomOverlay.className='class-room-overlay hidden';
+roomOverlay.id='class-room-overlay';
+roomOverlay.innerHTML=`
+ <section class="class-room-shell" role="dialog" aria-modal="true" aria-labelledby="class-room-title">
+  <header class="class-room-header"><div><p class="class-room-eyebrow">ECHO · LIVE CLASSROOM</p><h2 id="class-room-title"></h2><p id="class-room-status" role="status"></p></div><button type="button" class="btn" id="class-room-close">${t('cancel')}</button></header>
+  <div class="class-room-prejoin" id="class-room-prejoin">
+   <div class="class-room-preview"><video id="class-preview-video" autoplay playsinline muted></video><div id="class-preview-placeholder"></div></div>
+   <div class="class-room-controls"><button type="button" class="btn" id="class-mic-toggle">${t('microphone')}</button><button type="button" class="btn" id="class-camera-toggle">${t('camera')}</button><button type="button" class="btn" id="class-speaker-test">${t('speakerTest')}</button><button type="button" class="btn btn-dark" id="class-room-enter">${t('joinNow')}</button></div>
+  </div>
+  <div class="class-room-stage hidden" id="class-room-stage">
+   <div class="class-room-videos" id="class-room-videos"></div>
+   <aside class="class-room-roster"><strong>${t('roster')}</strong><div id="class-room-roster-list"></div></aside>
+  </div>
+  <footer class="class-room-footer hidden" id="class-room-footer"><span id="class-room-connection"></span><button type="button" class="btn btn-dark" id="class-room-leave">${t('leave')}</button></footer>
+ </section>`;
+document.body.append(roomOverlay);
+let activeRoom=null,callJoinPending=false,roomAudioContext=null;
 function activate(name){document.querySelectorAll('.nav-tabs [data-tab]').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on));});document.querySelectorAll('#app-shell .panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));}
 nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab="classes"],[data-tab="testing"]');if(b)activate(b.dataset.tab);});
 document.getElementById('class-new').addEventListener('click',()=>openEditor());
@@ -117,6 +135,12 @@ document.getElementById('class-next').addEventListener('click',()=>moveCursor(1)
 document.getElementById('class-form').addEventListener('submit',saveClass);
 document.getElementById('class-demo').addEventListener('change',toggleDemoEditor);
 document.getElementById('class-run-checks').addEventListener('click',runChecks);
+document.getElementById('class-room-close').addEventListener('click',()=>{if(activeRoom)void leaveRoom();else closePrejoin();});
+document.getElementById('class-room-enter').addEventListener('click',()=>{void enterRoom();});
+document.getElementById('class-room-leave').addEventListener('click',()=>{void leaveRoom();});
+document.getElementById('class-mic-toggle').addEventListener('click',toggleRoomMic);
+document.getElementById('class-camera-toggle').addEventListener('click',toggleRoomCamera);
+document.getElementById('class-speaker-test').addEventListener('click',testRoomSpeaker);
 function toggleDemoEditor(){
  const demo=isOwner&&document.getElementById('class-demo').checked;
  document.getElementById('class-real-student-picker').classList.toggle('hidden',demo);
@@ -130,7 +154,7 @@ function periodBounds(){
  if(view==='month'){start=new Date(d.getFullYear(),d.getMonth(),1);end=new Date(d.getFullYear(),d.getMonth()+1,1);}
  return [start,end];
 }
-function classStatus(c){const now=Date.now();if(c.status==='cancelled')return 'cancelled';if(now<new Date(c.starts_at).getTime())return 'upcoming';if(now<=new Date(c.ends_at).getTime())return 'live';return 'completed';}
+function classStatus(c){if(c.status==='cancelled')return 'cancelled';if(c.liveRoom?.status==='live')return 'live';if(Date.now()>new Date(c.ends_at).getTime())return 'completed';return 'upcoming';}
 function dateKey(value){
  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
  const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;
@@ -199,8 +223,12 @@ async function loadClasses(){
  const query=db.from('classes').select('id,title,subject,description,image_url,starts_at,ends_at,status,allow_unassigned,is_demo,created_by').order('starts_at',{ascending:true});
  const {data,error}=await query;if(error)throw error;
  const rows=data||[], ids=rows.map(x=>x.id);
- for(const row of rows)row.roster=[];
+ for(const row of rows){row.roster=[];row.liveRoom=null;}
  if(ids.length){
+  const {data:liveRows,error:liveError}=await db.from('class_live_rooms').select('class_id,status,started_at').in('class_id',ids).eq('status','live');
+  if(liveError)throw liveError;
+  const liveMap=new Map((liveRows||[]).map(x=>[x.class_id,x]));
+  for(const row of rows)row.liveRoom=liveMap.get(row.id)||null;
   const {data:rosters,error:rosterError}=await db.rpc('get_echo_class_rosters',{target_class_ids:ids});
   if(rosterError)throw rosterError;
   for(const person of rosters||[]){
