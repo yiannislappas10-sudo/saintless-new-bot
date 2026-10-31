@@ -460,6 +460,7 @@ create table if not exists public.class_room_participants (
   left_at timestamptz,
   primary key (class_id, user_id)
 );
+alter table public.class_room_participants add column if not exists last_seen_at timestamptz not null default now();
 create index if not exists class_room_participants_class_status_idx
   on public.class_room_participants(class_id,status);
 
