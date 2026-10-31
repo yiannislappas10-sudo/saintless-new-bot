@@ -25,7 +25,7 @@ const words = {
     occurrences:'Number of weeks',status:'Status',professor:'Professor',participants:'participants',
     noTitle:'Enter a class name.',invalidTime:'End time must be after start time.',
     studentsRequired:'Assign at least one student, or explicitly allow unassigned students.',
-    demoMode:'Demo classes are visible only to the Primary Owner.',demoStudents:'Demo participants (one name per line)',allowUnassigned:'Allow students not assigned to this class',noMaterials:'No learning materials added yet.',materialTitle:'Material title',materialURL:'Secure link (https://)',addMaterial:'Add material',attendance:'Attendance',noAttendance:'No attendance recorded yet.',
+    demoMode:'Demo classes are visible only to the Primary Owner.',demoStudents:'Demo participants (one name per line)',classProfessor:'Professor',previewStudent:'Preview student view',previewProfessor:'Preview professor view',endPreview:'Exit preview',previewBanner:'Preview only. Database permissions and real accounts are unchanged.',allowUnassigned:'Allow students not assigned to this class',noMaterials:'No learning materials added yet.',materialTitle:'Material title',materialURL:'Secure link (https://)',addMaterial:'Add material',attendance:'Attendance',noAttendance:'No attendance recorded yet.',
     testTab:'Testing Center',testTitle:'Platform checks',testIntro:'Checks report actual service responses. No test will change real classes.',
     authCheck:'Authentication session',dbCheck:'Class database access',roleCheck:'Owner permissions',demoCrudCheck:'Isolated demo create, read, update and delete',mediaCheck:'Camera and microphone permissions',
     runChecks:'Run checks',passed:'Passed',failed:'Failed',notTested:'Not tested',
@@ -49,7 +49,7 @@ const words = {
     occurrences:'Αριθμός εβδομάδων',status:'Κατάσταση',professor:'Καθηγητής',participants:'συμμετέχοντες',
     noTitle:'Συμπληρώστε το όνομα του μαθήματος.',invalidTime:'Η ώρα λήξης πρέπει να είναι μετά την έναρξη.',
     studentsRequired:'Αναθέστε τουλάχιστον έναν μαθητή ή επιτρέψτε ρητά τη συμμετοχή χωρίς ανάθεση.',
-    demoMode:'Οι δοκιμαστικές τάξεις είναι ορατές μόνο στον Κύριο Ιδιοκτήτη.',demoStudents:'Δοκιμαστικοί συμμετέχοντες (ένα όνομα ανά γραμμή)',allowUnassigned:'Επιτρέπονται μαθητές χωρίς ανάθεση',noMaterials:'Δεν έχουν προστεθεί εκπαιδευτικά αρχεία.',materialTitle:'Τίτλος υλικού',materialURL:'Ασφαλής σύνδεσμος (https://)',addMaterial:'Προσθήκη υλικού',attendance:'Παρουσίες',noAttendance:'Δεν υπάρχουν καταχωρημένες παρουσίες.',
+    demoMode:'Οι δοκιμαστικές τάξεις είναι ορατές μόνο στον Κύριο Ιδιοκτήτη.',demoStudents:'Δοκιμαστικοί συμμετέχοντες (ένα όνομα ανά γραμμή)',classProfessor:'Καθηγητής',previewStudent:'Προεπισκόπηση μαθητή',previewProfessor:'Προεπισκόπηση καθηγητή',endPreview:'Έξοδος από προεπισκόπηση',previewBanner:'Μόνο προεπισκόπηση. Τα δικαιώματα βάσης και οι πραγματικοί λογαριασμοί δεν αλλάζουν.',allowUnassigned:'Επιτρέπονται μαθητές χωρίς ανάθεση',noMaterials:'Δεν έχουν προστεθεί εκπαιδευτικά αρχεία.',materialTitle:'Τίτλος υλικού',materialURL:'Ασφαλής σύνδεσμος (https://)',addMaterial:'Προσθήκη υλικού',attendance:'Παρουσίες',noAttendance:'Δεν υπάρχουν καταχωρημένες παρουσίες.',
     testTab:'Κέντρο δοκιμών',testTitle:'Έλεγχοι πλατφόρμας',testIntro:'Οι έλεγχοι βασίζονται σε πραγματικές απαντήσεις υπηρεσιών.',
     authCheck:'Συνεδρία σύνδεσης',dbCheck:'Πρόσβαση στη βάση μαθημάτων',roleCheck:'Δικαιώματα ιδιοκτήτη',demoCrudCheck:'Δημιουργία, ανάγνωση, επεξεργασία και διαγραφή demo',mediaCheck:'Άδειες κάμερας και μικροφώνου',
     runChecks:'Εκτέλεση ελέγχων',passed:'Επιτυχία',failed:'Αποτυχία',notTested:'Δεν ελέγχθηκε',
@@ -71,7 +71,7 @@ function toAthensISO(value){
   return result.toISOString();
 }
 function fromISO(value){const p=athensParts(new Date(value));return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute;}
-let db=null,user=null,profile=null,isOwner=false,classes=[],students=[],selected=null,view='week',cursor=new Date();
+let db=null,user=null,profile=null,isOwner=false,classes=[],students=[],selected=null,view='week',cursor=new Date(),ownerPreviewRole=null,waitingRoomTimer=null;
 const nav=document.querySelector('.nav-tabs');
 nav.querySelector('[data-tab="schedule"]')?.remove();
 nav.querySelector('[data-tab="join"]')?.remove();
@@ -105,7 +105,7 @@ panel.innerHTML=`
  <div id="class-list" class="class-list" aria-live="polite"></div><p class="class-status" id="class-status" role="status"></p>
  <div id="class-detail" class="class-detail hidden"></div>`;
 const testing=document.createElement('section');testing.className='panel';testing.id='panel-testing';
-testing.innerHTML=`<div class="panel-heading"><div><h2>${t('testTitle')}</h2><p>${t('testIntro')}</p></div><div class="class-test-actions"><button class="btn" id="class-speaker-check">${t('speakerOutput')}</button><button class="btn btn-dark" id="class-run-checks">${t('runChecks')}</button></div></div><div class="class-test-results" id="class-test-results"></div>`;
+testing.innerHTML=`<div class="panel-heading"><div><h2>${t('testTitle')}</h2><p>${t('testIntro')}</p></div><div class="class-test-actions"><button class="btn" id="class-speaker-check">${t('speakerOutput')}</button><button class="btn btn-dark" id="class-run-checks">${t('runChecks')}</button></div></div><div class="class-preview-controls"><button type="button" class="btn" id="class-preview-student">${t('previewStudent')}</button><button type="button" class="btn" id="class-preview-professor">${t('previewProfessor')}</button><button type="button" class="btn hidden" id="class-preview-end">${t('endPreview')}</button><p id="class-preview-banner" class="hidden">${t('previewBanner')}</p></div><div class="class-test-results" id="class-test-results"></div>`;
 host.append(panel,testing);
 const roomOverlay=document.createElement('div');
 roomOverlay.className='class-room-overlay hidden';
@@ -135,6 +135,9 @@ document.getElementById('class-next').addEventListener('click',()=>moveCursor(1)
 document.getElementById('class-form').addEventListener('submit',saveClass);
 document.getElementById('class-demo').addEventListener('change',toggleDemoEditor);
 document.getElementById('class-run-checks').addEventListener('click',runChecks);
+document.getElementById('class-preview-student').addEventListener('click',()=>setPreview('student'));
+document.getElementById('class-preview-professor').addEventListener('click',()=>setPreview('professor'));
+document.getElementById('class-preview-end').addEventListener('click',()=>setPreview(null));
 document.getElementById('class-speaker-check').addEventListener('click',runSpeakerCheck);
 document.getElementById('class-live-mic').addEventListener('click',toggleRoomMic);
 document.getElementById('class-live-camera').addEventListener('click',toggleRoomCamera);
@@ -203,7 +206,8 @@ function renderClasses(){
  const list=document.getElementById('class-list');list.replaceChildren();
  const [start,end]=periodBounds();
  document.getElementById('class-period').textContent=fmt(start.toISOString())+' — '+fmt(new Date(end.getTime()-1).toISOString());
- const rows=classes.filter(c=>new Date(c.starts_at)>=start&&new Date(c.starts_at)<end).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+ const visibleClasses=isOwner&&ownerPreviewRole?classes.filter(c=>c.is_demo):classes;
+ const rows=visibleClasses.filter(c=>new Date(c.starts_at)>=start&&new Date(c.starts_at)<end).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
  if(view==='day'){
   if(!rows.length){const p=document.createElement('div');p.className='class-empty';p.textContent=t('empty');list.append(p);return;}
   for(const c of rows)list.append(makeClassCard(c));
@@ -262,6 +266,13 @@ async function loadClasses(){
     if(row)row.roster.push({id:null,display_name:person.display_name});
    }
   }
+ }
+ if(rows.length){
+  const creatorIds=[...new Set(rows.map(x=>x.created_by).filter(Boolean))];
+  const {data:creators,error:creatorError}=await db.from('profiles').select('id,display_name').in('id',creatorIds);
+  if(creatorError)throw creatorError;
+  const creatorNames=new Map((creators||[]).map(x=>[x.id,x.display_name]));
+  for(const row of rows)row.professorName=creatorNames.get(row.created_by)||'ECHO';
  }
  classes=rows;renderClasses();
 }
@@ -532,7 +543,7 @@ async function showDetail(id){
   try{const imageURL=new URL(c.image_url);if(imageURL.protocol==='https:'){const img=document.createElement('img');img.className='class-detail-image';img.src=imageURL.href;img.alt=c.title;img.loading='lazy';img.referrerPolicy='no-referrer';detail.append(img);}}catch{}
  }
  const desc=document.createElement('p');desc.textContent=c.description||c.subject;
- const state=classStatus(c),stateLine=document.createElement('p');stateLine.className='class-detail-meta';stateLine.textContent=t(state)+' · '+t('professor');
+ const state=classStatus(c),stateLine=document.createElement('p');stateLine.className='class-detail-meta';stateLine.textContent=t(state)+' · '+t('classProfessor')+': '+(c.professorName||'ECHO');
  const info=document.createElement('p');info.textContent=fmt(c.starts_at)+' – '+fmt(c.ends_at)+' · '+c.subject;
  const roster=document.createElement('div');roster.className='class-detail-roster';const rosterTitle=document.createElement('strong');rosterTitle.textContent=t('roster');roster.append(rosterTitle);
  for(const person of c.roster||[]){const p=document.createElement('p');p.textContent=person.display_name;roster.append(p);}
@@ -612,7 +623,19 @@ async function showDetail(id){
  }
  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function professorMode(){return isOwner||profile?.role==='professor';}
+function professorMode(){if(isOwner&&ownerPreviewRole==='student')return false;return isOwner||profile?.role==='professor';}
+function setPreview(role){
+ if(!isOwner)return;
+ ownerPreviewRole=role;
+ document.getElementById('class-preview-banner').classList.toggle('hidden',!role);
+ document.getElementById('class-preview-end').classList.toggle('hidden',!role);
+ document.getElementById('class-preview-student').classList.toggle('active',role==='student');
+ document.getElementById('class-preview-professor').classList.toggle('active',role==='professor');
+ if(role){activate('classes');document.getElementById('class-status').textContent=t('previewBanner');}
+ else document.getElementById('class-status').textContent='';
+ document.getElementById('class-new').classList.toggle('hidden',!professorMode());
+ renderClasses();
+}
 async function runSpeakerCheck(){
  const button=document.getElementById('class-speaker-check');button.disabled=true;
  const area=document.getElementById('class-test-results');
@@ -683,6 +706,10 @@ function applyLanguage(){
  document.getElementById('class-new').textContent=t('create');
  document.querySelectorAll('[data-view]').forEach(b=>b.textContent=t(b.dataset.view));
  document.getElementById('class-run-checks').textContent=t('runChecks');
+ document.getElementById('class-preview-student').textContent=t('previewStudent');
+ document.getElementById('class-preview-professor').textContent=t('previewProfessor');
+ document.getElementById('class-preview-end').textContent=t('endPreview');
+ document.getElementById('class-preview-banner').textContent=t('previewBanner');
  document.getElementById('class-speaker-check').textContent=t('speakerOutput');
 document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  const labels=panel.querySelectorAll('.class-form-grid label');
