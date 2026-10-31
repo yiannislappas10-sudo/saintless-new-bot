@@ -254,13 +254,23 @@ function renderClassStatuses() {
   if (!rows.length) list.append(make('div','personal-empty',t('noClasses')));
   else rows.forEach(c=>list.append(classRow(c)));
 }
-function notificationCard(title,description,time,actions=[],pinned=false,read=false) {
+function notificationCard(title,description,time,actions=[],pinned=false,read=false,onOpen=null) {
   const card = make('article','personal-notification'+(pinned?' is-pinned':'')+(read?' is-read':''));
   const main = make('div','personal-notification-main');
   main.append(make('strong','',title));
   if (pinned) main.append(make('span','personal-notification-pinned',t('pinned')));
   main.append(make('p','',description || ''));
   main.append(make('time','',fmtDate(time)+' · '+fmtTime(time)));
+  if(onOpen){
+    main.classList.add('personal-notification-openable');
+    main.tabIndex=0;
+    main.setAttribute('role','button');
+    main.setAttribute('aria-label',t('open')+' '+title);
+    main.addEventListener('click',onOpen);
+    main.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();onOpen();}
+    });
+  }
   const actionArea = make('div','personal-notification-actions');
   for (const action of actions) {
     const button = make('button','personal-action'+(action.primary?' personal-action-primary':''),action.label);
@@ -271,6 +281,13 @@ function notificationCard(title,description,time,actions=[],pinned=false,read=fa
   }
   card.append(main,actionArea);
   return card;
+}
+function openNotification(item) {
+  if(item.kind==='announcement'){
+    window.dispatchEvent(new CustomEvent('echo:open-announcement',{detail:{id:item.id}}));
+  }else if(item.kind==='message'){
+    window.dispatchEvent(new CustomEvent('echo:open-message',{detail:{senderId:item.sender_id,messageId:item.id}}));
+  }
 }
 function renderNotifications() {
   const list = $('personal-notification-list');
@@ -292,7 +309,11 @@ function renderNotifications() {
   }
   for (const item of rows) {
     if (item.kind==='announcement'||item.kind==='message') {
-      const actions = [];
+      const actions = [{
+        label:t('open'),
+        primary:true,
+        onClick:()=>openNotification(item)
+      }];
       if (!item.read) actions.push({
         label:t('markRead'),
         primary:true,
@@ -303,7 +324,7 @@ function renderNotifications() {
         onClick:()=>{void toggleNotificationPin(item);}
       });
       const title=item.kind==='announcement'?t('newAnnouncement'):t('newMessage');
-      list.append(notificationCard(title,item.preview||item.title,item.created_at,actions,item.pinned,item.read));
+      list.append(notificationCard(title,item.preview||item.title,item.created_at,actions,item.pinned,item.read,()=>openNotification(item)));
     } else {
       list.append(notificationCard(t('upcomingLessons'),item.title,item.starts_at,[{
         label:t('open'),onClick:()=>activate('class-status')
@@ -385,7 +406,7 @@ async function loadNotifications() {
   status.textContent = '';
   try {
     const [announcementResult,readResult,messageResult,pinResult] = await Promise.all([
-      db.from('announcements').select('id,title,created_at,created_by,notify_in_notifications').eq('published',true).eq('notify_in_notifications',true).order('created_at',{ascending:false}).limit(1000),
+      db.from('announcements').select('id,title,created_at,created_by').eq('published',true).order('created_at',{ascending:false}).limit(1000),
       db.from('announcement_reads').select('announcement_id').eq('user_id',user.id),
       db.from('private_messages').select('id,sender_id,recipient_id,body,created_at,read_at')
         .eq('recipient_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(1000),
@@ -431,7 +452,7 @@ async function loadNotifications() {
       senderNames = new Map((senders||[]).map(x=>[x.id,x.display_name]));
     }
     const messageItems = visibleMessages.map(x=>({
-      kind:'message',id:x.id,created_at:x.created_at,read:!!x.read_at,pinned:pinnedMessageIds.has(x.id),
+      kind:'message',id:x.id,sender_id:x.sender_id,created_at:x.created_at,read:!!x.read_at,pinned:pinnedMessageIds.has(x.id),
       preview:(senderNames.get(x.sender_id)||t('professor'))+': '+String(x.body||'').slice(0,140)
     }));
     const upcoming = classes.filter(c=>classStatus(c)==='upcoming'&&new Date(c.starts_at).getTime()>Date.now())
