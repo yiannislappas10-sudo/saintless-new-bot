@@ -225,6 +225,9 @@ function syncCallControls() {
   document.querySelectorAll('#message-contacts-list .message-contact').forEach(item => {
     item.disabled = !!activeCall;
   });
+  nav.querySelectorAll('[data-tab]').forEach(item => {
+    item.disabled = !!activeCall && item.dataset.tab !== 'messages';
+  });
 }
 function hideIncomingCall() {
   document.getElementById('incoming-call')?.classList.add('hidden');
@@ -512,14 +515,14 @@ async function acceptIncomingCall() {
   if (!pending || activeCall) return;
   incomingCall = null;
   hideIncomingCall();
-  activateTab('messages');
-  await openConversation(pending.caller_id);
   const call = {
     id:pending.id, role:'callee', peerId:pending.caller_id, peerName:pending.peerName,
     channel:null, pc:null, localStream:null, pendingCandidates:[], offerHandled:false
   };
   activeCall = call;
   syncCallControls();
+  activateTab('messages');
+  await openConversation(pending.caller_id);
   showCallStatus(tr('connecting'));
   try {
     call.channel = await subscribeToCall(call.id);
@@ -541,9 +544,9 @@ async function acceptIncomingCall() {
 async function declineIncomingCall() {
   const pending = incomingCall;
   if (!pending) return;
+  const {error} = await supabase.rpc('reject_echo_call', {target_call_id:pending.id});
   incomingCall = null;
   hideIncomingCall();
-  const {error} = await supabase.rpc('reject_echo_call', {target_call_id:pending.id});
   showCallStatus(error?.message || tr('callRejected'), !!error);
 }
 
