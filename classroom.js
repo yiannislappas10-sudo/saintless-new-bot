@@ -10,7 +10,7 @@ const ZONE = 'Europe/Athens';
 const lang = () => localStorage.getItem('echo-language') === 'el' ? 'el' : 'en';
 const words = {
   en:{
-    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',startClass:'Start class',endClass:'End class',waitingProfessor:'Waiting for professor',prejoinTitle:'Prepare to join',joinNow:'Enter classroom',leave:'Leave classroom',microphone:'Microphone',camera:'Camera',speakerTest:'Test speakers',cameraUnavailable:'Camera unavailable — joining with audio only.',mediaDenied:'Microphone or camera permission was denied.',mediaReady:'Your devices are ready.',mediaConnecting:'Connecting to classroom…',mediaConnected:'Connected to live classroom.',mediaDisconnected:'Connection lost. Check your network.',mediaEnded:'The professor ended this class.',joined:'Joined',notJoined:'Not joined',mute:'Mute',unmute:'Unmute',cameraOff:'Camera off',cameraOn:'Camera on',materials:'Learning materials',
+    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',speakerOutput:'Speaker output test',sfuCheck:'Live media server API connection',announcementCheck:'Announcements database access',messageCheck:'Private messaging database access',profileCheck:'Your profile access',speakerQuestion:'Did you hear the test tone clearly?',startClass:'Start class',endClass:'End class',waitingProfessor:'Waiting for professor',prejoinTitle:'Prepare to join',joinNow:'Enter classroom',leave:'Leave classroom',microphone:'Microphone',camera:'Camera',speakerTest:'Test speakers',cameraUnavailable:'Camera unavailable — joining with audio only.',mediaDenied:'Microphone or camera permission was denied.',mediaReady:'Your devices are ready.',mediaConnecting:'Connecting to classroom…',mediaConnected:'Connected to live classroom.',mediaDisconnected:'Connection lost. Check your network.',mediaEnded:'The professor ended this class.',joined:'Joined',notJoined:'Not joined',mute:'Mute',unmute:'Unmute',cameraOff:'Camera off',cameraOn:'Camera on',materials:'Learning materials',
     create:'Create a class',edit:'Edit class',name:'Class name',subject:'Subject',description:'Description',
     image:'Image URL (optional)',start:'Starts',end:'Ends',students:'Assign students',save:'Save class',
     cancel:'Cancel',delete:'Delete class',cancelClass:'Cancel class',confirmCancel:'Cancel this class?',confirmDelete:'Delete this class and its assignments?',
@@ -34,7 +34,7 @@ const words = {
     rosterError:'Could not update the student list. Review the class and try again.'
   },
   el:{
-    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε. Ελέγξτε το δίκτυό σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
+    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',speakerOutput:'Έλεγχος ήχου ηχείων',sfuCheck:'Σύνδεση με τον διακομιστή ζωντανής μετάδοσης',announcementCheck:'Πρόσβαση στη βάση ανακοινώσεων',messageCheck:'Πρόσβαση στη βάση μηνυμάτων',profileCheck:'Πρόσβαση στο προφίλ σας',speakerQuestion:'Ακούσατε καθαρά τον δοκιμαστικό ήχο;',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε. Ελέγξτε το δίκτυό σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
     create:'Δημιουργία μαθήματος',edit:'Επεξεργασία μαθήματος',name:'Όνομα μαθήματος',subject:'Αντικείμενο',description:'Περιγραφή',
     image:'Σύνδεσμος εικόνας (προαιρετικό)',start:'Έναρξη',end:'Λήξη',students:'Ανάθεση μαθητών',save:'Αποθήκευση',
     cancel:'Ακύρωση',delete:'Διαγραφή μαθήματος',cancelClass:'Ακύρωση μαθήματος',confirmCancel:'Να ακυρωθεί αυτό το μάθημα;',confirmDelete:'Να διαγραφεί αυτό το μάθημα και οι αναθέσεις του;',
@@ -105,7 +105,7 @@ panel.innerHTML=`
  <div id="class-list" class="class-list" aria-live="polite"></div><p class="class-status" id="class-status" role="status"></p>
  <div id="class-detail" class="class-detail hidden"></div>`;
 const testing=document.createElement('section');testing.className='panel';testing.id='panel-testing';
-testing.innerHTML=`<div class="panel-heading"><div><h2>${t('testTitle')}</h2><p>${t('testIntro')}</p></div><button class="btn btn-dark" id="class-run-checks">${t('runChecks')}</button></div><div class="class-test-results" id="class-test-results"></div>`;
+testing.innerHTML=`<div class="panel-heading"><div><h2>${t('testTitle')}</h2><p>${t('testIntro')}</p></div><div class="class-test-actions"><button class="btn" id="class-speaker-check">${t('speakerOutput')}</button><button class="btn btn-dark" id="class-run-checks">${t('runChecks')}</button></div></div><div class="class-test-results" id="class-test-results"></div>`;
 host.append(panel,testing);
 const roomOverlay=document.createElement('div');
 roomOverlay.className='class-room-overlay hidden';
@@ -121,7 +121,7 @@ roomOverlay.innerHTML=`
    <div class="class-room-videos" id="class-room-videos"></div>
    <aside class="class-room-roster"><strong>${t('roster')}</strong><div id="class-room-roster-list"></div></aside>
   </div>
-  <footer class="class-room-footer hidden" id="class-room-footer"><span id="class-room-connection"></span><button type="button" class="btn btn-dark" id="class-room-leave">${t('leave')}</button></footer>
+  <footer class="class-room-footer hidden" id="class-room-footer"><span id="class-room-connection"></span><button type="button" class="btn" id="class-live-mic">${t('mute')}</button><button type="button" class="btn" id="class-live-camera">${t('cameraOff')}</button><button type="button" class="btn btn-dark" id="class-room-leave">${t('leave')}</button></footer>
  </section>`;
 document.body.append(roomOverlay);
 let activeRoom=null,callJoinPending=false,roomAudioContext=null;
@@ -135,6 +135,9 @@ document.getElementById('class-next').addEventListener('click',()=>moveCursor(1)
 document.getElementById('class-form').addEventListener('submit',saveClass);
 document.getElementById('class-demo').addEventListener('change',toggleDemoEditor);
 document.getElementById('class-run-checks').addEventListener('click',runChecks);
+document.getElementById('class-speaker-check').addEventListener('click',runSpeakerCheck);
+document.getElementById('class-live-mic').addEventListener('click',toggleRoomMic);
+document.getElementById('class-live-camera').addEventListener('click',toggleRoomCamera);
 document.getElementById('class-room-close').addEventListener('click',()=>{if(activeRoom)void leaveRoom();else closePrejoin();});
 document.getElementById('class-room-enter').addEventListener('click',()=>{void enterRoom();});
 document.getElementById('class-room-leave').addEventListener('click',()=>{void leaveRoom();});
@@ -375,11 +378,11 @@ async function openPrejoin(classId){
 }
 function toggleRoomMic(){
  const track=activeRoom?.previewStream?.getAudioTracks()[0];if(!track)return;
- track.enabled=!track.enabled;document.getElementById('class-mic-toggle').textContent=track.enabled?t('mute'):t('unmute');
+ track.enabled=!track.enabled;document.getElementById('class-mic-toggle').textContent=track.enabled?t('mute'):t('unmute');document.getElementById('class-live-mic').textContent=track.enabled?t('mute'):t('unmute');
 }
 function toggleRoomCamera(){
  const track=activeRoom?.previewStream?.getVideoTracks()[0];if(!track)return;
- track.enabled=!track.enabled;document.getElementById('class-camera-toggle').textContent=track.enabled?t('cameraOff'):t('cameraOn');
+ track.enabled=!track.enabled;document.getElementById('class-camera-toggle').textContent=track.enabled?t('cameraOff'):t('cameraOn');document.getElementById('class-live-camera').textContent=track.enabled?t('cameraOff'):t('cameraOn');
 }
 async function testRoomSpeaker(){
  try{
@@ -475,7 +478,7 @@ async function enterRoom(){
   const until=Date.now()+16000;while(Date.now()<until&&pc.connectionState!=='connected'&&pc.connectionState!=='failed')await new Promise(resolve=>setTimeout(resolve,300));
   if(pc.connectionState==='failed')throw new Error(t('mediaDisconnected'));
   setRoomStatus(pc.connectionState==='connected'?t('mediaConnected'):t('mediaConnecting'));
-  document.getElementById('class-room-connection').textContent=pc.connectionState==='connected'?t('mediaConnected'):t('mediaConnecting');
+  document.getElementById('class-room-connection').textContent=pc.connectionState==='connected'?t('mediaConnected'):t('mediaConnecting');document.getElementById('class-live-mic').textContent=t('mute');document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length;
   room.poller=setInterval(()=>{void syncClassroom(room);},2500);await syncClassroom(room);
  }catch(error){
   setRoomStatus(error.message||t('callError'),true);
@@ -620,6 +623,7 @@ function applyLanguage(){
  document.getElementById('class-new').textContent=t('create');
  document.querySelectorAll('[data-view]').forEach(b=>b.textContent=t(b.dataset.view));
  document.getElementById('class-run-checks').textContent=t('runChecks');
+document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  const labels=panel.querySelectorAll('.class-form-grid label');
  const labelCopy=[t('name'),t('subject'),t('description'),t('image'),t('start'),t('end')];
  labels.forEach((node,i)=>{if(labelCopy[i])node.childNodes[0].textContent=labelCopy[i];});
