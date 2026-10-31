@@ -26,7 +26,7 @@ const words = {
     announcementRead:'Announcement marked as read.', messageRead:'Message marked as read.',
     failedNotifications:'Could not load notifications.', failedClasses:'Could not load classes.',
     classChanged:'Class status', emailNote:'Your sign-in email cannot be changed here.',
-    scheduled:'Scheduled', attendanceCount:'attendance records'
+    scheduled:'Scheduled'
   },
   el: {
     calendar:'Προσωπικό ημερολόγιο', calendarIntro:'Τα μαθήματά σας οργανωμένα ανά ημερομηνία.',
@@ -46,7 +46,7 @@ const words = {
     announcementRead:'Η ανακοίνωση σημειώθηκε ως αναγνωσμένη.', messageRead:'Το μήνυμα σημειώθηκε ως αναγνωσμένο.',
     failedNotifications:'Δεν ήταν δυνατή η φόρτωση ειδοποιήσεων.', failedClasses:'Δεν ήταν δυνατή η φόρτωση μαθημάτων.',
     classChanged:'Κατάσταση μαθήματος', emailNote:'Το email σύνδεσης δεν μπορεί να αλλάξει από εδώ.',
-    scheduled:'Προγραμματισμένο', attendanceCount:'καταχωρήσεις παρουσιών'
+    scheduled:'Προγραμματισμένο'
   }
 };
 const t = key => words[language()][key] || words.en[key] || key;
@@ -352,7 +352,7 @@ async function refreshPanel(id) {
       $('personal-profile-language').value = language();
     }
   } catch (error) {
-    const target = id==='notifications'?'personal-notification-status':id==='attendance'?'personal-attendance-status':null;
+    const target = id==='notifications'?'personal-notification-status':null;
     if (target) $(target).textContent = error.message || t('failedClasses');
   }
 }
