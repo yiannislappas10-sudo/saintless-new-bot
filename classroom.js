@@ -422,7 +422,7 @@ function addRoomTile(userId,name,local=false){
 }
 function renderRoomRoster(room,participants){
  const area=document.getElementById('class-room-roster-list');area.replaceChildren();
- const active=new Map(participants.filter(p=>p.status==='active'&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<45000).map(p=>[p.user_id,p]));
+ const active=new Map(participants.filter(p=>p.status==='active'&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<90000).map(p=>[p.user_id,p]));
  const assigned=(room.klass.roster||[]).filter(p=>p.id);const seen=new Set();
  for(const person of assigned){
   const row=document.createElement('div');row.className='class-room-person';
@@ -461,7 +461,7 @@ async function syncClassroom(room){
   if(liveError)throw liveError;if(!live?.length){setRoomStatus(t('mediaEnded'));await leaveRoom({automatic:true});return;}
   const {data:participants,error}=await db.from('class_room_participants').select('user_id,display_name,session_id,status,joined_at,last_seen_at').eq('class_id',room.classId);
   if(error)throw error;
-  const active=(participants||[]).filter(p=>p.status==='active'&&p.user_id!==user.id&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<45000);
+  const active=(participants||[]).filter(p=>p.status==='active'&&p.user_id!==user.id&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<90000);
   renderRoomRoster(room,participants||[]);
   for(const person of active)if(!room.subscriptions.has(person.user_id)){
    try{await subscribeToParticipant(room,person);}catch(e){setRoomStatus(e.message||t('mediaConnecting'),true);}
@@ -686,6 +686,14 @@ document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  document.querySelector('.class-inline #class-demo').parentElement.childNodes[1].textContent=' '+t('demo');
  document.querySelector('.class-inline #class-repeat').parentElement.childNodes[1].textContent=' '+t('recurrence')+' ';
  toggleDemoEditor();
+ document.getElementById('class-room-close').textContent=t('cancel');
+ document.getElementById('class-room-enter').textContent=t('joinNow');
+ document.getElementById('class-room-leave').textContent=t('leave');
+ document.getElementById('class-mic-toggle').textContent=t('mute');
+ document.getElementById('class-camera-toggle').textContent=t('cameraOff');
+ document.getElementById('class-speaker-test').textContent=t('speakerTest');
+ document.getElementById('class-live-mic').textContent=activeRoom?.previewStream?.getAudioTracks()[0]?.enabled===false?t('unmute'):t('mute');
+ document.getElementById('class-live-camera').textContent=activeRoom?.previewStream?.getVideoTracks()[0]?.enabled===false?t('cameraOn'):t('cameraOff');
 }
 async function boot(session){
  user=session.user;isOwner=(user.email||'').toLowerCase()===OWNER_EMAIL;
