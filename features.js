@@ -13,11 +13,11 @@ const text = {
     bodyPlaceholder:'Write your announcement...', professorOnly:'Only professors can publish announcements.',
     publish:'Publish announcement', emptyAnnouncements:'There are no announcements yet.',
     delete:'Delete', confirmDelete:'Delete this announcement?', published:'Announcement published.',
-    deleted:'Announcement deleted.', failedAnnouncements:'Could not load announcements. Run the ECHO setup SQL first.',
+    deleted:'Announcement deleted.', edit:'Edit', pin:'Pin', unpin:'Unpin', pinned:'Pinned', update:'Save changes', cancelEdit:'Cancel edit', audience:'Audience', everyone:'Everyone', selectedStudents:'Selected students', chooseStudents:'Choose students', recipientsRequired:'Select at least one student.', newAnnouncement:'New', markRead:'Mark as read', markedRead:'Announcement marked as read.', unread:'Unread', failedAnnouncements:'Could not load announcements. Run the ECHO setup SQL first.',
     messages:'Private messages', messagesIntro:'A private conversation between you and your professor.',
     conversations:'CONVERSATIONS', selectConversation:'Choose a conversation',
     emptyMessages:'Your private messages will appear here.', messagePlaceholder:'Write a private message...',
-    send:'Send', noContacts:'No eligible conversations are available yet.',
+    send:'Send', noContacts:'No eligible conversations are available yet.', unread:'Unread',
     call:'Call', endCall:'End call', incomingCall:'Incoming voice call', incomingSuffix:'is calling you.',
     accept:'Accept', decline:'Decline', ringing:'Calling…', connecting:'Connecting audio…', inCall:'Connected',
     callNoAnswer:'No answer. The call was ended.', callRejected:'The call was declined.', callEnded:'Call ended.',
@@ -40,11 +40,11 @@ const text = {
     bodyPlaceholder:'Γράψτε την ανακοίνωσή σας...', professorOnly:'Μόνο οι καθηγητές μπορούν να δημοσιεύουν ανακοινώσεις.',
     publish:'Δημοσίευση ανακοίνωσης', emptyAnnouncements:'Δεν υπάρχουν ακόμη ανακοινώσεις.',
     delete:'Διαγραφή', confirmDelete:'Να διαγραφεί αυτή η ανακοίνωση;', published:'Η ανακοίνωση δημοσιεύτηκε.',
-    deleted:'Η ανακοίνωση διαγράφηκε.', failedAnnouncements:'Δεν ήταν δυνατή η φόρτωση. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
+    deleted:'Η ανακοίνωση διαγράφηκε.', edit:'Επεξεργασία', pin:'Καρφίτσωμα', unpin:'Ξεκαρφίτσωμα', pinned:'Καρφιτσωμένο', update:'Αποθήκευση αλλαγών', cancelEdit:'Ακύρωση', audience:'Κοινό', everyone:'Όλοι', selectedStudents:'Επιλεγμένοι μαθητές', chooseStudents:'Επιλέξτε μαθητές', recipientsRequired:'Επιλέξτε τουλάχιστον έναν μαθητή.', newAnnouncement:'Νέο', markRead:'Σήμανση ως αναγνωσμένο', markedRead:'Η ανακοίνωση σημειώθηκε ως αναγνωσμένη.', unread:'Μη αναγνωσμένο', failedAnnouncements:'Δεν ήταν δυνατή η φόρτωση. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
     messages:'Προσωπικά μηνύματα', messagesIntro:'Ιδιωτική συνομιλία ανάμεσα σε εσάς και τον καθηγητή σας.',
     conversations:'ΣΥΝΟΜΙΛΙΕΣ', selectConversation:'Επιλέξτε συνομιλία',
     emptyMessages:'Τα προσωπικά σας μηνύματα θα εμφανίζονται εδώ.', messagePlaceholder:'Γράψτε ένα προσωπικό μήνυμα...',
-    send:'Αποστολή', noContacts:'Δεν υπάρχουν ακόμη διαθέσιμες συνομιλίες.',
+    send:'Αποστολή', noContacts:'Δεν υπάρχουν ακόμη διαθέσιμες συνομιλίες.', unread:'Μη αναγνωσμένο',
     call:'Κλήση', endCall:'Τερματισμός', incomingCall:'Εισερχόμενη φωνητική κλήση', incomingSuffix:'σας καλεί.',
     accept:'Αποδοχή', decline:'Απόρριψη', ringing:'Κλήση…', connecting:'Σύνδεση ήχου…', inCall:'Σε κλήση',
     callNoAnswer:'Δεν υπήρξε απάντηση. Η κλήση τερματίστηκε.', callRejected:'Η κλήση απορρίφθηκε.', callEnded:'Η κλήση τερματίστηκε.',
@@ -79,6 +79,9 @@ css.rel = 'stylesheet';
 css.href = '/features.css';
 document.head.append(css);
 
+let editingAnnouncementId = null;
+let announcementStudents = [];
+let unreadCounts = new Map();
 const nav = document.querySelector('.nav-tabs');
 const joinPanel = document.getElementById('panel-join');
 if (!nav || !joinPanel) throw new Error('ECHO dashboard layout was not found.');
@@ -106,7 +109,11 @@ const panelsMarkup = `
       <input id="announcement-title" type="text" maxlength="120" required>
       <label for="announcement-body" id="announcement-body-label"></label>
       <textarea id="announcement-body" rows="4" maxlength="6000" required></textarea>
-      <div class="compose-actions"><span class="compose-note" id="announcement-professor-only"></span><button class="btn btn-dark" id="announcement-submit" type="submit"></button></div>
+      <label for="announcement-audience" id="announcement-audience-label"></label>
+      <select id="announcement-audience"><option value="everyone"></option><option value="selected"></option></select>
+      <div class="announcement-recipients hidden" id="announcement-students"></div>
+      <label class="announcement-pin-option"><input id="announcement-pinned" type="checkbox"> <span id="announcement-pinned-label"></span></label>
+      <div class="compose-actions"><span class="compose-note" id="announcement-professor-only"></span><button class="btn" id="announcement-cancel-edit" type="button"></button><button class="btn btn-dark" id="announcement-submit" type="submit"></button></div>
     </form>
   </div>
   <div class="announcement-list" id="announcement-list" aria-live="polite"></div>
@@ -165,9 +172,15 @@ function applyFeatureLanguage() {
   set('announcement-title-label', tr('title'));
   set('announcement-body-label', tr('body'));
   set('announcement-professor-only', tr('professorOnly'));
-  set('announcement-submit', tr('publish'));
+  set('announcement-submit', editingAnnouncementId ? tr('update') : tr('publish'));
+  set('announcement-audience-label',tr('audience'));
+  const audience=document.getElementById('announcement-audience');
+  audience.options[0].textContent=tr('everyone');audience.options[1].textContent=tr('selectedStudents');
+  set('announcement-pinned-label',tr('pinned'));
+  set('announcement-cancel-edit',tr('cancelEdit'));
   document.getElementById('announcement-title').placeholder = tr('titlePlaceholder');
   document.getElementById('announcement-body').placeholder = tr('bodyPlaceholder');
+  document.getElementById('announcement-title').ariaLabel = tr('title');
   set('messages-heading', tr('messages'));
   set('messages-intro', tr('messagesIntro'));
   set('message-contacts-heading', tr('conversations'));
@@ -200,6 +213,9 @@ let profile = null;
 let isOwner = false;
 let contactId = null;
 let contacts = [];
+let unreadCounts = new Map();
+let editingAnnouncementId = null;
+let announcementStudents = [];
 let messagePoller = null;
 let incomingCallPoller = null;
 let activeCallPoller = null;
