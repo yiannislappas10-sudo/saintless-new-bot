@@ -12,7 +12,7 @@ export async function onRequestPost({ request, env }) {
     if (sessionDescription?.type !== "offer" || typeof sessionDescription?.sdp !== "string" || sessionDescription.sdp.length > 100000) {
       throw new ClassroomError("A valid media offer is required.");
     }
-    if (!Array.isArray(tracks) || tracks.length < 1 || tracks.length > 2) throw new ClassroomError("Choose a valid audio, camera or screen track.");
+    if (!Array.isArray(tracks) || tracks.length < 1 || tracks.length > 3) throw new ClassroomError("Choose a valid audio, camera or screen track.");
     const cleanTracks = tracks.map(track => {
       if (track?.location !== "local" || !["audio","video","screen"].includes(track.trackName) ||
           typeof track.mid !== "string" || !/^\d{1,3}$/.test(track.mid)) {
