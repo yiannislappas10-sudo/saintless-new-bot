@@ -160,7 +160,7 @@ let profile = null;
 let isOwner = false;
 let contactId = null;
 let contacts = [];
-let messageChannel = null;
+let messagePoller = null;
 
 function renderContacts() {
   const list = document.getElementById('message-contacts-list');
@@ -275,20 +275,11 @@ async function loadOwnerAccounts() {
     list.append(row);
   }
 }
-async function subscribeToMessages() {
-  if (messageChannel) {
-    await supabase.removeChannel(messageChannel);
-    messageChannel = null;
-  }
-  messageChannel = supabase.channel('echo-private-messages-' + user.id)
-    .on('postgres_changes', {event:'INSERT', schema:'public', table:'private_messages'}, payload => {
-      const row = payload.new;
-      if (contactId && (
-        (row.sender_id === user.id && row.recipient_id === contactId) ||
-        (row.sender_id === contactId && row.recipient_id === user.id)
-      )) void loadMessages();
-    })
-    .subscribe();
+function startMessageRefresh() {
+  if (messagePoller) window.clearInterval(messagePoller);
+  messagePoller = window.setInterval(() => {
+    if (user && contactId && !document.hidden) void loadMessages();
+  }, 6000);
 }
 async function loadForSession(session) {
   if (!session?.user || !supabase) return;
@@ -307,10 +298,10 @@ async function loadForSession(session) {
   document.getElementById('announcement-admin').classList.toggle('hidden', !professorMode());
   await Promise.all([loadAnnouncements(), loadContacts()]);
   if (isOwner) await loadOwnerAccounts();
-  await subscribeToMessages();
+  startMessageRefresh();
 }
 function resetFeatureState() {
-  if (messageChannel && supabase) { void supabase.removeChannel(messageChannel); messageChannel = null; }
+  if (messagePoller) { window.clearInterval(messagePoller); messagePoller = null; }
   user = null; profile = null; isOwner = false; contactId = null; contacts = [];
   document.getElementById('owner-tab').classList.add('hidden');
   document.getElementById('announcement-admin').classList.add('hidden');
