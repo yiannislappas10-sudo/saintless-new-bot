@@ -317,15 +317,19 @@ document.getElementById('signout-btn').addEventListener('click',async()=>{
   if(supabase)await supabase.auth.signOut();
   showSession(null);
 });
-document.querySelectorAll('[data-tab]').forEach(button=>button.addEventListener('click',()=>{
+// Use delegated navigation because ECHO adds tabs dynamically after initial page load.
+const classroomNav=document.querySelector('.nav-tabs');
+classroomNav?.addEventListener('click',event=>{
+  const button=event.target.closest('.nav-tabs [data-tab]');
+  if(!button||button.disabled)return;
   const name=button.dataset.tab;
-  document.querySelectorAll('[data-tab]').forEach(item=>{
+  document.querySelectorAll('.nav-tabs [data-tab]').forEach(item=>{
     const active=item===button;
     item.classList.toggle('active',active);
     item.setAttribute('aria-selected',String(active));
   });
-  document.querySelectorAll('.panel').forEach(panel=>panel.classList.toggle('active',panel.id==='panel-'+name));
-}));
+  document.querySelectorAll('#app-shell .panel').forEach(panel=>panel.classList.toggle('active',panel.id==='panel-'+name));
+});
 document.querySelectorAll('[data-go]').forEach(button=>button.addEventListener('click',()=>{
   document.querySelector('[data-tab="'+button.dataset.go+'"]').click();
 }));
