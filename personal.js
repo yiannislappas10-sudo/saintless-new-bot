@@ -313,8 +313,8 @@ async function loadNotifications() {
     if (readResult.error) throw readResult.error;
     if (messageResult.error) throw messageResult.error;
     const readIds = new Set((readResult.data||[]).map(x=>x.announcement_id));
-    // Professors/owners publish announcements; do not notify them about their own broadcast feed.
-    const unreadAnnouncements = isTeaching ? [] : (announcementResult.data||[])
+    // Never turn an announcement authored by this account into its own unread notification.
+    const unreadAnnouncements = (announcementResult.data||[])
       .filter(x=>x.created_by!==user.id && !readIds.has(x.id))
       .map(x=>({...x,kind:'announcement'}));
     const unreadMessages = messageResult.data||[];
