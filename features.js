@@ -676,7 +676,7 @@ async function loadContacts() {
   const requiredRole = professorMode() ? 'student' : 'professor';
   contacts = (data || []).filter(item => item.id !== user.id && item.role === requiredRole);
   if (!contacts.some(item => item.id === contactId)) contactId = contacts[0]?.id || null;
-  renderContacts();
+  await loadUnreadCounts();
   if (!contacts.length) {
     status('messages-status', tr('noContacts'));
     document.getElementById('message-thread-heading').textContent = tr('selectConversation');
@@ -725,7 +725,10 @@ async function loadOwnerAccounts() {
 function startMessageRefresh() {
   if (messagePoller) window.clearInterval(messagePoller);
   messagePoller = window.setInterval(() => {
-    if (user && contactId && !document.hidden) void loadMessages();
+    if (user && !document.hidden) {
+      if (contactId) void loadMessages();
+      void loadUnreadCounts();
+    }
   }, 6000);
 }
 async function loadForSession(session) {
@@ -755,7 +758,7 @@ function resetFeatureState() {
   if (activeCall) void finishCall({updateServer:true, signal:false, statusText:tr('callEnded')});
   incomingCall = null;
   hideIncomingCall();
-  user = null; profile = null; isOwner = false; contactId = null; contacts = [];
+  user = null; profile = null; isOwner = false; contactId = null; contacts = []; unreadCounts = new Map();
   document.getElementById('owner-tab').classList.add('hidden');
   document.getElementById('announcement-admin').classList.add('hidden');
 }
