@@ -16,11 +16,11 @@ button{cursor:pointer}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #151515;outline-offset:3px}
 .hidden{display:none!important}
 
-.language-switch{position:relative;isolation:isolate;overflow:hidden;appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:39px;padding:0 15px;border:1px solid #090909;border-radius:4px;background:#090909;color:#fff;font-size:11px;font-weight:750;letter-spacing:.085em;text-transform:uppercase;white-space:nowrap;box-shadow:0 2px 0 #000;transition:transform .18s cubic-bezier(.2,.8,.2,1),background .18s,border-color .18s,box-shadow .18s;z-index:5}
-.language-switch::after{content:"";position:absolute;z-index:-1;top:-80%;left:-45%;width:34%;height:260%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:translateX(-180%) rotate(18deg);transition:transform .55s cubic-bezier(.2,.75,.25,1)}
-.language-switch:hover{background:#252525;border-color:#252525;box-shadow:0 5px 0 #000,0 10px 24px rgba(0,0,0,.12);transform:translateY(-2px)}
+.language-switch{position:relative;isolation:isolate;overflow:hidden;appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:39px;padding:0 15px;border:1px solid #d7d7d7;border-radius:4px;background:#fff;color:#111;font-size:11px;font-weight:750;letter-spacing:.085em;text-transform:uppercase;white-space:nowrap;box-shadow:0 2px 0 #e5e5e5;transition:transform .18s cubic-bezier(.2,.8,.2,1),background .18s,border-color .18s,box-shadow .18s;z-index:5}
+.language-switch::after{content:"";position:absolute;z-index:-1;top:-80%;left:-45%;width:34%;height:260%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.09),transparent);transform:translateX(-180%) rotate(18deg);transition:transform .55s cubic-bezier(.2,.75,.25,1)}
+.language-switch:hover{background:#f4f4f4;border-color:#bdbdbd;box-shadow:0 5px 0 #dedede,0 10px 24px rgba(0,0,0,.08);transform:translateY(-2px)}
 .language-switch:hover::after{transform:translateX(520%) rotate(18deg)}
-.language-switch:active{background:#000;box-shadow:0 0 0 #000,0 2px 8px rgba(0,0,0,.16);transform:translateY(1px) scale(.985)}
+.language-switch:active{background:#ededed;box-shadow:0 0 0 #e5e5e5,0 2px 8px rgba(0,0,0,.1);transform:translateY(1px) scale(.985)}
 .language-switch:focus-visible{outline:2px solid #777;outline-offset:3px}
 .login-language{position:absolute;top:20px;right:24px}
 .topbar-right .language-switch{min-height:35px;padding:0 12px;font-size:10px}
