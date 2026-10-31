@@ -653,3 +653,32 @@ grant select, insert, delete on public.class_room_publications to authenticated;
 grant select, insert, update, delete on public.class_room_subscriptions to authenticated;
 
 -- Students may join only after an authorized professor has opened the room.
+
+-- Read receipts for private messages and announcements.
+alter table public.private_messages add column if not exists read_at timestamptz;
+grant update(read_at) on public.private_messages to authenticated;
+drop policy if exists "ECHO recipients mark incoming messages as read" on public.private_messages;
+create policy "ECHO recipients mark incoming messages as read"
+on public.private_messages for update to authenticated
+using (recipient_id = auth.uid())
+with check (recipient_id = auth.uid());
+
+create table if not exists public.announcement_reads (
+  announcement_id uuid not null references public.announcements(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  read_at timestamptz not null default now(),
+  primary key (announcement_id,user_id)
+);
+alter table public.announcement_reads enable row level security;
+drop policy if exists "ECHO users read their own announcement receipts" on public.announcement_reads;
+create policy "ECHO users read their own announcement receipts"
+on public.announcement_reads for select to authenticated
+using (user_id = auth.uid());
+drop policy if exists "ECHO users mark visible announcements as read" on public.announcement_reads;
+create policy "ECHO users mark visible announcements as read"
+on public.announcement_reads for insert to authenticated
+with check (
+  user_id = auth.uid()
+  and exists (select 1 from public.announcements a where a.id = announcement_id)
+);
+grant select, insert on public.announcement_reads to authenticated;
