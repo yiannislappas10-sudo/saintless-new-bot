@@ -1,0 +1,54 @@
+/* ECHO classroom collaboration panels */
+.announcement-compose{margin:0 0 22px;padding:22px;border:1px solid #e5e5e5;border-radius:10px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.announcement-compose label{margin:15px 0 8px}.announcement-compose label:first-child{margin-top:0}
+.compose-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:13px}
+.compose-note,.data-status{color:#888;font-size:12px;line-height:1.55}
+.data-status.error{color:#a12c2c}
+.announcement-list{display:grid;gap:12px}
+.announcement-item{padding:21px;border:1px solid #e8e8e8;border-radius:10px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.announcement-item h3{margin:0;font-size:16px;font-weight:650;letter-spacing:-.02em}
+.announcement-item time{display:block;margin-top:7px;color:#888;font-size:11px}
+.announcement-item p{margin:13px 0 0;color:#515151;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.announcement-item .announcement-delete{margin-top:14px;padding:6px 10px;border:1px solid #e4e4e4;border-radius:5px;background:#fff;color:#666;font-size:11px}
+.announcement-delete:hover{border-color:#aaa;color:#111}
+.messages-layout{display:grid;grid-template-columns:225px minmax(0,1fr);min-height:430px;border:1px solid #e7e7e7;border-radius:11px;background:rgba(255,255,255,.86);overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.message-contacts{padding:17px;border-right:1px solid #ededed;background:rgba(250,250,250,.76)}
+.message-contacts-heading{margin:2px 0 13px;color:#8a8a8a;font-size:10px;font-weight:750;letter-spacing:.13em}
+.message-contact{display:flex;width:100%;align-items:center;gap:9px;margin:0 0 5px;padding:11px 9px;border:1px solid transparent;border-radius:7px;background:transparent;color:#272727;text-align:left;font-size:12px;font-weight:600;overflow-wrap:anywhere;cursor:pointer}
+.message-contact:hover{background:#f2f2f2}.message-contact.active{border-color:#e5e5e5;background:#fff;box-shadow:0 1px 4px #00000008}
+.message-conversation{display:flex;min-width:0;flex-direction:column}
+.message-thread-heading{min-height:54px;padding:17px 19px;border-bottom:1px solid #eee;font-size:13px;font-weight:650}
+.message-list{display:flex;min-height:310px;max-height:480px;flex:1;flex-direction:column;gap:11px;overflow-y:auto;padding:18px}
+.message-empty{margin:auto;color:#999;text-align:center;font-size:12px;line-height:1.6}
+.message-bubble{max-width:min(78%,510px);padding:11px 13px;border:1px solid #e8e8e8;border-radius:10px;background:#fafafa;color:#303030;align-self:flex-start}
+.message-bubble.sent{border-color:#171717;background:#171717;color:#fff;align-self:flex-end}
+.message-bubble p{margin:0;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.message-bubble time{display:block;margin-top:6px;font-size:9px;opacity:.62}
+.message-compose{display:flex;align-items:flex-end;gap:10px;padding:13px;border-top:1px solid #eee}
+.message-compose textarea{min-height:45px;max-height:120px;flex:1;resize:vertical}
+.message-compose .btn{width:auto;min-height:44px;padding:0 17px}
+.message-compose .btn:disabled,.message-compose textarea:disabled{opacity:.48;cursor:not-allowed}
+.message-empty-note{padding:12px;color:#999;font-size:12px;line-height:1.6}
+.owner-notice{margin-bottom:16px;padding:13px 15px;border-left:3px solid #111;background:rgba(255,255,255,.78);color:#606060;font-size:12px;line-height:1.6}
+.owner-role-list{display:grid;gap:9px}
+.owner-role-item{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 17px;border:1px solid #e7e7e7;border-radius:9px;background:rgba(255,255,255,.86)}
+.owner-role-name{min-width:0}.owner-role-name strong{display:block;color:#222;font-size:13px;overflow-wrap:anywhere}
+.owner-role-name span{display:block;margin-top:4px;color:#888;font-size:11px;overflow-wrap:anywhere}
+.role-chip{display:inline-flex!important;margin-top:7px!important;padding:3px 7px;border:1px solid #e6e6e6;border-radius:4px;color:#555!important;font-size:9px!important;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.role-toggle{flex:none;width:auto;min-height:34px;padding:0 11px;border:1px solid #171717;border-radius:5px;background:#171717;color:#fff;font-size:11px;font-weight:650;cursor:pointer}
+.role-toggle:hover{background:#303030}.role-toggle:disabled{opacity:.55;cursor:wait}
+.role-toggle.demote{border-color:#ddd;background:#fff;color:#555}.role-toggle.demote:hover{border-color:#999;color:#111}
+@media(max-width:760px){
+  .nav-tabs{overflow-x:auto;justify-content:flex-start}
+  .nav-tabs .tab{flex:0 0 auto}
+  .messages-layout{grid-template-columns:1fr}
+  .message-contacts{border-right:0;border-bottom:1px solid #ededed}
+  .message-contacts-heading{margin-bottom:8px}
+  .message-contacts #message-contacts-list{display:flex;gap:6px;overflow-x:auto}
+  .message-contact{width:auto;flex:none;margin:0}
+  .message-list{min-height:250px}
+  .compose-actions{align-items:flex-start;flex-direction:column}
+  .owner-role-item{align-items:flex-start;flex-direction:column}
+  .role-toggle{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.message-contact,.announcement-delete,.role-toggle{transition:none}}
