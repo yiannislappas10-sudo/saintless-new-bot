@@ -16,6 +16,14 @@ button{cursor:pointer}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #151515;outline-offset:3px}
 .hidden{display:none!important}
 
+.language-switch{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:39px;padding:0 15px;border:1px solid #17283e;border-radius:999px;background:#17283e;color:#fff;font-size:11px;font-weight:800;letter-spacing:.075em;white-space:nowrap;box-shadow:0 5px 18px rgba(22,40,62,.16);transition:transform .18s,background .18s,box-shadow .18s;z-index:5}
+.language-switch:hover{background:#263f5e;box-shadow:0 7px 22px rgba(22,40,62,.22);transform:translateY(-1px)}
+.language-switch:active{transform:translateY(0)}
+.login-language{position:absolute;top:20px;right:24px}
+.topbar-right .language-switch{min-height:35px;padding:0 12px;font-size:10px}
+@media(max-width:760px){.login-language{top:14px;right:14px}.language-switch{min-height:37px;padding:0 12px;font-size:10px}.topbar-right{gap:7px}.topbar-right .language-switch{padding:0 9px;font-size:9px}.account-email{max-width:86px}}
+@media(max-width:420px){.topbar-right .language-switch{padding:0 8px;font-size:8px}.account-email{max-width:64px}}
+
 /* Soft ambient motion shared by the sign-in page and classroom */
 #login-shell,#app-shell{position:relative;isolation:isolate;overflow:hidden;background:#fff}
 .ambient-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background-image:linear-gradient(rgba(38,65,94,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(38,65,94,.018) 1px,transparent 1px);background-size:58px 58px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent 92%)}
@@ -116,31 +124,32 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
 <body>
 <div id="login-shell">
   <div class="ambient-bg" aria-hidden="true"><span class="orb orb-one"></span><span class="orb orb-two"></span><span class="orb orb-three"></span></div>
+  <button class="language-switch login-language" id="login-language" type="button" aria-label="Switch language">🇬🇷 ΕΛΛΗΝΙΚΑ</button>
   <main class="login-main">
     <div class="brand"><span class="brand-mark"><svg viewBox="0 0 30 30" fill="none"><path d="M3 15h4l2.5-6 5 12 3.5-9 2.5 6H27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>ECHO</span></div>
     <section id="login-view">
       <div class="intro">
         <div class="soundwave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <h1>A better way to learn together.</h1>
-        <p class="subtitle">Private voice lessons, directly in your browser.<br>A focused space for teaching and learning.</p>
+        <h1 data-i18n="homeTitle">A better way to learn together.</h1>
+        <p class="subtitle" data-i18n-html="homeSubtitle">Private voice lessons, directly in your browser.<br>A focused space for teaching and learning.</p>
       </div>
-      <div class="lesson-note"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1.6 13 3.5v3.8c0 3.2-2.1 5.8-5 7.1-2.9-1.3-5-3.9-5-7.1V3.5L8 1.6Z" stroke="currentColor" stroke-width="1.1"/><path d="m5.5 7.9 1.7 1.7 3.4-3.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>Private lesson spaces · Simple and secure</div>
+      <div class="lesson-note"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1.6 13 3.5v3.8c0 3.2-2.1 5.8-5 7.1-2.9-1.3-5-3.9-5-7.1V3.5L8 1.6Z" stroke="currentColor" stroke-width="1.1"/><path d="m5.5 7.9 1.7 1.7 3.4-3.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="lessonNote">Private lesson spaces · Simple and secure</span></div>
       <div class="provider-list">
         <button class="btn" id="google-btn" type="button">
           <svg class="provider-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.92c-.58 2.96-2.26 5.48-4.75 7.18l7.73 6C44.41 38.05 46.98 31.95 46.98 24.55Z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.54 2.56 10.78l7.97-6.19Z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.73-6c-2.14 1.44-4.89 2.3-8.17 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/></svg>
-          Continue with Google
+          <span data-i18n="google">Continue with Google</span>
         </button>
       </div>
-      <div class="divider">or continue with email</div>
+      <div class="divider" data-i18n="emailDivider">or continue with email</div>
       <form id="email-form">
-        <label for="email">Email address</label>
-        <input id="email" name="email" type="email" placeholder="name@example.com" autocomplete="email" required>
-        <button class="btn btn-dark email-btn" id="email-btn" type="submit">Continue with email</button>
+        <label for="email" data-i18n="emailLabel">Email address</label>
+        <input id="email" name="email" type="email" placeholder="name@example.com" data-i18n-placeholder="emailPlaceholder" autocomplete="email" required>
+        <button class="btn btn-dark email-btn" id="email-btn" type="submit" data-i18n="emailContinue">Continue with email</button>
       </form>
       <p class="notice" id="notice" role="status" aria-live="polite"></p>
     </section>
-    <p class="legal">By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
-    <div class="secure"><svg viewBox="0 0 16 16" fill="none"><path d="M4 6V4.6a4 4 0 0 1 8 0V6m-8 0H3v7h10V6H4Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Secure sign-in</div>
+    <p class="legal"><span data-i18n="legalStart">By continuing, you agree to our</span> <a href="#" data-i18n="terms">Terms of Service</a> <span data-i18n="legalAnd">and</span> <a href="#" data-i18n="privacy">Privacy Policy</a>.</p>
+    <div class="secure"><svg viewBox="0 0 16 16" fill="none"><path d="M4 6V4.6a4 4 0 0 1 8 0V6m-8 0H3v7h10V6H4Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="secure">Secure sign-in</span></div>
   </main>
 </div>
 
@@ -148,40 +157,40 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
   <div class="ambient-bg" aria-hidden="true"><span class="orb orb-one"></span><span class="orb orb-two"></span><span class="orb orb-three"></span></div>
   <header class="topbar">
     <div class="brand"><span class="brand-mark"><svg viewBox="0 0 30 30" fill="none"><path d="M3 15h4l2.5-6 5 12 3.5-9 2.5 6H27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>ECHO</span></div>
-    <div class="topbar-right"><span class="account-email" id="account-email"></span><span class="avatar" id="avatar">E</span><button class="btn signout" id="signout-btn" type="button">Sign out</button></div>
+    <div class="topbar-right"><button class="language-switch" id="app-language" type="button" aria-label="Switch language">🇬🇷 ΕΛΛΗΝΙΚΑ</button><span class="account-email" id="account-email"></span><span class="avatar" id="avatar">E</span><button class="btn signout" id="signout-btn" type="button" data-i18n="signOut">Sign out</button></div>
   </header>
   <main class="app-content">
-    <p class="kicker">Your teaching space</p>
-    <h1 class="welcome">Welcome to your classroom.</h1>
-    <p class="welcome-copy">Manage lessons, keep track of your schedule, and join live classes.</p>
+    <p class="kicker" data-i18n="kicker">Your teaching space</p>
+    <h1 class="welcome" data-i18n="welcome">Welcome to your classroom.</h1>
+    <p class="welcome-copy" data-i18n="welcomeCopy">Manage lessons, keep track of your schedule, and join live classes.</p>
 
-    <nav class="nav-tabs" aria-label="Classroom navigation">
-      <button class="tab active" type="button" data-tab="lessons" aria-selected="true">Lessons</button>
-      <button class="tab" type="button" data-tab="schedule" aria-selected="false">Lesson Schedule</button>
-      <button class="tab" type="button" data-tab="join" aria-selected="false">Join Classes</button>
+    <nav class="nav-tabs" aria-label="Classroom navigation" data-i18n-aria="navLabel">
+      <button class="tab active" type="button" data-tab="lessons" aria-selected="true" data-i18n="tabLessons">Lessons</button>
+      <button class="tab" type="button" data-tab="schedule" aria-selected="false" data-i18n="tabSchedule">Lesson Schedule</button>
+      <button class="tab" type="button" data-tab="join" aria-selected="false" data-i18n="tabJoin">Join Classes</button>
     </nav>
 
     <section class="panel active" id="panel-lessons">
-      <div class="panel-heading"><div><h2>Your lessons</h2><p>Everything for your teaching sessions, in one place.</p></div></div>
+      <div class="panel-heading"><div><h2 data-i18n="yourLessons">Your lessons</h2><p data-i18n="lessonsIntro">Everything for your teaching sessions, in one place.</p></div></div>
       <div class="grid">
-        <article class="info-card"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h11A1.5 1.5 0 0 1 17 5.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5v-9Z" stroke="currentColor" stroke-width="1.3"/><path d="m8 7 5 3-5 3V7Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></div><h3>Live lessons</h3><p>Voice-based classes that students can join from a private link.</p></article>
-        <article class="info-card"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><path d="M4 3.5h12v13H4z" stroke="currentColor" stroke-width="1.3"/><path d="M7 7h6M7 10h6M7 13h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Lesson materials</h3><p>Keep lesson notes and shared learning resources together.</p></article>
-        <article class="info-card"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M10 6v4l2.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Upcoming sessions</h3><p>See planned lessons and keep track of your teaching week.</p></article>
+        <article class="info-card"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h11A1.5 1.5 0 0 1 17 5.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5v-9Z" stroke="currentColor" stroke-width="1.3"/><path d="m8 7 5 3-5 3V7Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></div><h3 data-i18n="liveLessons">Live lessons</h3><p data-i18n="liveLessonsCopy">Voice-based classes that students can join from a private link.</p></article>
+        <article class="info-card"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><path d="M4 3.5h12v13H4z" stroke="currentColor" stroke-width="1.3"/><path d="M7 7h6M7 10h6M7 13h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3 data-i18n="materials">Lesson materials</h3><p data-i18n="materialsCopy">Keep lesson notes and shared learning resources together.</p></article>
+        <article class="info-card"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M10 6v4l2.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3 data-i18n="upcoming">Upcoming sessions</h3><p data-i18n="upcomingCopy">See planned lessons and keep track of your teaching week.</p></article>
       </div>
-      <div class="empty"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h11A1.5 1.5 0 0 1 17 5.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5v-9Z" stroke="currentColor" stroke-width="1.3"/><path d="M10 7v6m-3-3h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>No lessons have been added yet</h3><p>Once lessons are created, they will appear here with their details and class links.</p><button class="btn" type="button" data-go="schedule">View lesson schedule</button></div>
+      <div class="empty"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h11A1.5 1.5 0 0 1 17 5.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5v-9Z" stroke="currentColor" stroke-width="1.3"/><path d="M10 7v6m-3-3h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3 data-i18n="noLessons">No lessons have been added yet</h3><p data-i18n="noLessonsCopy">Once lessons are created, they will appear here with their details and class links.</p><button class="btn" type="button" data-go="schedule" data-i18n="viewSchedule">View lesson schedule</button></div>
     </section>
 
     <section class="panel" id="panel-schedule">
-      <div class="panel-heading"><div><h2>Lesson schedule</h2><p>Keep track of upcoming teaching sessions.</p></div></div>
-      <div class="schedule-wrap"><div class="empty schedule-empty"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="4.5" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 3v3M13.5 3v3M3 8h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Your schedule is clear</h3><p>Scheduled lessons will appear here with their dates, times, and joining details.</p></div></div>
+      <div class="panel-heading"><div><h2 data-i18n="lessonSchedule">Lesson schedule</h2><p data-i18n="scheduleIntro">Keep track of upcoming teaching sessions.</p></div></div>
+      <div class="schedule-wrap"><div class="empty schedule-empty"><div class="icon-box"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="4.5" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 3v3M13.5 3v3M3 8h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3 data-i18n="scheduleEmpty">Your schedule is clear</h3><p data-i18n="scheduleEmptyCopy">Scheduled lessons will appear here with their dates, times, and joining details.</p></div></div>
     </section>
 
     <section class="panel" id="panel-join">
-      <div class="panel-heading"><div><h2>Join a class</h2><p>Use the invitation code shared by your teacher.</p></div></div>
-      <div class="join-card"><form id="join-form"><label for="class-code">Class invitation code</label><div class="join-row"><input id="class-code" name="class-code" type="text" placeholder="Enter class code" autocomplete="off" required><button class="btn btn-dark" type="submit">Continue</button></div><p class="help">Ask your teacher for a class code or invitation link.</p><p class="form-message" id="join-message" role="status" aria-live="polite"></p></form></div>
+      <div class="panel-heading"><div><h2 data-i18n="joinClass">Join a class</h2><p data-i18n="joinIntro">Use the invitation code shared by your teacher.</p></div></div>
+      <div class="join-card"><form id="join-form"><label for="class-code" data-i18n="classCodeLabel">Class invitation code</label><div class="join-row"><input id="class-code" name="class-code" type="text" placeholder="Enter class code" data-i18n-placeholder="classCodePlaceholder" autocomplete="off" required><button class="btn btn-dark" type="submit" data-i18n="continue">Continue</button></div><p class="help" data-i18n="joinHelp">Ask your teacher for a class code or invitation link.</p><p class="form-message" id="join-message" role="status" aria-live="polite"></p></form></div>
     </section>
   </main>
-  <footer class="footer">ECHO · A focused space for teaching and learning.</footer>
+  <footer class="footer" data-i18n="footer">ECHO · A focused space for teaching and learning.</footer>
 </div>
 
 <script type="module">
@@ -192,13 +201,86 @@ const notice=document.getElementById('notice');
 const emailInput=document.getElementById('email');
 const emailButton=document.getElementById('email-btn');
 let supabase=null;
+let currentLanguage='en';
+const copy={
+en:{
+ switch:'🇬🇷 ΕΛΛΗΝΙΚΑ',homeTitle:'A better way to learn together.',homeSubtitle:'Private voice lessons, directly in your browser.<br>A focused space for teaching and learning.',
+ lessonNote:'Private lesson spaces · Simple and secure',google:'Continue with Google',emailDivider:'or continue with email',
+ emailLabel:'Email address',emailPlaceholder:'name@example.com',emailContinue:'Continue with email',
+ legalStart:'By continuing, you agree to our',terms:'Terms of Service',legalAnd:'and',privacy:'Privacy Policy',secure:'Secure sign-in',
+ signOut:'Sign out',kicker:'Your teaching space',welcome:'Welcome to your classroom.',
+ welcomeCopy:'Manage lessons, keep track of your schedule, and join live classes.',navLabel:'Classroom navigation',
+ tabLessons:'Lessons',tabSchedule:'Lesson Schedule',tabJoin:'Join Classes',yourLessons:'Your lessons',
+ lessonsIntro:'Everything for your teaching sessions, in one place.',liveLessons:'Live lessons',
+ liveLessonsCopy:'Voice-based classes that students can join from a private link.',materials:'Lesson materials',
+ materialsCopy:'Keep lesson notes and shared learning resources together.',upcoming:'Upcoming sessions',
+ upcomingCopy:'See planned lessons and keep track of your teaching week.',noLessons:'No lessons have been added yet',
+ noLessonsCopy:'Once lessons are created, they will appear here with their details and class links.',
+ viewSchedule:'View lesson schedule',lessonSchedule:'Lesson schedule',scheduleIntro:'Keep track of upcoming teaching sessions.',
+ scheduleEmpty:'Your schedule is clear',scheduleEmptyCopy:'Scheduled lessons will appear here with their dates, times, and joining details.',
+ joinClass:'Join a class',joinIntro:'Use the invitation code shared by your teacher.',
+ classCodeLabel:'Class invitation code',classCodePlaceholder:'Enter class code',continue:'Continue',
+ joinHelp:'Ask your teacher for a class code or invitation link.',footer:'ECHO · A focused space for teaching and learning.',
+ signedIn:'Signed in',redirecting:'Redirecting to Google…',sending:'Sending link…',
+ emailSent:'Check your inbox for a secure sign-in link.',authMissing:'Authentication is not configured yet. Please contact the site administrator.',
+ emailAuthMissing:'Email sign-in is not configured yet. Please contact the site administrator.',
+ joinPending:'Class-code validation will be enabled when class invitations are connected.',
+ configMissing:'The sign-in page is ready. Authentication configuration is missing.',
+ configError:'Could not load sign-in configuration.',refreshError:'Could not load sign-in settings. Please refresh.'
+},
+el:{
+ switch:'ENGLISH',homeTitle:'Ένας καλύτερος τρόπος να μαθαίνουμε μαζί.',
+ homeSubtitle:'Ιδιαίτερα μαθήματα μέσω φωνητικής κλήσης, απευθείας στον browser σας.<br>Ένας ήρεμος χώρος για διδασκαλία και μάθηση.',
+ lessonNote:'Ιδιωτικά μαθήματα · Απλά και ασφαλή',google:'Συνέχεια με Google',emailDivider:'ή συνεχίστε με email',
+ emailLabel:'Διεύθυνση email',emailPlaceholder:'name@example.com',emailContinue:'Συνέχεια με email',
+ legalStart:'Συνεχίζοντας, αποδέχεστε τους',terms:'Όρους χρήσης',legalAnd:'και την',privacy:'Πολιτική απορρήτου',
+ secure:'Ασφαλής σύνδεση',signOut:'Αποσύνδεση',kicker:'Ο χώρος διδασκαλίας σας',
+ welcome:'Καλώς ήρθατε στην τάξη σας.',welcomeCopy:'Διαχειριστείτε τα μαθήματά σας, παρακολουθήστε το πρόγραμμά σας και συμμετάσχετε σε ζωντανά μαθήματα.',
+ navLabel:'Πλοήγηση τάξης',tabLessons:'Μαθήματα',tabSchedule:'Πρόγραμμα μαθημάτων',tabJoin:'Συμμετοχή σε τάξη',
+ yourLessons:'Τα μαθήματά σας',lessonsIntro:'Όλα όσα χρειάζεστε για τα μαθήματά σας, σε ένα μέρος.',
+ liveLessons:'Ζωντανά μαθήματα',liveLessonsCopy:'Μαθήματα με φωνητική κλήση στα οποία οι μαθητές συμμετέχουν μέσω ιδιωτικού συνδέσμου.',
+ materials:'Εκπαιδευτικό υλικό',materialsCopy:'Συγκεντρώστε σημειώσεις και εκπαιδευτικό υλικό σε ένα μέρος.',
+ upcoming:'Επερχόμενα μαθήματα',upcomingCopy:'Δείτε τα προγραμματισμένα μαθήματα και οργανώστε την εβδομάδα σας.',
+ noLessons:'Δεν έχουν προστεθεί ακόμη μαθήματα',noLessonsCopy:'Όταν δημιουργηθούν μαθήματα, θα εμφανιστούν εδώ μαζί με τις λεπτομέρειες και τους συνδέσμους τους.',
+ viewSchedule:'Προβολή προγράμματος',lessonSchedule:'Πρόγραμμα μαθημάτων',scheduleIntro:'Παρακολουθήστε τα επερχόμενα μαθήματα.',
+ scheduleEmpty:'Δεν υπάρχουν προγραμματισμένα μαθήματα',scheduleEmptyCopy:'Τα προγραμματισμένα μαθήματα θα εμφανίζονται εδώ με τις ημερομηνίες, τις ώρες και τις πληροφορίες συμμετοχής.',
+ joinClass:'Συμμετοχή σε μάθημα',joinIntro:'Χρησιμοποιήστε τον κωδικό πρόσκλησης που σας έδωσε ο καθηγητής σας.',
+ classCodeLabel:'Κωδικός πρόσκλησης μαθήματος',classCodePlaceholder:'Εισαγάγετε τον κωδικό',continue:'Συνέχεια',
+ joinHelp:'Ζητήστε από τον καθηγητή σας έναν κωδικό ή έναν σύνδεσμο πρόσκλησης.',
+ footer:'ECHO · Ένας χώρος για διδασκαλία και μάθηση.',
+ signedIn:'Συνδεδεμένος χρήστης',redirecting:'Μετάβαση στο Google…',sending:'Αποστολή συνδέσμου…',
+ emailSent:'Ελέγξτε τα εισερχόμενά σας για τον ασφαλή σύνδεσμο σύνδεσης.',
+ authMissing:'Η σύνδεση δεν έχει ρυθμιστεί ακόμη. Επικοινωνήστε με τον διαχειριστή της σελίδας.',
+ emailAuthMissing:'Η σύνδεση μέσω email δεν έχει ρυθμιστεί ακόμη. Επικοινωνήστε με τον διαχειριστή της σελίδας.',
+ joinPending:'Η επαλήθευση κωδικών θα ενεργοποιηθεί όταν συνδεθούν οι προσκλήσεις μαθημάτων.',
+ configMissing:'Η σελίδα σύνδεσης είναι έτοιμη, αλλά λείπουν οι ρυθμίσεις ταυτοποίησης.',
+ configError:'Δεν ήταν δυνατή η φόρτωση των ρυθμίσεων σύνδεσης.',
+ refreshError:'Δεν ήταν δυνατή η φόρτωση των ρυθμίσεων. Ανανεώστε τη σελίδα.'
+}
+};
+function t(key){return copy[currentLanguage]?.[key]??copy.en[key]??key}
+function applyLanguage(language){
+  currentLanguage=language==='el'?'el':'en';
+  document.documentElement.lang=currentLanguage;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{el.innerHTML=t(el.dataset.i18nHtml)});
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t(el.dataset.i18nPlaceholder)});
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria))});
+  const switchText=t('switch');
+  ['login-language','app-language'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.textContent=switchText});
+  try{localStorage.setItem('echo-language',currentLanguage)}catch(_){}
+}
+function toggleLanguage(){applyLanguage(currentLanguage==='en'?'el':'en')}
+document.getElementById('login-language').addEventListener('click',toggleLanguage);
+document.getElementById('app-language').addEventListener('click',toggleLanguage);
+try{applyLanguage(localStorage.getItem('echo-language')||'en')}catch(_){applyLanguage('en')}
 
 function setNotice(text,kind=''){notice.textContent=text;notice.className='notice'+(kind?' '+kind:'')}
 function showSession(session){
   if(session?.user){
     loginShell.classList.add('hidden');
     appShell.classList.remove('hidden');
-    document.getElementById('account-email').textContent=session.user.email||'Signed in';
+    document.getElementById('account-email').textContent=session.user.email||t('signedIn');
     const initial=(session.user.email||'E').trim().charAt(0).toUpperCase();
     document.getElementById('avatar').textContent=initial;
   }else{
@@ -207,8 +289,8 @@ function showSession(session){
   }
 }
 async function signInWithGoogle(){
-  if(!supabase){setNotice('Authentication is not configured yet. Please contact the site administrator.','error');return}
-  setNotice('Redirecting to Google…');
+  if(!supabase){setNotice(t('authMissing'),'error');return}
+  setNotice(t('redirecting'));
   const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});
   if(error)setNotice(error.message,'error');
 }
@@ -217,11 +299,11 @@ document.getElementById('email-form').addEventListener('submit',async event=>{
   event.preventDefault();
   const email=emailInput.value.trim();
   if(!email)return;
-  if(!supabase){setNotice('Email sign-in is not configured yet. Please contact the site administrator.','error');return}
-  emailButton.disabled=true;emailButton.textContent='Sending link…';
+  if(!supabase){setNotice(t('emailAuthMissing'),'error');return}
+  emailButton.disabled=true;emailButton.textContent=t('sending');
   const {error}=await supabase.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.origin}});
-  emailButton.disabled=false;emailButton.textContent='Continue with email';
-  if(error)setNotice(error.message,'error');else setNotice('Check your inbox for a secure sign-in link.','success');
+  emailButton.disabled=false;emailButton.textContent=t('emailContinue');
+  if(error)setNotice(error.message,'error');else setNotice(t('emailSent'),'success');
 });
 document.getElementById('signout-btn').addEventListener('click',async()=>{
   if(supabase)await supabase.auth.signOut();
@@ -241,11 +323,11 @@ document.querySelectorAll('[data-go]').forEach(button=>button.addEventListener('
 }));
 document.getElementById('join-form').addEventListener('submit',event=>{
   event.preventDefault();
-  document.getElementById('join-message').textContent='Class-code validation will be enabled when class invitations are connected.';
+  document.getElementById('join-message').textContent=t('joinPending');
 });
 try{
   const response=await fetch('/config',{cache:'no-store'});
-  if(!response.ok)throw new Error('Could not load sign-in configuration.');
+  if(!response.ok)throw new Error(t('configError'));
   const config=await response.json();
   if(config.supabaseUrl&&config.supabaseAnonKey){
     const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');
@@ -257,10 +339,10 @@ try{
     showSession(data.session);
     supabase.auth.onAuthStateChange((_event,session)=>showSession(session));
   }else{
-    setNotice('The sign-in page is ready. Authentication configuration is missing.','error');
+    setNotice(t('configMissing'),'error');
   }
 }catch(error){
-  setNotice(error?.message||'Could not load sign-in settings. Please refresh.','error');
+  setNotice(error?.message||t('refreshError'),'error');
 }
 </script>
 </body>
