@@ -221,7 +221,7 @@ begin
   select * into class_row from public.classes c where c.id = target_class_id and not c.is_demo;
   if not found then raise exception 'Class not found.'; end if;
   if class_row.status <> 'scheduled' then raise exception 'This class is cancelled.'; end if;
-  if now() < class_row.starts_at - interval '15 minutes' then
+  if not public.is_echo_professor() and now() < class_row.starts_at - interval '15 minutes' then
     raise exception 'This class is not open yet.';
   end if;
   if now() > class_row.ends_at then raise exception 'This class has already ended.'; end if;
