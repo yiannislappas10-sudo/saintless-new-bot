@@ -57,14 +57,17 @@ language sql
 stable
 security definer
 set search_path = auth, public, pg_temp
-as $$
+as $
   select exists (
     select 1
     from auth.users u
     where u.id = auth.uid()
-      and lower(coalesce(u.email, '')) = lower('yiannislappas8@gmail.com')
+      and lower(coalesce(u.email, '')) in (
+        'yiannislappas8@gmail.com',
+        'yiannislappas10@gmail.com'
+      )
   );
-$$;
+$;
 
 create or replace function public.is_echo_professor(target_id uuid default auth.uid())
 returns boolean
@@ -72,18 +75,21 @@ language sql
 stable
 security definer
 set search_path = public, auth, pg_temp
-as $$
+as $
   select exists (
     select 1
-    from public.profiles p
-    join auth.users u on u.id = p.id
-    where p.id = target_id
+    from auth.users u
+    left join public.profiles p on p.id = u.id
+    where u.id = target_id
       and (
         p.role = 'professor'
-        or lower(coalesce(u.email, '')) = lower('yiannislappas8@gmail.com')
+        or lower(coalesce(u.email, '')) in (
+          'yiannislappas8@gmail.com',
+          'yiannislappas10@gmail.com'
+        )
       )
   );
-$$;
+$;
 
 create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
@@ -199,7 +205,10 @@ begin
   if exists (
     select 1 from auth.users u
     where u.id = target_user_id
-      and lower(coalesce(u.email, '')) = lower('yiannislappas8@gmail.com')
+      and lower(coalesce(u.email, '')) in (
+        'yiannislappas8@gmail.com',
+        'yiannislappas10@gmail.com'
+      )
   ) then
     raise exception 'The ECHO owner account cannot be changed here.';
   end if;
