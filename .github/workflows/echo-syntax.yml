@@ -15,7 +15,7 @@ jobs:
           node-version: 22
       - name: Check browser modules
         run: |
-          for file in features.js classroom.js; do
+          for file in features.js classroom.js personal.js; do
             node --check --input-type=module < "$file"
           done
       - name: Check Cloudflare Pages Functions
