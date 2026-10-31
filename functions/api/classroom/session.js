@@ -10,9 +10,10 @@ export async function onRequestPost({ request, env }) {
 
     const member = await dbRpc(ctx, "is_echo_class_member", { target_class_id: classId });
     if (member !== true) throw new ClassroomError("You do not have access to this class.", 403);
-    const controls = await dbRequest(ctx,"class_room_controls?class_id=eq."+classId+"&user_id=eq."+ctx.user.id+"&select=teacher_muted,removed&limit=1");
+    const controls = await dbRequest(ctx,"class_room_controls?class_id=eq."+classId+"&user_id=eq."+ctx.user.id+"&select=teacher_muted,teacher_camera_off,removed&limit=1");
     if(controls?.[0]?.removed)throw new ClassroomError("The teacher removed you from this meeting.",403);
     const teacherMuted=!!controls?.[0]?.teacher_muted;
+    const teacherCameraOff=!!controls?.[0]?.teacher_camera_off;
 
     const rooms = await dbRequest(ctx, "class_live_rooms?class_id=eq." + classId + "&status=eq.live&select=id&limit=1");
     if (!rooms?.length) throw new ClassroomError("The professor has not started this class yet.", 409);
@@ -45,7 +46,7 @@ export async function onRequestPost({ request, env }) {
       "resolution=merge-duplicates,return=minimal"
     );
 
-    return response({ sessionId, attendanceId, displayName, teacherMuted });
+    return response({ sessionId, attendanceId, displayName, teacherMuted, teacherCameraOff });
   } catch (error) {
     return fail(error);
   }
