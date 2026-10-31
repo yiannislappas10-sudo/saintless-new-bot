@@ -15,10 +15,10 @@ export async function onRequestPost({ request, env }) {
     if (!publisher?.length) throw new ClassroomError("This participant is no longer in the classroom.", 409);
     const pubSessionId = publisher[0].session_id;
     const publications = await dbRequest(ctx,
-      "class_room_publications?class_id=eq."+classId+"&user_id=eq."+publisherId+"&session_id=eq."+encodeURIComponent(pubSessionId)+"&select=track_name");
+      "class_room_publications?class_id=eq."+classId+"&user_id=eq."+publisherId+"&select=track_name,session_id");
     if (!publications?.length) throw new ClassroomError("This participant has not published media yet.", 409);
-    const tracks = publications.filter(p=>["audio","video"].includes(p.track_name))
-      .map(p=>({location:"remote",sessionId:pubSessionId,trackName:p.track_name}));
+    const tracks = publications.filter(p=>["audio","video","screen"].includes(p.track_name))
+      .map(p=>({location:"remote",sessionId:p.session_id||pubSessionId,trackName:p.track_name}));
     if (!tracks.length) throw new ClassroomError("No media tracks are available.", 409);
 
     const created = await sfuRequest(ctx, "/sessions/new", "POST");
