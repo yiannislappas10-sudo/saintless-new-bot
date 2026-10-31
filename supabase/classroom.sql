@@ -630,9 +630,8 @@ begin
   update public.class_room_participants
   set status='left', left_at=coalesce(left_at,now())
   where class_id=target_class_id and status <> 'left';
-  update public.class_room_publications
-  set created_at=created_at
-  where false;
+  delete from public.class_room_publications
+  where class_id=target_class_id;
   update public.class_room_subscriptions
   set status='ended'
   where class_id=target_class_id and status='active';
