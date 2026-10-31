@@ -393,5 +393,4 @@ create unique index if not exists class_attendance_one_open_session_idx
   where left_at is null;
 
 -- Prevent arbitrary student-side updates of class records via table grants.
-revoke insert, update, delete on public.classes from authenticated;
-grant select on public.classes to authenticated;
+grant select, insert, update, delete on public.classes to authenticated;
