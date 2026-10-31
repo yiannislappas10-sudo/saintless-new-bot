@@ -12,7 +12,6 @@ const words = {
     calendar:'Personal calendar', calendarIntro:'Your assigned lessons, arranged by date.',
     statusTab:'Class status', statusIntro:'See which lessons are upcoming, live, completed, or cancelled.',
     notifications:'Notifications', notificationsIntro:'Unread announcements and messages, plus your next lessons.',
-    attendance:'Attendance history', attendanceIntro:'A record of your lesson attendance.',
     profile:'Profile settings', profileIntro:'Manage your display name and language preference.',
     today:'Today', previous:'Previous month', next:'Next month', noClassesDay:'No classes scheduled for this day.',
     all:'All', upcoming:'Upcoming', live:'Live', completed:'Completed', cancelled:'Cancelled',
@@ -26,10 +25,6 @@ const words = {
     newAnnouncement:'New announcement', newMessage:'New private message',
     announcementRead:'Announcement marked as read.', messageRead:'Message marked as read.',
     failedNotifications:'Could not load notifications.', failedClasses:'Could not load classes.',
-    failedAttendance:'Could not load attendance history.', noAttendance:'No attendance records are available yet.',
-    joined:'Joined', left:'Left', inProgress:'In progress', duration:'Duration',
-    student:'Student', class:'Class', date:'Date', time:'Time',
-    professorView:'Showing attendance for your classes.', studentView:'Showing your personal attendance.',
     classChanged:'Class status', emailNote:'Your sign-in email cannot be changed here.',
     scheduled:'Scheduled', attendanceCount:'attendance records'
   },
@@ -37,7 +32,6 @@ const words = {
     calendar:'Προσωπικό ημερολόγιο', calendarIntro:'Τα μαθήματά σας οργανωμένα ανά ημερομηνία.',
     statusTab:'Κατάσταση μαθημάτων', statusIntro:'Δείτε ποια μαθήματα είναι προσεχή, σε εξέλιξη, ολοκληρωμένα ή ακυρωμένα.',
     notifications:'Ειδοποιήσεις', notificationsIntro:'Μη αναγνωσμένες ανακοινώσεις και μηνύματα, καθώς και τα επόμενα μαθήματά σας.',
-    attendance:'Ιστορικό παρουσιών', attendanceIntro:'Καταγραφή της συμμετοχής σας στα μαθήματα.',
     profile:'Ρυθμίσεις προφίλ', profileIntro:'Διαχειριστείτε το όνομα εμφάνισης και τη γλώσσα σας.',
     today:'Σήμερα', previous:'Προηγούμενος μήνας', next:'Επόμενος μήνας', noClassesDay:'Δεν υπάρχουν μαθήματα για αυτή την ημέρα.',
     all:'Όλα', upcoming:'Προσεχή', live:'Σε εξέλιξη', completed:'Ολοκληρωμένα', cancelled:'Ακυρωμένα',
@@ -51,10 +45,6 @@ const words = {
     newAnnouncement:'Νέα ανακοίνωση', newMessage:'Νέο προσωπικό μήνυμα',
     announcementRead:'Η ανακοίνωση σημειώθηκε ως αναγνωσμένη.', messageRead:'Το μήνυμα σημειώθηκε ως αναγνωσμένο.',
     failedNotifications:'Δεν ήταν δυνατή η φόρτωση ειδοποιήσεων.', failedClasses:'Δεν ήταν δυνατή η φόρτωση μαθημάτων.',
-    failedAttendance:'Δεν ήταν δυνατή η φόρτωση παρουσιών.', noAttendance:'Δεν υπάρχουν ακόμη καταχωρήσεις παρουσιών.',
-    joined:'Συμμετοχή', left:'Αποχώρηση', inProgress:'Σε εξέλιξη', duration:'Διάρκεια',
-    student:'Μαθητής', class:'Μάθημα', date:'Ημερομηνία', time:'Ώρα',
-    professorView:'Εμφανίζονται οι παρουσίες των μαθημάτων σας.', studentView:'Εμφανίζονται οι προσωπικές σας παρουσίες.',
     classChanged:'Κατάσταση μαθήματος', emailNote:'Το email σύνδεσης δεν μπορεί να αλλάξει από εδώ.',
     scheduled:'Προγραμματισμένο', attendanceCount:'καταχωρήσεις παρουσιών'
   }
@@ -93,7 +83,6 @@ const panelMarkup = [
   ['personal-calendar', 'calendar', '<div class="panel-heading"><div><h2 id="personal-calendar-title"></h2><p id="personal-calendar-intro"></p></div><button class="btn" id="personal-calendar-refresh" type="button"></button></div><div class="personal-calendar-toolbar"><button class="personal-month-nav" id="personal-month-prev" type="button" aria-label="Previous month">‹</button><strong id="personal-month-label"></strong><button class="personal-month-nav" id="personal-month-next" type="button" aria-label="Next month">›</button><button class="personal-today" id="personal-today" type="button"></button></div><div class="personal-weekdays" id="personal-weekdays"></div><div class="personal-calendar-grid" id="personal-calendar-grid"></div><section class="personal-day-detail"><h3 id="personal-selected-day"></h3><div id="personal-day-classes"></div></section>'],
   ['class-status', 'statusTab', '<div class="panel-heading"><div><h2 id="class-status-title"></h2><p id="class-status-intro"></p></div><button class="btn" id="class-status-refresh" type="button"></button></div><div class="personal-status-filters" id="personal-status-filters"></div><div class="personal-status-list" id="personal-status-list"></div>'],
   ['notifications', 'notifications', '<div class="panel-heading"><div><h2 id="personal-notifications-title"></h2><p id="personal-notifications-intro"></p></div><button class="btn" id="personal-notifications-refresh" type="button"></button></div><div id="personal-notification-list" aria-live="polite"></div><p class="personal-data-status" id="personal-notification-status" role="status"></p>'],
-  ['attendance', 'attendance', '<div class="panel-heading"><div><h2 id="personal-attendance-title"></h2><p id="personal-attendance-intro"></p></div><button class="btn" id="personal-attendance-refresh" type="button"></button></div><p class="personal-attendance-note" id="personal-attendance-note"></p><div id="personal-attendance-list"></div><p class="personal-data-status" id="personal-attendance-status" role="status"></p>'],
   ['profile', 'profile', '<div class="panel-heading"><div><h2 id="personal-profile-title"></h2><p id="personal-profile-intro"></p></div></div><form class="personal-profile-card" id="personal-profile-form"><label for="personal-profile-name" id="personal-profile-name-label"></label><input id="personal-profile-name" type="text" minlength="2" maxlength="60" autocomplete="name" required><label for="personal-profile-email" id="personal-profile-email-label"></label><input id="personal-profile-email" type="email" readonly><p class="personal-profile-note" id="personal-profile-email-note"></p><label for="personal-profile-language" id="personal-profile-language-label"></label><select id="personal-profile-language"><option value="en"></option><option value="el"></option></select><button class="btn btn-dark" id="personal-profile-save" type="submit"></button><p class="personal-data-status" id="personal-profile-status" role="status"></p></form>']
 ];
 
@@ -142,9 +131,6 @@ function applyLanguage() {
   set('personal-notifications-title',t('notifications'));
   set('personal-notifications-intro',t('notificationsIntro'));
   set('personal-notifications-refresh',t('refresh'));
-  set('personal-attendance-title',t('attendance'));
-  set('personal-attendance-intro',t('attendanceIntro'));
-  set('personal-attendance-refresh',t('refresh'));
   set('personal-profile-title',t('profile'));
   set('personal-profile-intro',t('profileIntro'));
   set('personal-profile-name-label',t('displayName'));
@@ -160,7 +146,6 @@ function applyLanguage() {
   }
   renderCalendar();
   renderClassStatuses();
-  renderAttendance();
   renderNotifications();
 }
 
@@ -170,7 +155,6 @@ let profile = null;
 let isTeaching = false;
 let classes = [];
 let liveClassIds = new Set();
-let attendanceRows = [];
 let notificationRows = [];
 let notificationTimer = null;
 let calendarCursor = new Date(Date.UTC(new Date().getFullYear(),new Date().getMonth(),1));
@@ -269,29 +253,6 @@ function renderClassStatuses() {
   if (!rows.length) list.append(make('div','personal-empty',t('noClasses')));
   else rows.forEach(c=>list.append(classRow(c)));
 }
-function renderAttendance() {
-  const list = $('personal-attendance-list');
-  if (!list) return;
-  list.replaceChildren();
-  const note = $('personal-attendance-note');
-  note.textContent = isTeaching ? t('professorView') : t('studentView');
-  if (!attendanceRows.length) {
-    list.append(make('div','personal-empty',t('noAttendance')));
-    return;
-  }
-  for (const item of attendanceRows) {
-    const card = make('article','personal-attendance-row');
-    const top = make('div','personal-attendance-top');
-    const title = make('strong','',item.classTitle);
-    const badge = make('span','personal-attendance-badge',item.left_at?t('left'):t('inProgress'));
-    top.append(title,badge);
-    const meta = make('p','',fmtDate(item.joined_at)+' · '+fmtTime(item.joined_at)+(item.left_at?' – '+fmtTime(item.left_at):''));
-    const duration = item.left_at ? Math.max(1,Math.round((new Date(item.left_at)-new Date(item.joined_at))/60000))+' min' : t('inProgress');
-    const detail = make('p','personal-attendance-meta',t('duration')+': '+duration+(isTeaching&&item.studentName?' · '+t('student')+': '+item.studentName:''));
-    card.append(top,meta,detail);
-    list.append(card);
-  }
-}
 function notificationCard(kind,title,description,time,actionText,action) {
   const card = make('article','personal-notification');
   const main = make('div','personal-notification-main');
@@ -344,7 +305,7 @@ async function loadNotifications() {
   status.textContent = '';
   try {
     const [announcementResult,readResult,messageResult] = await Promise.all([
-      db.from('announcements').select('id,title,created_at').eq('published',true).order('created_at',{ascending:false}).limit(30),
+      db.from('announcements').select('id,title,created_at,created_by').eq('published',true).order('created_at',{ascending:false}).limit(30),
       db.from('announcement_reads').select('announcement_id').eq('user_id',user.id),
       db.from('private_messages').select('id,sender_id,body,created_at').eq('recipient_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(30)
     ]);
@@ -352,7 +313,10 @@ async function loadNotifications() {
     if (readResult.error) throw readResult.error;
     if (messageResult.error) throw messageResult.error;
     const readIds = new Set((readResult.data||[]).map(x=>x.announcement_id));
-    const unreadAnnouncements = (announcementResult.data||[]).filter(x=>!readIds.has(x.id)).map(x=>({...x,kind:'announcement'}));
+    // Professors/owners publish announcements; do not notify them about their own broadcast feed.
+    const unreadAnnouncements = isTeaching ? [] : (announcementResult.data||[])
+      .filter(x=>x.created_by!==user.id && !readIds.has(x.id))
+      .map(x=>({...x,kind:'announcement'}));
     const unreadMessages = messageResult.data||[];
     let senderNames = new Map();
     if (unreadMessages.length) {
@@ -377,39 +341,11 @@ async function loadNotifications() {
     status.textContent = error.message || t('failedNotifications');
   }
 }
-async function loadAttendance() {
-  const status = $('personal-attendance-status');
-  status.textContent = '';
-  const query = db.from('class_attendance').select('id,class_id,student_id,joined_at,left_at')
-    .order('joined_at',{ascending:false}).limit(100);
-  if (!isTeaching) query.eq('student_id',user.id);
-  const {data,error} = await query;
-  if (error) {
-    status.textContent = error.message || t('failedAttendance');
-    attendanceRows = [];
-    renderAttendance();
-    return;
-  }
-  const records = data || [];
-  const studentIds = [...new Set(records.map(x=>x.student_id))];
-  const nameMap = new Map();
-  if (isTeaching && studentIds.length) {
-    const {data:names} = await db.from('profiles').select('id,display_name').in('id',studentIds);
-    for (const person of names||[]) nameMap.set(person.id,person.display_name);
-  }
-  const classMap = new Map(classes.map(x=>[x.id,x]));
-  attendanceRows = records.map(item=>{
-    const klass=classMap.get(item.class_id);
-    return {...item,classTitle:klass?.title||'ECHO class',studentName:nameMap.get(item.student_id)||''};
-  });
-  renderAttendance();
-}
 async function refreshPanel(id) {
   if (!db || !user) return;
   try {
     if (id==='personal-calendar'||id==='class-status') await loadClasses();
     if (id==='notifications') { await loadClasses(); await loadNotifications(); }
-    if (id==='attendance') { await loadClasses(); await loadAttendance(); }
     if (id==='profile') {
       $('personal-profile-name').value = profile?.display_name || '';
       $('personal-profile-email').value = user.email || '';
@@ -448,8 +384,8 @@ function changeLanguage(value) {
 }
 function reset() {
   if (notificationTimer) { clearInterval(notificationTimer); notificationTimer=null; }
-  user=null;profile=null;classes=[];liveClassIds=new Set();attendanceRows=[];notificationRows=[];
-  renderCalendar();renderClassStatuses();renderAttendance();renderNotifications();
+  user=null;profile=null;classes=[];liveClassIds=new Set();notificationRows=[];
+  renderCalendar();renderClassStatuses();renderNotifications();
 }
 async function boot(session) {
   if (!session?.user) { reset(); return; }
@@ -462,7 +398,7 @@ async function boot(session) {
   $('personal-profile-email').value=user.email||'';
   $('personal-profile-language').value=language();
   await loadClasses();
-  await Promise.all([loadAttendance(),loadNotifications()]);
+  await loadNotifications();
   if (notificationTimer) clearInterval(notificationTimer);
   notificationTimer=setInterval(()=>{void loadNotifications();},45000);
 }
@@ -473,7 +409,6 @@ $('personal-month-prev').addEventListener('click',()=>{calendarCursor=new Date(D
 $('personal-month-next').addEventListener('click',()=>{calendarCursor=new Date(Date.UTC(calendarCursor.getUTCFullYear(),calendarCursor.getUTCMonth()+1,1));renderCalendar();});
 $('personal-today').addEventListener('click',()=>{const now=new Date();calendarCursor=new Date(Date.UTC(now.getFullYear(),now.getMonth(),1));selectedDay=dateKey(now);renderCalendar();});
 $('personal-notifications-refresh').addEventListener('click',()=>{void loadClasses().then(loadNotifications).catch(e=>{$('personal-notification-status').textContent=e.message;});});
-$('personal-attendance-refresh').addEventListener('click',()=>{void loadClasses().then(loadAttendance).catch(e=>{$('personal-attendance-status').textContent=e.message;});});
 $('personal-profile-language').addEventListener('change',event=>changeLanguage(event.target.value));
 $('personal-profile-form').addEventListener('submit',saveProfile);
 $('app-language')?.addEventListener('click',()=>window.setTimeout(applyLanguage,0));
