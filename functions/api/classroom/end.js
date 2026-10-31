@@ -33,6 +33,8 @@ export async function onRequestPost({ request, env }) {
     try { body=await request.json(); } catch { throw new ClassroomError("Invalid request body."); }
     const classId=body?.classId;
     if(!validId(classId))throw new ClassroomError("Choose a valid class.");
+    const teacher=await dbRpc(ctx,"is_echo_professor",{});
+    if(teacher!==true)throw new ClassroomError("Only the professor can end this classroom.",403);
 
     const [participants,subscriptions]=await Promise.all([
       dbRequest(ctx,"class_room_participants?class_id=eq."+classId+"&select=session_id"),
