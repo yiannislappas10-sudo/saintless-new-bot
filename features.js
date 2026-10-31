@@ -169,21 +169,15 @@ function applyFeatureLanguage() {
   set('announcement-title-label', tr('title'));
   set('announcement-body-label', tr('body'));
   set('announcement-professor-only', tr('professorOnly'));
-  set('announcement-cancel-edit',tr('cancelEdit'));
+  set('announcement-cancel-edit', tr('cancelEdit'));
   set('announcement-submit', editingAnnouncementId ? tr('update') : tr('publish'));
-  set('announcement-audience-label',tr('audience'));
-  const audience=document.getElementById('announcement-audience');
-  audience.options[0].textContent=tr('everyone');audience.options[1].textContent=tr('selectedStudents');
-  set('announcement-pinned-label',tr('pinned'));
-  set('announcement-cancel-edit',tr('cancelEdit'));
-  set('announcement-audience-label',tr('audience'));
-  const audience=document.getElementById('announcement-audience');
-  audience.options[0].textContent=tr('everyone');audience.options[1].textContent=tr('selectedStudents');
-  set('announcement-pinned-label',tr('pinned'));
-  set('announcement-cancel-edit',tr('cancelEdit'));
+  set('announcement-audience-label', tr('audience'));
+  const audience = document.getElementById('announcement-audience');
+  audience.options[0].textContent = tr('everyone');
+  audience.options[1].textContent = tr('selectedStudents');
+  set('announcement-pinned-label', tr('pinned'));
   document.getElementById('announcement-title').placeholder = tr('titlePlaceholder');
   document.getElementById('announcement-body').placeholder = tr('bodyPlaceholder');
-  document.getElementById('announcement-title').ariaLabel = tr('title');
   set('messages-heading', tr('messages'));
   set('messages-intro', tr('messagesIntro'));
   set('message-contacts-heading', tr('conversations'));
@@ -202,7 +196,6 @@ function applyFeatureLanguage() {
   for (const button of nav.querySelectorAll('[data-feature-tab]')) {
     button.textContent = tr(button.dataset.featureTab);
   }
-  document.querySelector('#tab-announcements');
 }
 function status(id, message, error = false) {
   const node = document.getElementById(id);
