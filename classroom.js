@@ -390,7 +390,7 @@ function waitForIceGathering(pc,timeout=8000){
 }
 function waitForPeerConnection(pc,{requireTrack=false,timeout=16000}={}){
  return new Promise((resolve,reject)=>{
-  let gotTrack=!requireTrack,done=false;
+  let gotTrack=!requireTrack||pc.getReceivers().some(receiver=>receiver.track?.readyState==='live'),done=false;
   const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);pc.removeEventListener('connectionstatechange',check);pc.removeEventListener('track',track);error?reject(error):resolve();};
   const check=()=>{if(pc.connectionState==='connected'&&gotTrack)finish();else if(pc.connectionState==='failed'||pc.connectionState==='closed')finish(new Error(t('mediaDisconnected')));};
   const track=()=>{gotTrack=true;check();};
@@ -617,8 +617,9 @@ async function moderateParticipant(targetUserId,action){
 async function toggleScreenShare(){
  const room=activeRoom;if(!room?.inClass||room.screenStream)return room?.screenStream?stopScreenShare(room):undefined;
  if(!navigator.mediaDevices?.getDisplayMedia){setRoomStatus(t('screenShareUnavailable'),true);return;}
+ let display=null;
  try{
-  const display=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:24,max:30}},audio:false});
+  display=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:24,max:30}},audio:false});
   const track=display.getVideoTracks()[0];if(!track)throw new Error(t('screenShareUnavailable'));
   const transceiver=room.publisher.addTransceiver(track,{direction:'sendonly'});
   const offer=await room.publisher.createOffer();await room.publisher.setLocalDescription(offer);await waitForIceGathering(room.publisher);
@@ -631,6 +632,7 @@ async function toggleScreenShare(){
   track.addEventListener('ended',()=>{if(activeRoom===room)void stopScreenShare(room,{remoteEnded:true});},{once:true});
   setRoomStatus(t('sharing'));
  }catch(error){
+  display?.getTracks().forEach(track=>track.stop());
   setRoomStatus(error?.name==='NotAllowedError'?t('screenShareDenied'):(error.message||t('screenShareDenied')),true);
  }
 }
@@ -742,6 +744,7 @@ async function enterRoom(){
 }
 async function leaveRoom({automatic=false}={}){
  const room=activeRoom;if(!room)return;activeRoom=null;callJoinPending=false;
+ if(document.fullscreenElement)try{await document.exitFullscreen();}catch{}
  if(room.poller)clearInterval(room.poller);if(room.heartbeat)clearInterval(room.heartbeat);
  if(room.channel){void db.removeChannel(room.channel);room.channel=null;}
  if(room.publisher){room.publisher.close();room.publisher=null;}
