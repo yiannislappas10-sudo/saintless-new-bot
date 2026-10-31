@@ -36,6 +36,7 @@ export async function onRequestPost({ request, env }) {
         display_name: String(displayName).slice(0, 120),
         status: "joining",
         joined_at: new Date().toISOString(),
+        last_seen_at: new Date().toISOString(),
         left_at: null
       },
       "resolution=merge-duplicates,return=minimal"
