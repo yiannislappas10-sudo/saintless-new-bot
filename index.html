@@ -82,12 +82,12 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
 .avatar{width:33px;height:33px;border:1px solid #e6e6e6;border-radius:50%;display:grid;place-items:center;background:#fafafa;color:#444;font-size:12px;font-weight:650}
 .account-email{max-width:240px;color:#737373;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .signout{width:auto;min-height:35px;padding:0 12px;font-size:12px}
-.app-content{max-width:1120px;margin:0 auto;padding:50px 30px 80px}
+.app-content{max-width:1180px;margin:0 auto;padding:38px 30px 70px;display:grid;grid-template-columns:210px minmax(0,1fr);gap:32px;align-items:start}.app-sidebar{position:sticky;top:22px;padding-top:12px;min-width:0}.sidebar-heading{margin:0 0 10px;padding:0 10px;color:#999;font-size:9px;font-weight:750;letter-spacing:.15em;text-transform:uppercase}.app-main{min-width:0;padding-top:10px}
 .kicker{margin:0 0 10px;color:#878787;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 .welcome{font-size:32px;letter-spacing:-.05em;font-weight:650;line-height:1.15}
 .welcome-copy{margin:10px 0 0;color:#777;font-size:14px;line-height:1.6}
-.nav-tabs{display:flex;gap:5px;width:max-content;max-width:100%;margin:32px 0 30px;padding:4px;border:1px solid #ededed;border-radius:9px;background:#fafafa}
-.tab{appearance:none;width:auto;min-height:37px;padding:0 17px;border:1px solid transparent;border-radius:6px;background:transparent;color:#696969;font-size:13px;font-weight:600;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.nav-tabs{display:flex;flex-direction:column;gap:4px;width:100%;max-width:100%;margin:0;padding:7px;border:1px solid #ededed;border-radius:10px;background:rgba(250,250,250,.82)}
+.tab{appearance:none;display:flex;align-items:center;text-align:left;width:100%;min-height:42px;padding:0 12px;border:1px solid transparent;border-radius:6px;background:transparent;color:#696969;font-size:12px;font-weight:600;white-space:nowrap;transition:background .15s,border-color .15s,color .15s,transform .15s}.tab:hover{background:#f1f1f1;transform:translateX(2px)}
 .tab:hover{background:#f1f1f1}
 .tab.active{background:#fff;border-color:#e4e4e4;color:#171717;box-shadow:0 1px 3px #00000008}
 .panel{display:none}
@@ -120,7 +120,7 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes wave{0%,100%{height:7px;opacity:.52}50%{height:27px;opacity:1}}
 @keyframes draw{to{stroke-dashoffset:0}}
-@media(max-width:760px){.topbar{height:64px;padding:0 18px}.app-content{padding:34px 18px 55px}.grid{grid-template-columns:1fr}.welcome{font-size:27px}.nav-tabs{width:100%;gap:1px}.tab{flex:1;padding:0 8px;font-size:12px}.account-email{max-width:105px}.panel-heading{align-items:flex-start;flex-direction:column}.footer{padding:18px}.info-card{min-height:0}}
+@media(max-width:760px){.topbar{height:64px;padding:0 18px}.app-content{display:block;padding:30px 18px 55px}.app-sidebar{position:static;padding:0 0 24px}.sidebar-heading{margin-bottom:8px}.app-main{padding-top:0}.grid{grid-template-columns:1fr}.welcome{font-size:27px}.nav-tabs{flex-direction:row;width:100%;gap:3px;overflow-x:auto;justify-content:flex-start}.tab{flex:0 0 auto;width:auto;min-height:38px;padding:0 11px;font-size:11px}.tab:hover{transform:translateY(-1px)}.account-email{max-width:105px}.panel-heading{align-items:flex-start;flex-direction:column}.footer{padding:18px}.info-card{min-height:0}}
 @media(max-width:420px){#login-shell{padding:28px 22px}.login-main{max-width:360px}.brand{margin-bottom:38px}h1{font-size:27px}.topbar-right{gap:9px}.signout{padding:0 9px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
@@ -164,15 +164,18 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
     <div class="topbar-right"><button class="language-switch" id="app-language" type="button" aria-label="Switch language">🇬🇷 ΕΛΛΗΝΙΚΑ</button><span class="account-email" id="account-email"></span><span class="avatar" id="avatar">E</span><button class="btn signout" id="signout-btn" type="button" data-i18n="signOut">Sign out</button></div>
   </header>
   <main class="app-content">
+    <aside class="app-sidebar">
+      <p class="sidebar-heading" data-i18n="navLabel">Classroom navigation</p>
+      <nav class="nav-tabs" aria-label="Classroom navigation" data-i18n-aria="navLabel">
+        <button class="tab active" type="button" data-tab="lessons" aria-selected="true" data-i18n="tabLessons">Lessons</button>
+        <button class="tab" type="button" data-tab="schedule" aria-selected="false" data-i18n="tabSchedule">Lesson Schedule</button>
+        <button class="tab" type="button" data-tab="join" aria-selected="false" data-i18n="tabJoin">Join Classes</button>
+      </nav>
+    </aside>
+    <div class="app-main">
     <p class="kicker" data-i18n="kicker">Your teaching space</p>
     <h1 class="welcome" data-i18n="welcome">Welcome to your classroom.</h1>
     <p class="welcome-copy" data-i18n="welcomeCopy">Manage lessons, keep track of your schedule, and join live classes.</p>
-
-    <nav class="nav-tabs" aria-label="Classroom navigation" data-i18n-aria="navLabel">
-      <button class="tab active" type="button" data-tab="lessons" aria-selected="true" data-i18n="tabLessons">Lessons</button>
-      <button class="tab" type="button" data-tab="schedule" aria-selected="false" data-i18n="tabSchedule">Lesson Schedule</button>
-      <button class="tab" type="button" data-tab="join" aria-selected="false" data-i18n="tabJoin">Join Classes</button>
-    </nav>
 
     <section class="panel active" id="panel-lessons">
       <div class="panel-heading"><div><h2 data-i18n="yourLessons">Your lessons</h2><p data-i18n="lessonsIntro">Everything for your teaching sessions, in one place.</p></div></div>
@@ -193,6 +196,7 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
       <div class="panel-heading"><div><h2 data-i18n="joinClass">Join a class</h2><p data-i18n="joinIntro">Use the invitation code shared by your teacher.</p></div></div>
       <div class="join-card"><form id="join-form"><label for="class-code" data-i18n="classCodeLabel">Class invitation code</label><div class="join-row"><input id="class-code" name="class-code" type="text" placeholder="Enter class code" data-i18n-placeholder="classCodePlaceholder" autocomplete="off" required><button class="btn btn-dark" type="submit" data-i18n="continue">Continue</button></div><p class="help" data-i18n="joinHelp">Ask your teacher for a class code or invitation link.</p><p class="form-message" id="join-message" role="status" aria-live="polite"></p></form></div>
     </section>
+    </div>
   </main>
   <footer class="footer" data-i18n="footer">ECHO · A focused space for teaching and learning.</footer>
 </div>
