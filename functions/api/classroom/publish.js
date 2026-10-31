@@ -36,7 +36,7 @@ export async function onRequestPost({ request, env }) {
 
     await dbRequest(ctx,
       "class_room_participants?class_id=eq."+classId+"&user_id=eq."+ctx.user.id+"&session_id=eq."+encodeURIComponent(sessionId),
-      "PATCH", { status:"active" }, "return=minimal");
+      "PATCH", { status:"active", last_seen_at:new Date().toISOString() }, "return=minimal");
     const publications = cleanTracks.map(track => ({
       class_id:classId, user_id:ctx.user.id, session_id:sessionId, track_name:track.trackName
     }));
