@@ -489,6 +489,12 @@ function addRoomScreenTile(userId,name,local=false){
  const label=document.createElement('div');label.className='class-room-tile-label';label.textContent=name+' · '+t('sharing');
  tile.append(video,label);grid.prepend(tile);return tile;
 }
+function removeRoomRemoteTiles(userId){
+ const grid=document.getElementById('class-room-videos');
+ [...grid.querySelectorAll('.class-room-camera-tile,.class-room-screen-tile')].filter(tile=>
+  tile.dataset.roomUser===userId||tile.dataset.screenUser===userId
+ ).forEach(tile=>tile.remove());
+}
 function addRosterAction(row,label,callback,danger=false){
  const button=document.createElement('button');button.type='button';button.className='class-room-person-action'+(danger?' danger':'');button.textContent=label;
  button.addEventListener('click',callback);row.append(button);return button;
@@ -524,7 +530,6 @@ async function subscribeToParticipant(room,person,publications){
  const rows=(publications||[]).filter(p=>p.user_id===person.user_id&&['audio','video','screen'].includes(p.track_name));
  if(!rows.length)return;
  const key=rows.map(p=>p.track_name+'@'+p.session_id).sort().join('|');
- const tracks=rows.map(p=>({location:'remote',sessionId:p.session_id,trackName:p.track_name}));
  const data=await callApi('/api/classroom/subscribe',{classId:room.classId,publisherId:person.user_id});
  const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});
  const name=person.display_name||'Participant';
@@ -592,7 +597,7 @@ async function toggleRaiseHand(){
  const {error}=await db.from('class_room_participants').update({hand_raised:next,hand_raised_at:next?new Date().toISOString():null}).eq('class_id',room.classId).eq('user_id',user.id);
  if(error){setRoomStatus(error.message,true);return;}
  room.handRaised=next;document.getElementById('class-raise-hand').textContent=next?t('lowerHand'):t('raiseHand');
- try{await broadcastRoomEvent({type:'hand',raised:next,targetUserId:user.id});}catch{}
+ try{await broadcastRoomEvent({type:'hand',raised:next,targetUserId:user.id,name:profile?.display_name||'Participant'});}catch{}
 }
 async function sendRoomReaction(emoji){
  const room=activeRoom;if(!room?.inClass||!ROOM_REACTIONS.has(emoji))return;
@@ -687,7 +692,7 @@ async function syncClassroom(room){
    const signature=rows.map(p=>p.track_name+'@'+p.session_id).sort().join('|');
    const existing=room.subscriptions.get(person.user_id);
    if(existing&&existing.key!==signature){
-    existing.pc.close();existing.tile.remove();existing.screenTile?.remove();room.subscriptions.delete(person.user_id);
+    existing.pc.close();removeRoomRemoteTiles(person.user_id);room.subscriptions.delete(person.user_id);
     try{await callApi('/api/classroom/unsubscribe',{classId:room.classId,publisherId:person.user_id});}catch{}
    }
    if(!room.subscriptions.has(person.user_id)&&rows.length){
@@ -696,7 +701,7 @@ async function syncClassroom(room){
   }
   const ids=new Set(active.map(p=>p.user_id));
   for(const [id,sub] of room.subscriptions)if(!ids.has(id)){
-   sub.pc.close();sub.tile.remove();sub.screenTile?.remove();room.subscriptions.delete(id);
+   sub.pc.close();removeRoomRemoteTiles(id);room.subscriptions.delete(id);
    try{await callApi('/api/classroom/unsubscribe',{classId:room.classId,publisherId:id});}catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
   }
  }catch(error){if(activeRoom===room)setRoomStatus(error.message||t('mediaDisconnected'),true);}
