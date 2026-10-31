@@ -211,6 +211,7 @@ let contactId = null;
 let contacts = [];
 let unreadCounts = new Map();
 let editingAnnouncementId = null;
+let sendingPrivateMessage = false;
 let announcementStudents = [];
 let messagePoller = null;
 let incomingCallPoller = null;
@@ -793,12 +794,14 @@ document.getElementById('announcement-form').addEventListener('submit', async ev
 document.getElementById('message-form').addEventListener('submit', async event => {
   event.preventDefault();
   const body = document.getElementById('message-input').value.trim();
-  if (!body || !contactId || !user) return;
+  if (!body || !contactId || !user || sendingPrivateMessage) return;
+  sendingPrivateMessage = true;
   const button = document.getElementById('message-send');
   button.disabled = true;
   const {error} = await supabase.from('private_messages').insert({
     sender_id:user.id, recipient_id:contactId, body
   });
+  sendingPrivateMessage = false;
   button.disabled = false;
   if (error) { status('messages-status', error.message, true); return; }
   document.getElementById('message-input').value = '';
