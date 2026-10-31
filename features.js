@@ -222,6 +222,9 @@ function syncCallControls() {
   start.disabled = !user || !contactId || !contacts.some(item => item.id === contactId) || !!activeCall || !!incomingCall;
   end.classList.toggle('hidden', !activeCall);
   end.disabled = !activeCall;
+  document.querySelectorAll('#message-contacts-list .message-contact').forEach(item => {
+    item.disabled = !!activeCall;
+  });
 }
 function hideIncomingCall() {
   document.getElementById('incoming-call')?.classList.add('hidden');
@@ -395,6 +398,7 @@ async function pollActiveCall() {
     .select('status').eq('id', call.id).maybeSingle();
   if (error || activeCall !== call || !data) return;
   if (call.role === 'caller' && data.status === 'accepted') {
+    if (call.timeoutId) { window.clearTimeout(call.timeoutId); call.timeoutId = null; }
     await makeCallerOffer(call);
   } else if (data.status === 'rejected') {
     await finishCall({updateServer:false, signal:false, statusText:tr('callRejected')});
@@ -604,6 +608,7 @@ async function openConversation(id) {
   document.getElementById('message-thread-heading').textContent = contact?.display_name || tr('selectConversation');
   document.getElementById('message-input').disabled = !contact;
   document.getElementById('message-send').disabled = !contact;
+  if (!activeCall) showCallStatus('');
   syncCallControls();
   await loadMessages();
 }
