@@ -250,3 +250,208 @@ grant execute on function public.set_echo_professor(uuid, boolean) to authentica
 grant execute on function public.get_echo_role_candidates() to authenticated;
 
 -- Private messages are refreshed by the ECHO client; no publication setup is required.
+
+-- ECHO one-to-one audio calling.
+-- Call state is changed only through the RPCs below. Audio is exchanged directly
+-- between browsers using WebRTC; Supabase Realtime carries private signalling.
+
+create table if not exists public.echo_calls (
+  id uuid primary key default gen_random_uuid(),
+  caller_id uuid not null references auth.users(id) on delete cascade,
+  callee_id uuid not null references auth.users(id) on delete cascade,
+  status text not null default 'ringing'
+    check (status in ('ringing', 'accepted', 'rejected', 'ended')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  ended_at timestamptz,
+  constraint echo_calls_no_self_call check (caller_id <> callee_id)
+);
+
+create index if not exists echo_calls_callee_status_created_idx
+  on public.echo_calls (callee_id, status, created_at desc);
+create index if not exists echo_calls_caller_status_created_idx
+  on public.echo_calls (caller_id, status, created_at desc);
+
+alter table public.echo_calls enable row level security;
+
+drop policy if exists "ECHO call participants can read calls" on public.echo_calls;
+create policy "ECHO call participants can read calls"
+on public.echo_calls
+for select
+to authenticated
+using (caller_id = auth.uid() or callee_id = auth.uid());
+
+revoke all on public.echo_calls from anon;
+revoke insert, update, delete on public.echo_calls from authenticated;
+grant select on public.echo_calls to authenticated;
+
+create or replace function public.create_echo_call(target_user_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+declare
+  new_call_id uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'You must be signed in to start a call.';
+  end if;
+
+  if target_user_id is null or target_user_id = auth.uid() then
+    raise exception 'Choose another ECHO user to call.';
+  end if;
+
+  if not exists (select 1 from public.profiles p where p.id = target_user_id) then
+    raise exception 'That ECHO account could not be found.';
+  end if;
+
+  if public.is_echo_professor(auth.uid()) = public.is_echo_professor(target_user_id) then
+    raise exception 'Calls are available between a student and a professor.';
+  end if;
+
+  -- Serialize new calls for both participants and clear abandoned sessions.
+  perform pg_advisory_xact_lock(
+    hashtextextended(least(auth.uid()::text, target_user_id::text), 0)
+  );
+  perform pg_advisory_xact_lock(
+    hashtextextended(greatest(auth.uid()::text, target_user_id::text), 0)
+  );
+
+  update public.echo_calls
+  set status = 'ended', ended_at = now(), updated_at = now()
+  where status in ('ringing', 'accepted')
+    and (
+      (status = 'ringing' and created_at < now() - interval '60 seconds')
+      or
+      (status = 'accepted' and updated_at < now() - interval '12 hours')
+    );
+
+  if exists (
+    select 1 from public.echo_calls c
+    where c.status in ('ringing', 'accepted')
+      and (
+        c.caller_id in (auth.uid(), target_user_id)
+        or c.callee_id in (auth.uid(), target_user_id)
+      )
+  ) then
+    raise exception 'One of these users is already in a call.';
+  end if;
+
+  insert into public.echo_calls (caller_id, callee_id)
+  values (auth.uid(), target_user_id)
+  returning id into new_call_id;
+
+  return new_call_id;
+end;
+$$;
+
+create or replace function public.accept_echo_call(target_call_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  update public.echo_calls
+  set status = 'accepted', updated_at = now()
+  where id = target_call_id
+    and callee_id = auth.uid()
+    and status = 'ringing'
+    and created_at >= now() - interval '60 seconds';
+
+  if not found then
+    raise exception 'This incoming call is no longer available.';
+  end if;
+end;
+$$;
+
+create or replace function public.reject_echo_call(target_call_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  update public.echo_calls
+  set status = 'rejected', ended_at = now(), updated_at = now()
+  where id = target_call_id
+    and callee_id = auth.uid()
+    and status = 'ringing';
+
+  if not found then
+    raise exception 'This incoming call is no longer available.';
+  end if;
+end;
+$$;
+
+create or replace function public.end_echo_call(target_call_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  update public.echo_calls
+  set status = 'ended', ended_at = now(), updated_at = now()
+  where id = target_call_id
+    and (caller_id = auth.uid() or callee_id = auth.uid())
+    and status in ('ringing', 'accepted');
+
+  if not found and not exists (
+    select 1 from public.echo_calls c
+    where c.id = target_call_id
+      and (c.caller_id = auth.uid() or c.callee_id = auth.uid())
+  ) then
+    raise exception 'You are not a participant in this call.';
+  end if;
+end;
+$$;
+
+-- Only the caller and callee may subscribe to or broadcast on this call topic.
+create or replace function public.is_echo_call_participant(_topic text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.echo_calls c
+    where _topic = 'echo-call:' || c.id::text
+      and auth.uid() in (c.caller_id, c.callee_id)
+  );
+$$;
+
+revoke all on function public.create_echo_call(uuid) from public;
+revoke all on function public.accept_echo_call(uuid) from public;
+revoke all on function public.reject_echo_call(uuid) from public;
+revoke all on function public.end_echo_call(uuid) from public;
+revoke all on function public.is_echo_call_participant(text) from public;
+
+grant execute on function public.create_echo_call(uuid) to authenticated;
+grant execute on function public.accept_echo_call(uuid) to authenticated;
+grant execute on function public.reject_echo_call(uuid) to authenticated;
+grant execute on function public.end_echo_call(uuid) to authenticated;
+grant execute on function public.is_echo_call_participant(text) to authenticated;
+
+drop policy if exists "ECHO call participants can receive call signals" on realtime.messages;
+create policy "ECHO call participants can receive call signals"
+on realtime.messages
+for select
+to authenticated
+using (
+  extension = 'broadcast'
+  and public.is_echo_call_participant(realtime.topic())
+);
+
+drop policy if exists "ECHO call participants can send call signals" on realtime.messages;
+create policy "ECHO call participants can send call signals"
+on realtime.messages
+for insert
+to authenticated
+with check (
+  extension = 'broadcast'
+  and public.is_echo_call_participant(realtime.topic())
+);
