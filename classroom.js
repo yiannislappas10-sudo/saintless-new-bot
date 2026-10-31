@@ -527,7 +527,7 @@ function renderRoomRoster(room,participants){
   area.append(row);
  };
  for(const person of assigned){const live=participants.find(p=>p.user_id===person.id);renderPerson(person.id,live?.display_name||person.display_name,live);seen.add(person.id);}
- for(const person of participants.filter(p=>!seen.has(p.user_id)&&p.status!=='left'))renderPerson(person.user_id,person.display_name,person);
+ for(const person of participants.filter(p=>!seen.has(p.user_id)&&(p.status!=='left'||room.controlsMap.get(p.user_id)?.removed)))renderPerson(person.user_id,person.display_name,person);
 }
 async function subscribeToParticipant(room,person,publications){
  if(room.subscriptions.has(person.user_id)||person.status!=='active')return;
@@ -641,6 +641,7 @@ async function toggleScreenShare(){
   track.addEventListener('ended',()=>{if(activeRoom===room)void stopScreenShare(room,{remoteEnded:true});},{once:true});
   setRoomStatus(t('sharing'));
  }catch(error){
+  if(display&&room.sessionId){try{await callApi('/api/classroom/stop-share',{classId:room.classId,targetUserId:user.id});}catch{}}
   display?.getTracks().forEach(track=>track.stop());
   setRoomStatus(error?.name==='NotAllowedError'?t('screenShareDenied'):(error.message||t('screenShareDenied')),true);
  }
