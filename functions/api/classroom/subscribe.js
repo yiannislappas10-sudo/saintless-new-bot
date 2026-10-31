@@ -28,7 +28,7 @@ export async function onRequestPost({ request, env }) {
       "/sessions/"+encodeURIComponent(sessionId)+"/tracks/new", "POST", {tracks});
     const receivedTracks=result?.tracks||[];
     if (!result?.sessionDescription || result.sessionDescription.type !== "offer" ||
-        !receivedTracks.length || receivedTracks.every(track=>track?.errorCode||track?.errorDescription)) {
+        receivedTracks.length !== tracks.length || receivedTracks.some(track=>track?.errorCode||track?.errorDescription)) {
       throw new ClassroomError(receivedTracks.find(track=>track?.errorDescription)?.errorDescription||
         "The media service did not return a usable receiving offer.", 502);
     }
