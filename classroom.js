@@ -131,26 +131,65 @@ function periodBounds(){
  return [start,end];
 }
 function classStatus(c){const now=Date.now();if(c.status==='cancelled')return 'cancelled';if(now<new Date(c.starts_at).getTime())return 'upcoming';if(now<=new Date(c.ends_at).getTime())return 'live';return 'completed';}
+function dateKey(value){
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
+ const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;
+}
+function makeClassCard(c){
+ const card=document.createElement('article');card.className='class-card';
+ const st=classStatus(c),roster=(c.roster||[]).map(x=>x.display_name).filter(Boolean);
+ const when=document.createElement('div');when.className='class-card-time';when.textContent=fmt(c.starts_at);
+ const main=document.createElement('div');main.className='class-card-main';
+ const h=document.createElement('h3');h.textContent=c.title;const sub=document.createElement('p');sub.textContent=c.subject+' · '+fmt(c.ends_at);
+ const people=document.createElement('p');people.className='class-card-people';people.textContent=roster.length?roster.join(', '):t('noRoster');
+ main.append(h,sub,people);
+ const meta=document.createElement('div');meta.className='class-card-meta';
+ const badge=document.createElement('span');badge.className='class-state '+st;badge.textContent=t(st);meta.append(badge);
+ if(c.is_demo){const demo=document.createElement('span');demo.className='class-demo-tag';demo.textContent='DEMO';meta.append(demo);}
+ const action=document.createElement('button');action.type='button';action.className='btn class-open';action.textContent=t('details');action.addEventListener('click',()=>{void showDetail(c.id);});meta.append(action);
+ card.append(when,main,meta);return card;
+}
+function makeCalendarEvent(c){
+ const event=document.createElement('button');event.type='button';
+ event.className='class-calendar-event '+classStatus(c);
+ const time=new Intl.DateTimeFormat(lang()==='el'?'el-GR':'en-GB',{timeZone:ZONE,hour:'2-digit',minute:'2-digit'}).format(new Date(c.starts_at));
+ event.textContent=time+' · '+c.title;event.title=c.title+' · '+fmt(c.starts_at);
+ event.addEventListener('click',()=>{void showDetail(c.id);});return event;
+}
 function renderClasses(){
  const list=document.getElementById('class-list');list.replaceChildren();
  const [start,end]=periodBounds();
  document.getElementById('class-period').textContent=fmt(start.toISOString())+' — '+fmt(new Date(end.getTime()-1).toISOString());
  const rows=classes.filter(c=>new Date(c.starts_at)>=start&&new Date(c.starts_at)<end).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
- if(!rows.length){const p=document.createElement('div');p.className='class-empty';p.textContent=t('empty');list.append(p);return;}
- for(const c of rows){
-  const card=document.createElement('article');card.className='class-card';
-  const st=classStatus(c),roster=(c.roster||[]).map(x=>x.display_name).filter(Boolean);
-  const when=document.createElement('div');when.className='class-card-time';when.textContent=fmt(c.starts_at);
-  const main=document.createElement('div');main.className='class-card-main';
-  const h=document.createElement('h3');h.textContent=c.title;const sub=document.createElement('p');sub.textContent=c.subject+' · '+fmt(c.ends_at);
-  const people=document.createElement('p');people.className='class-card-people';people.textContent=roster.length?roster.join(', '):t('noRoster');
-  main.append(h,sub,people);
-  const meta=document.createElement('div');meta.className='class-card-meta';
-  const badge=document.createElement('span');badge.className='class-state '+st;badge.textContent=t(st);meta.append(badge);
-  if(c.is_demo){const demo=document.createElement('span');demo.className='class-demo-tag';demo.textContent='DEMO';meta.append(demo);}
-  const action=document.createElement('button');action.type='button';action.className='btn class-open';action.textContent=t('details');action.addEventListener('click',()=>showDetail(c.id));meta.append(action);
-  card.append(when,main,meta);list.append(card);
+ if(view==='day'){
+  if(!rows.length){const p=document.createElement('div');p.className='class-empty';p.textContent=t('empty');list.append(p);return;}
+  for(const c of rows)list.append(makeClassCard(c));
+  return;
  }
+ const grid=document.createElement('div');grid.className=view==='week'?'class-week-grid':'class-month-grid';
+ const headings=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+ for(let i=0;i<7;i++){const h=document.createElement('div');h.className='class-calendar-weekday';h.textContent=lang()==='el'?['Δευ','Τρί','Τετ','Πέμ','Παρ','Σάβ','Κυρ'][i]:headings[i];grid.append(h);}
+ if(view==='week'){
+  for(let i=0;i<7;i++){
+   const day=new Date(start);day.setDate(start.getDate()+i);day.setHours(12,0,0,0);
+   const cell=document.createElement('section');cell.className='class-calendar-cell';
+   const head=document.createElement('div');head.className='class-calendar-day-title';head.textContent=new Intl.DateTimeFormat(lang()==='el'?'el-GR':'en-GB',{timeZone:ZONE,weekday:'short',day:'numeric',month:'short'}).format(day);cell.append(head);
+   const key=dateKey(day);const dayRows=rows.filter(x=>dateKey(x.starts_at)===key);
+   if(!dayRows.length){const empty=document.createElement('span');empty.className='class-calendar-none';empty.textContent='—';cell.append(empty);}
+   else for(const item of dayRows)cell.append(makeCalendarEvent(item));
+   grid.append(cell);
+  }
+ }else{
+  const year=start.getFullYear(),month=start.getMonth(),days=new Date(year,month+1,0).getDate(),offset=(new Date(year,month,1).getDay()+6)%7;
+  for(let i=0;i<offset;i++){const blank=document.createElement('div');blank.className='class-calendar-cell blank';grid.append(blank);}
+  for(let dayNo=1;dayNo<=days;dayNo++){
+   const day=new Date(year,month,dayNo,12);const cell=document.createElement('section');cell.className='class-calendar-cell';
+   const head=document.createElement('div');head.className='class-calendar-day-title';head.textContent=String(dayNo);cell.append(head);
+   for(const item of rows.filter(x=>dateKey(x.starts_at)===dateKey(day)))cell.append(makeCalendarEvent(item));
+   grid.append(cell);
+  }
+ }
+ list.append(grid);
 }
 async function loadStudents(){
  const {data,error}=await db.from('profiles').select('id,display_name,role').eq('role','student').order('display_name');
