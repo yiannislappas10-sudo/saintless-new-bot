@@ -31,7 +31,8 @@ const words = {
     runChecks:'Run checks',passed:'Passed',failed:'Failed',notTested:'Not tested',
     migration:'Classroom database migration is required before classes can be used.',
     liveUnavailable:'Live audio/video is not configured yet. The class schedule and attendance are separate and remain available.',
-    rosterError:'Could not update the student list. Review the class and try again.'
+    rosterError:'Could not update the student list. Review the class and try again.',
+    fullScreen:'Full screen',exitFullScreen:'Exit full screen',shareScreen:'Share screen',stopSharing:'Stop sharing',screenShareUnavailable:'Screen sharing is not available in this browser.',screenShareDenied:'Screen sharing permission was denied.',raiseHand:'Raise hand',lowerHand:'Lower hand',handRaised:'Hand raised',reactions:'Reactions',muteParticipant:'Mute participant',unmuteParticipant:'Allow microphone',stopParticipantShare:'Stop screen share',removeParticipant:'Remove from meeting',removedFromMeeting:'The teacher removed you from this meeting.',mutedByTeacher:'Your microphone was muted by the teacher.',teacherMuted:'The teacher has muted your microphone.',reactionSent:'Reaction sent',meetingControls:'Meeting controls',sharing:'Sharing screen',noScreenShare:'No one is sharing a screen.',
   },
   el:{
     tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',speakerOutput:'Έλεγχος ήχου ηχείων',sfuCheck:'Σύνδεση με τον διακομιστή ζωντανής μετάδοσης',announcementCheck:'Πρόσβαση στη βάση ανακοινώσεων',messageCheck:'Πρόσβαση στη βάση μηνυμάτων',profileCheck:'Πρόσβαση στο προφίλ σας',speakerQuestion:'Ακούσατε καθαρά τον δοκιμαστικό ήχο;',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε ή έληξε. Ελέγξτε το δίκτυο, τις άδειες και τη συσκευή σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',tapUnmute:'Πατήστε στο βίντεο ενός συμμετέχοντα για ενεργοποίηση του ήχου.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
@@ -54,7 +55,8 @@ const words = {
     authCheck:'Συνεδρία σύνδεσης',dbCheck:'Πρόσβαση στη βάση μαθημάτων',roleCheck:'Δικαιώματα ιδιοκτήτη',demoCrudCheck:'Δημιουργία, ανάγνωση, επεξεργασία και διαγραφή demo',mediaCheck:'Άδειες κάμερας και μικροφώνου',
     runChecks:'Εκτέλεση ελέγχων',passed:'Επιτυχία',failed:'Αποτυχία',notTested:'Δεν ελέγχθηκε',
     migration:'Απαιτείται η μεταφορά της βάσης μαθημάτων.',liveUnavailable:'Δεν έχει ρυθμιστεί ακόμη η ζωντανή κλήση ήχου/εικόνας.',
-    rosterError:'Δεν ήταν δυνατή η ενημέρωση των μαθητών.'
+    rosterError:'Δεν ήταν δυνατή η ενημέρωση των μαθητών.',
+    fullScreen:'Πλήρης οθόνη',exitFullScreen:'Έξοδος πλήρους οθόνης',shareScreen:'Κοινή χρήση οθόνης',stopSharing:'Διακοπή κοινής χρήσης',screenShareUnavailable:'Η κοινή χρήση οθόνης δεν υποστηρίζεται σε αυτό το πρόγραμμα περιήγησης.',screenShareDenied:'Δεν δόθηκε άδεια για κοινή χρήση οθόνης.',raiseHand:'Σήκωμα χεριού',lowerHand:'Κατέβασμα χεριού',handRaised:'Σηκωμένο χέρι',reactions:'Αντιδράσεις',muteParticipant:'Σίγαση συμμετέχοντα',unmuteParticipant:'Ενεργοποίηση μικροφώνου',stopParticipantShare:'Διακοπή κοινής χρήσης οθόνης',removeParticipant:'Αφαίρεση από τη συνάντηση',removedFromMeeting:'Ο καθηγητής σας αφαίρεσε από τη συνάντηση.',mutedByTeacher:'Ο καθηγητής έκανε σίγαση στο μικρόφωνό σας.',teacherMuted:'Ο καθηγητής έχει κάνει σίγαση στο μικρόφωνό σας.',reactionSent:'Η αντίδραση στάλθηκε',meetingControls:'Έλεγχος συνάντησης',sharing:'Κοινή χρήση οθόνης',noScreenShare:'Κανείς δεν μοιράζεται την οθόνη του.'
   }
 };
 const t = key => words[lang()][key] || words.en[key] || key;
@@ -112,19 +114,40 @@ roomOverlay.className='class-room-overlay hidden';
 roomOverlay.id='class-room-overlay';
 roomOverlay.innerHTML=`
  <section class="class-room-shell" role="dialog" aria-modal="true" aria-labelledby="class-room-title">
-  <header class="class-room-header"><div><p class="class-room-eyebrow">ECHO · LIVE CLASSROOM</p><h2 id="class-room-title"></h2><p id="class-room-status" role="status"></p></div><button type="button" class="btn" id="class-room-close">${t('cancel')}</button></header>
+  <header class="class-room-header">
+   <div class="class-room-heading"><p class="class-room-eyebrow">ECHO · LIVE CLASSROOM</p><h2 id="class-room-title"></h2><p id="class-room-status" role="status"></p></div>
+   <div class="class-room-header-actions"><span class="class-room-live-indicator">LIVE</span><button type="button" class="btn" id="class-room-fullscreen">${t('fullScreen')}</button><button type="button" class="btn" id="class-room-close">${t('cancel')}</button></div>
+  </header>
   <div class="class-room-prejoin" id="class-room-prejoin">
    <div class="class-room-preview"><video id="class-preview-video" autoplay playsinline muted></video><div id="class-preview-placeholder"></div></div>
    <div class="class-room-controls"><button type="button" class="btn" id="class-mic-toggle">${t('microphone')}</button><button type="button" class="btn" id="class-camera-toggle">${t('camera')}</button><button type="button" class="btn" id="class-speaker-test">${t('speakerTest')}</button><button type="button" class="btn btn-dark" id="class-room-enter">${t('joinNow')}</button></div>
   </div>
   <div class="class-room-stage hidden" id="class-room-stage">
    <div class="class-room-videos" id="class-room-videos"></div>
-   <aside class="class-room-roster"><strong>${t('roster')}</strong><div id="class-room-roster-list"></div></aside>
+   <aside class="class-room-roster"><div class="class-room-roster-heading"><strong>${t('roster')}</strong><span id="class-room-participant-count">0</span></div><div id="class-room-roster-list"></div></aside>
   </div>
-  <footer class="class-room-footer hidden" id="class-room-footer"><span id="class-room-connection"></span><button type="button" class="btn" id="class-live-mic">${t('mute')}</button><button type="button" class="btn" id="class-live-camera">${t('cameraOff')}</button><button type="button" class="btn btn-dark" id="class-room-leave">${t('leave')}</button></footer>
+  <footer class="class-room-footer hidden" id="class-room-footer">
+   <span id="class-room-connection"></span>
+   <div class="class-room-primary-controls">
+    <button type="button" class="btn" id="class-live-mic">${t('mute')}</button>
+    <button type="button" class="btn" id="class-live-camera">${t('cameraOff')}</button>
+    <button type="button" class="btn" id="class-share-screen">${t('shareScreen')}</button>
+    <button type="button" class="btn" id="class-raise-hand">${t('raiseHand')}</button>
+   </div>
+   <div class="class-room-reaction-controls" aria-label="${t('reactions')}">
+    <button type="button" class="class-room-emoji" data-reaction="👍" aria-label="👍">👍</button>
+    <button type="button" class="class-room-emoji" data-reaction="❤️" aria-label="❤️">❤️</button>
+    <button type="button" class="class-room-emoji" data-reaction="😂" aria-label="😂">😂</button>
+    <button type="button" class="class-room-emoji" data-reaction="👏" aria-label="👏">👏</button>
+    <button type="button" class="class-room-emoji" data-reaction="🎉" aria-label="🎉">🎉</button>
+    <button type="button" class="class-room-emoji" data-reaction="👀" aria-label="👀">👀</button>
+   </div>
+   <button type="button" class="btn btn-danger" id="class-room-leave">${t('leave')}</button>
+  </footer>
  </section>`;
 document.body.append(roomOverlay);
 let activeRoom=null,callJoinPending=false,roomAudioContext=null;
+const ROOM_REACTIONS=new Set(['👍','❤️','😂','👏','🎉','👀']);
 function activate(name){document.querySelectorAll('.nav-tabs [data-tab]').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on));});document.querySelectorAll('#app-shell .panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));}
 nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab="classes"],[data-tab="testing"]');if(b)activate(b.dataset.tab);});
 document.getElementById('class-new').addEventListener('click',()=>openEditor());
@@ -141,6 +164,11 @@ document.getElementById('class-preview-end').addEventListener('click',()=>setPre
 document.getElementById('class-speaker-check').addEventListener('click',runSpeakerCheck);
 document.getElementById('class-live-mic').addEventListener('click',toggleRoomMic);
 document.getElementById('class-live-camera').addEventListener('click',toggleRoomCamera);
+document.getElementById('class-share-screen').addEventListener('click',()=>{void toggleScreenShare();});
+document.getElementById('class-raise-hand').addEventListener('click',()=>{void toggleRaiseHand();});
+document.getElementById('class-room-fullscreen').addEventListener('click',()=>{void toggleRoomFullscreen();});
+document.addEventListener('fullscreenchange',()=>{const button=document.getElementById('class-room-fullscreen');if(button)button.textContent=document.fullscreenElement?t('exitFullScreen'):t('fullScreen');});
+document.querySelectorAll('.class-room-emoji').forEach(button=>button.addEventListener('click',()=>{void sendRoomReaction(button.dataset.reaction);}));
 document.getElementById('class-room-close').addEventListener('click',()=>{if(activeRoom)void leaveRoom();else closePrejoin();});
 document.getElementById('class-room-enter').addEventListener('click',()=>{void enterRoom();});
 document.getElementById('class-room-leave').addEventListener('click',()=>{void leaveRoom();});
@@ -382,7 +410,7 @@ async function openPrejoin(classId){
  if(activeRoom||callJoinPending)return;
  const c=classes.find(item=>item.id===classId);if(!c||c.is_demo)return;
  callJoinPending=true;
- const room={classId,klass:c,previewStream:null,publisher:null,subscriptions:new Map(),poller:null,attendanceId:null,sessionId:null,inClass:false,syncing:false};
+ const room={classId,klass:c,previewStream:null,publisher:null,subscriptions:new Map(),poller:null,attendanceId:null,sessionId:null,inClass:false,syncing:false,channel:null,screenStream:null,screenSender:null,screenTransceiver:null,screenStopping:false,teacherMuted:false,localMicMuted:false,handRaised:false,controlsMap:new Map(),sharingUsers:new Set()};
  activeRoom=room;
  document.getElementById('class-room-title').textContent=c.title;
  document.getElementById('class-room-prejoin').classList.remove('hidden');
@@ -415,8 +443,17 @@ async function openPrejoin(classId){
  }finally{callJoinPending=false;}
 }
 function toggleRoomMic(){
- const track=activeRoom?.previewStream?.getAudioTracks()[0];if(!track)return;
- track.enabled=!track.enabled;document.getElementById('class-mic-toggle').textContent=track.enabled?t('mute'):t('unmute');document.getElementById('class-live-mic').textContent=track.enabled?t('mute'):t('unmute');
+ const room=activeRoom,track=room?.previewStream?.getAudioTracks()[0];if(!track)return;
+ if(room.teacherMuted){setRoomStatus(t('teacherMuted'),true);return;}
+ room.localMicMuted=!room.localMicMuted;track.enabled=!room.localMicMuted;
+ const label=track.enabled?t('mute'):t('unmute');document.getElementById('class-mic-toggle').textContent=label;document.getElementById('class-live-mic').textContent=label;
+}
+function setTeacherMuted(muted){
+ const room=activeRoom;if(!room)return;room.teacherMuted=!!muted;
+ const track=room.previewStream?.getAudioTracks()[0];if(track)track.enabled=!room.teacherMuted&&!room.localMicMuted;
+ const button=document.getElementById('class-live-mic');if(button){button.textContent=room.teacherMuted?t('mutedByTeacher'):(room.localMicMuted?t('unmute'):t('mute'));button.disabled=room.teacherMuted;}
+ if(room.teacherMuted)setRoomStatus(t('mutedByTeacher'),true);
+ else setRoomStatus(t('mediaConnected'));
 }
 function toggleRoomCamera(){
  const track=activeRoom?.previewStream?.getVideoTracks()[0];if(!track)return;
@@ -434,40 +471,78 @@ async function testRoomSpeaker(){
 }
 function addRoomTile(userId,name,local=false){
  const grid=document.getElementById('class-room-videos');
- let tile=local?document.getElementById('class-room-local-tile'):[...grid.querySelectorAll('.class-room-tile')].find(x=>x.dataset.roomUser===userId);
+ let tile=local?document.getElementById('class-room-local-tile'):[...grid.querySelectorAll('.class-room-camera-tile')].find(x=>x.dataset.roomUser===userId);
  if(tile)return tile;
- tile=document.createElement('article');tile.className='class-room-tile';
+ tile=document.createElement('article');tile.className='class-room-tile class-room-camera-tile';
  if(local)tile.id='class-room-local-tile';else tile.dataset.roomUser=userId;
  const video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=!!local;
  const label=document.createElement('div');label.className='class-room-tile-label';label.textContent=name;
  tile.append(video,label);grid.append(tile);return tile;
 }
+function addRoomScreenTile(userId,name,local=false){
+ const grid=document.getElementById('class-room-videos');
+ let tile=local?document.getElementById('class-room-local-screen-tile'):[...grid.querySelectorAll('.class-room-screen-tile')].find(x=>x.dataset.screenUser===userId);
+ if(tile)return tile;
+ tile=document.createElement('article');tile.className='class-room-tile class-room-screen-tile';
+ if(local)tile.id='class-room-local-screen-tile';else tile.dataset.screenUser=userId;
+ const video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=!!local;
+ const label=document.createElement('div');label.className='class-room-tile-label';label.textContent=name+' · '+t('sharing');
+ tile.append(video,label);grid.prepend(tile);return tile;
+}
+function addRosterAction(row,label,callback,danger=false){
+ const button=document.createElement('button');button.type='button';button.className='class-room-person-action'+(danger?' danger':'');button.textContent=label;
+ button.addEventListener('click',callback);row.append(button);return button;
+}
 function renderRoomRoster(room,participants){
  const area=document.getElementById('class-room-roster-list');area.replaceChildren();
  const active=new Map(participants.filter(p=>p.status==='active'&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<90000).map(p=>[p.user_id,p]));
- const assigned=(room.klass.roster||[]).filter(p=>p.id);const seen=new Set();
- for(const person of assigned){
-  const row=document.createElement('div');row.className='class-room-person';
-  const name=document.createElement('span');name.textContent=person.display_name;
-  const state=document.createElement('small');state.textContent=active.has(person.id)?t('joined'):t('notJoined');
-  row.append(name,state);area.append(row);seen.add(person.id);
- }
- for(const person of participants.filter(p=>p.status==='active'&&!seen.has(p.user_id))){
-  const row=document.createElement('div');row.className='class-room-person';
-  const name=document.createElement('span');name.textContent=person.display_name;
-  const state=document.createElement('small');state.textContent=t('joined');row.append(name,state);area.append(row);
- }
+ const assigned=(room.klass.roster||[]).filter(p=>p.id);const seen=new Set();const teacher=professorMode();
+ document.getElementById('class-room-participant-count').textContent=String(active.size);
+ const renderPerson=(id,displayName,person)=>{
+  const row=document.createElement('div');row.className='class-room-person';row.dataset.userId=id;
+  const details=document.createElement('div');details.className='class-room-person-details';
+  const name=document.createElement('span');name.textContent=displayName||'Participant';
+  const state=document.createElement('small');state.textContent=person?.status==='active'&&active.has(id)?t('joined'):t('notJoined');
+  details.append(name,state);
+  if(person?.hand_raised){const hand=document.createElement('span');hand.className='class-room-hand-badge';hand.textContent='✋ '+t('handRaised');details.append(hand);}
+  if(room.sharingUsers.has(id)){const sharing=document.createElement('span');sharing.className='class-room-sharing-badge';sharing.textContent='▣ '+t('sharing');details.append(sharing);}
+  row.append(details);
+  if(teacher&&id!==user.id&&active.has(id)){
+   const control=room.controlsMap.get(id)||{};
+   addRosterAction(row,control.teacher_muted?t('unmuteParticipant'):t('muteParticipant'),()=>{void moderateParticipant(id,control.teacher_muted?'unmute':'mute');});
+   if(room.sharingUsers.has(id))addRosterAction(row,t('stopParticipantShare'),()=>{void moderateParticipant(id,'stop-share');},true);
+   if(person?.hand_raised)addRosterAction(row,t('lowerHand'),()=>{void moderateParticipant(id,'lower-hand');});
+   addRosterAction(row,t('removeParticipant'),()=>{void moderateParticipant(id,'remove');},true);
+  }
+  area.append(row);
+ };
+ for(const person of assigned){const live=participants.find(p=>p.user_id===person.id);renderPerson(person.id,live?.display_name||person.display_name,live);seen.add(person.id);}
+ for(const person of participants.filter(p=>!seen.has(p.user_id)&&p.status!=='left'))renderPerson(person.user_id,person.display_name,person);
 }
-async function subscribeToParticipant(room,person){
+async function subscribeToParticipant(room,person,publications){
  if(room.subscriptions.has(person.user_id)||person.status!=='active')return;
+ const rows=(publications||[]).filter(p=>p.user_id===person.user_id&&['audio','video','screen'].includes(p.track_name));
+ if(!rows.length)return;
+ const key=rows.map(p=>p.track_name+'@'+p.session_id).sort().join('|');
+ const tracks=rows.map(p=>({location:'remote',sessionId:p.session_id,trackName:p.track_name}));
  const data=await callApi('/api/classroom/subscribe',{classId:room.classId,publisherId:person.user_id});
  const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});
- const tile=addRoomTile(person.user_id,person.display_name||'Participant'),video=tile.querySelector('video'),stream=new MediaStream();
+ const name=person.display_name||'Participant';
+ const tile=addRoomTile(person.user_id,name),video=tile.querySelector('video'),cameraStream=new MediaStream();
+ let screenTile=null,screenVideo=null,screenStream=new MediaStream();
+ const trackMeta=new Map((data.tracks||[]).map(item=>[String(item.mid),item.trackName]));
  pc.ontrack=event=>{
-  const tracks=event.streams?.[0]?.getTracks()||[event.track];
-  for(const track of tracks)if(!stream.getTracks().some(x=>x.id===track.id))stream.addTrack(track);
-  video.srcObject=stream;void video.play().catch(()=>{setRoomStatus(t('tapUnmute'));});
-  video.addEventListener('click',()=>{void video.play().catch(()=>{});});
+  const trackName=trackMeta.get(String(event.transceiver?.mid))||(event.track.kind==='audio'?'audio':(rows.length===1?rows[0].track_name:'video'));
+  if(trackName==='screen'){
+   if(!screenTile){screenTile=addRoomScreenTile(person.user_id,name);screenVideo=screenTile.querySelector('video');}
+   if(!screenStream.getTracks().some(x=>x.id===event.track.id))screenStream.addTrack(event.track);
+   screenVideo.srcObject=screenStream;void screenVideo.play().catch(()=>{});
+   event.track.addEventListener('ended',()=>{screenTile?.remove();screenTile=null;screenVideo=null;screenStream=new MediaStream();},{once:true});
+  }else{
+   if(!cameraStream.getTracks().some(x=>x.id===event.track.id))cameraStream.addTrack(event.track);
+   video.srcObject=cameraStream;void video.play().catch(()=>{setRoomStatus(t('tapUnmute'));});
+   video.addEventListener('click',()=>{void video.play().catch(()=>{});});
+  }
  };
  pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed')setRoomStatus(t('mediaDisconnected'),true);};
  try{
@@ -475,26 +550,152 @@ async function subscribeToParticipant(room,person){
   const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await waitForIceGathering(pc);
   await callApi('/api/classroom/renegotiate',{classId:room.classId,sessionId:data.sessionId,sessionDescription:pc.localDescription});
   await waitForPeerConnection(pc,{requireTrack:true,timeout:18000});
-  room.subscriptions.set(person.user_id,{pc,sessionId:data.sessionId,tile});
- }catch(error){pc.close();tile.remove();throw error;}
+  room.subscriptions.set(person.user_id,{pc,sessionId:data.sessionId,tile,screenTile,key});
+ }catch(error){pc.close();tile.remove();screenTile?.remove();throw error;}
+}
+async function subscribeToClassRoom(room){
+ const {data:{session},error}=await db.auth.getSession();if(error||!session?.access_token)throw new Error(t('mediaDenied'));
+ await db.realtime.setAuth(session.access_token);
+ return await new Promise((resolve,reject)=>{
+  const channel=db.channel('echo-class:'+room.classId,{config:{private:true,broadcast:{ack:true}}});
+  channel.on('broadcast',{event:'class-event'},({payload})=>{if(payload&&payload.from!==user.id)void receiveRoomEvent(room,payload);});
+  channel.subscribe((state,error)=>{
+   if(state==='SUBSCRIBED'){room.channel=channel;resolve(channel);}
+   else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(state)){void db.removeChannel(channel);reject(error||new Error(t('mediaDisconnected')));}
+  });
+ });
+}
+async function broadcastRoomEvent(payload){
+ const room=activeRoom;if(!room?.channel)return false;
+ const result=await room.channel.send({type:'broadcast',event:'class-event',payload:{...payload,from:user.id}});
+ return result==='ok';
+}
+function showRoomReaction(emoji,name){
+ const node=document.createElement('div');node.className='class-room-reaction';node.textContent=emoji+' '+(name||'');
+ document.querySelector('.class-room-shell')?.append(node);
+ window.setTimeout(()=>node.remove(),2600);
+}
+async function receiveRoomEvent(room,payload){
+ if(activeRoom!==room)return;
+ if(payload.type==='reaction'){showRoomReaction(payload.emoji,payload.name);return;}
+ if(payload.type==='moderation'&&payload.targetUserId===user.id){
+  if(payload.action==='mute')setTeacherMuted(true);
+  if(payload.action==='unmute')setTeacherMuted(false);
+  if(payload.action==='remove'){setRoomStatus(t('removedFromMeeting'),true);await leaveRoom({automatic:true});return;}
+  if(payload.action==='stop-share')await stopScreenShare(room,{serverAlreadyStopped:true,remoteEnded:true});
+ }
+ if(payload.type==='hand')setRoomStatus(payload.raised?t('handRaised'):t('mediaConnected'));
+}
+async function toggleRaiseHand(){
+ const room=activeRoom;if(!room?.inClass)return;
+ const next=!room.handRaised;
+ const {error}=await db.from('class_room_participants').update({hand_raised:next,hand_raised_at:next?new Date().toISOString():null}).eq('class_id',room.classId).eq('user_id',user.id);
+ if(error){setRoomStatus(error.message,true);return;}
+ room.handRaised=next;document.getElementById('class-raise-hand').textContent=next?t('lowerHand'):t('raiseHand');
+ try{await broadcastRoomEvent({type:'hand',raised:next,targetUserId:user.id});}catch{}
+}
+async function sendRoomReaction(emoji){
+ const room=activeRoom;if(!room?.inClass||!ROOM_REACTIONS.has(emoji))return;
+ const name=profile?.display_name||'Participant';showRoomReaction(emoji,name);
+ try{await broadcastRoomEvent({type:'reaction',emoji,name});}catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
+}
+async function moderateParticipant(targetUserId,action){
+ const room=activeRoom;if(!room?.inClass||!professorMode())return;
+ try{
+  const result=action==='stop-share'
+   ? await callApi('/api/classroom/stop-share',{classId:room.classId,targetUserId})
+   : await callApi('/api/classroom/moderate',{classId:room.classId,targetUserId,action});
+  if(action==='mute'||action==='unmute'||action==='remove'||action==='stop-share'){
+   await broadcastRoomEvent({type:'moderation',action,targetUserId});
+  }
+  if(action==='lower-hand')setRoomStatus(t('lowerHand'));
+  else setRoomStatus(action==='remove'?t('removeParticipant'):action==='stop-share'?t('stopParticipantShare'):action==='mute'?t('muteParticipant'):t('unmuteParticipant'));
+  await syncClassroom(room);
+  return result;
+ }catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
+}
+async function toggleScreenShare(){
+ const room=activeRoom;if(!room?.inClass||room.screenStream)return room?.screenStream?stopScreenShare(room):undefined;
+ if(!navigator.mediaDevices?.getDisplayMedia){setRoomStatus(t('screenShareUnavailable'),true);return;}
+ try{
+  const display=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:24,max:30}},audio:false});
+  const track=display.getVideoTracks()[0];if(!track)throw new Error(t('screenShareUnavailable'));
+  const transceiver=room.publisher.addTransceiver(track,{direction:'sendonly'});
+  const offer=await room.publisher.createOffer();await room.publisher.setLocalDescription(offer);await waitForIceGathering(room.publisher);
+  const result=await callApi('/api/classroom/publish',{classId:room.classId,sessionId:room.sessionId,sessionDescription:room.publisher.localDescription,tracks:[{location:'local',mid:transceiver.mid,trackName:'screen'}]});
+  if(result.sessionDescription?.type!=='answer')throw new Error('The media service did not accept screen sharing.');
+  await room.publisher.setRemoteDescription(new RTCSessionDescription(result.sessionDescription));
+  room.screenStream=display;room.screenTransceiver=transceiver;room.screenSender=transceiver.sender;
+  const local=addRoomScreenTile(user.id,profile?.display_name||'You',true),video=local.querySelector('video');video.srcObject=display;void video.play().catch(()=>{});
+  document.getElementById('class-share-screen').textContent=t('stopSharing');
+  track.addEventListener('ended',()=>{if(activeRoom===room)void stopScreenShare(room,{remoteEnded:true});},{once:true});
+  setRoomStatus(t('sharing'));
+ }catch(error){
+  setRoomStatus(error?.name==='NotAllowedError'?t('screenShareDenied'):(error.message||t('screenShareDenied')),true);
+ }
+}
+async function stopScreenShare(room,{remoteEnded=false,serverAlreadyStopped=false}={}){
+ if(!room||room.screenStopping)return;room.screenStopping=true;
+ try{
+  if(room.screenStream&&!serverAlreadyStopped){
+   try{await callApi('/api/classroom/stop-share',{classId:room.classId,targetUserId:user.id});}catch(error){if(!remoteEnded)throw error;}
+  }
+  room.screenStream?.getTracks().forEach(track=>{if(track.readyState==='live')track.stop();});
+  try{await room.screenSender?.replaceTrack(null);}catch{}
+  if(room.screenTransceiver)room.screenTransceiver.direction='inactive';
+  room.screenStream=null;room.screenSender=null;room.screenTransceiver=null;
+  document.getElementById('class-room-local-screen-tile')?.remove();
+  document.getElementById('class-share-screen').textContent=t('shareScreen');
+  if(activeRoom===room&&!remoteEnded)setRoomStatus(t('mediaConnected'));
+ }catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
+ finally{room.screenStopping=false;}
+}
+async function toggleRoomFullscreen(){
+ const shell=document.querySelector('.class-room-shell');if(!shell)return;
+ try{
+  if(document.fullscreenElement){await document.exitFullscreen();}
+  else if(shell.requestFullscreen){await shell.requestFullscreen();}
+  else if(shell.webkitRequestFullscreen){shell.webkitRequestFullscreen();}
+ }catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
 }
 async function syncClassroom(room){
  if(activeRoom!==room||room.syncing)return;room.syncing=true;
  try{
   const {data:live,error:liveError}=await db.from('class_live_rooms').select('status').eq('class_id',room.classId).eq('status','live').limit(1);
   if(liveError)throw liveError;if(!live?.length){setRoomStatus(t('mediaEnded'));await leaveRoom({automatic:true});return;}
-  const {data:participants,error}=await db.from('class_room_participants').select('user_id,display_name,session_id,status,joined_at,last_seen_at').eq('class_id',room.classId);
-  if(error)throw error;
-  const active=(participants||[]).filter(p=>p.status==='active'&&p.user_id!==user.id&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<90000);
-  renderRoomRoster(room,participants||[]);
-  for(const person of active)if(!room.subscriptions.has(person.user_id)){
-   try{await subscribeToParticipant(room,person);}catch(e){setRoomStatus(e.message||t('mediaConnecting'),true);}
+  const [participantResult,publicationResult,controlResult]=await Promise.all([
+   db.from('class_room_participants').select('user_id,display_name,session_id,status,joined_at,last_seen_at,hand_raised,hand_raised_at').eq('class_id',room.classId),
+   db.from('class_room_publications').select('user_id,session_id,track_name').eq('class_id',room.classId),
+   db.from('class_room_controls').select('user_id,teacher_muted,removed').eq('class_id',room.classId)
+  ]);
+  if(participantResult.error)throw participantResult.error;if(publicationResult.error)throw publicationResult.error;if(controlResult.error)throw controlResult.error;
+  const participants=participantResult.data||[],publications=publicationResult.data||[],controls=controlResult.data||[];
+  room.controlsMap=new Map(controls.map(row=>[row.user_id,row]));
+  room.sharingUsers=new Set(publications.filter(row=>row.track_name==='screen').map(row=>row.user_id));
+  const ownControl=room.controlsMap.get(user.id);
+  if(ownControl?.removed){setRoomStatus(t('removedFromMeeting'),true);await leaveRoom({automatic:true});return;}
+  if(ownControl?.teacher_muted!==room.teacherMuted)setTeacherMuted(!!ownControl?.teacher_muted);
+  const self=participants.find(p=>p.user_id===user.id);
+  if(self?.status==='left'){await leaveRoom({automatic:true});return;}
+  room.handRaised=!!self?.hand_raised;document.getElementById('class-raise-hand').textContent=room.handRaised?t('lowerHand'):t('raiseHand');
+  renderRoomRoster(room,participants);
+  const active=participants.filter(p=>p.status==='active'&&p.user_id!==user.id&&Date.now()-new Date(p.last_seen_at||p.joined_at).getTime()<90000);
+  for(const person of active){
+   const rows=publications.filter(p=>p.user_id===person.user_id);
+   const signature=rows.map(p=>p.track_name+'@'+p.session_id).sort().join('|');
+   const existing=room.subscriptions.get(person.user_id);
+   if(existing&&existing.key!==signature){
+    existing.pc.close();existing.tile.remove();existing.screenTile?.remove();room.subscriptions.delete(person.user_id);
+    try{await callApi('/api/classroom/unsubscribe',{classId:room.classId,publisherId:person.user_id});}catch{}
+   }
+   if(!room.subscriptions.has(person.user_id)&&rows.length){
+    try{await subscribeToParticipant(room,person,rows);}catch(error){setRoomStatus(error.message||t('mediaConnecting'),true);}
+   }
   }
   const ids=new Set(active.map(p=>p.user_id));
   for(const [id,sub] of room.subscriptions)if(!ids.has(id)){
-   sub.pc.close();sub.tile.remove();room.subscriptions.delete(id);
-   try{await callApi('/api/classroom/unsubscribe',{classId:room.classId,publisherId:id});}
-   catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
+   sub.pc.close();sub.tile.remove();sub.screenTile?.remove();room.subscriptions.delete(id);
+   try{await callApi('/api/classroom/unsubscribe',{classId:room.classId,publisherId:id});}catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
   }
  }catch(error){if(activeRoom===room)setRoomStatus(error.message||t('mediaDisconnected'),true);}
  finally{room.syncing=false;}
@@ -504,7 +705,8 @@ async function enterRoom(){
  const button=document.getElementById('class-room-enter');button.disabled=true;setRoomStatus(t('mediaConnecting'));
  try{
   const session=await callApi('/api/classroom/session',{classId:room.classId});
-  room.sessionId=session.sessionId;room.attendanceId=session.attendanceId;
+  room.sessionId=session.sessionId;room.attendanceId=session.attendanceId;room.teacherMuted=!!session.teacherMuted;
+  const microphone=room.previewStream.getAudioTracks()[0];if(microphone)microphone.enabled=!room.teacherMuted&&!room.localMicMuted;
   const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}]});room.publisher=pc;
   const transceivers=room.previewStream.getTracks().map(track=>({track,transceiver:pc.addTransceiver(track,{direction:'sendonly'})}));
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);await waitForIceGathering(pc);
@@ -521,7 +723,8 @@ async function enterRoom(){
   localVideo.srcObject=room.previewStream;void localVideo.play().catch(()=>{});
   await waitForPeerConnection(pc,{timeout:18000});
   setRoomStatus(t('mediaConnected'));
-  document.getElementById('class-room-connection').textContent=t('mediaConnected');document.getElementById('class-live-mic').textContent=t('mute');document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length;
+  document.getElementById('class-room-connection').textContent=t('mediaConnected');document.getElementById('class-live-mic').textContent=room.teacherMuted?t('mutedByTeacher'):(room.localMicMuted?t('unmute'):t('mute'));document.getElementById('class-live-mic').disabled=room.teacherMuted;document.getElementById('class-live-camera').textContent=room.previewStream.getVideoTracks().length?t('cameraOff'):t('camera');document.getElementById('class-live-camera').disabled=!room.previewStream.getVideoTracks().length;
+  try{await subscribeToClassRoom(room);}catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
   room.poller=setInterval(()=>{void syncClassroom(room);},2500);
   room.heartbeat=setInterval(()=>{void db.from('class_room_participants').update({last_seen_at:new Date().toISOString()}).eq('class_id',room.classId).eq('user_id',user.id);},12000);
   await syncClassroom(room);
@@ -540,8 +743,10 @@ async function enterRoom(){
 async function leaveRoom({automatic=false}={}){
  const room=activeRoom;if(!room)return;activeRoom=null;callJoinPending=false;
  if(room.poller)clearInterval(room.poller);if(room.heartbeat)clearInterval(room.heartbeat);
+ if(room.channel){void db.removeChannel(room.channel);room.channel=null;}
  if(room.publisher){room.publisher.close();room.publisher=null;}
  for(const sub of room.subscriptions.values())sub.pc.close();room.subscriptions.clear();
+ room.screenStream?.getTracks().forEach(track=>track.stop());
  room.previewStream?.getTracks().forEach(track=>track.stop());
  if(room.sessionId)try{await callApi('/api/classroom/leave',{classId:room.classId,sessionId:room.sessionId,attendanceId:room.attendanceId});}catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
  document.getElementById('class-preview-video').srcObject=null;document.getElementById('class-room-videos').replaceChildren();
@@ -760,6 +965,9 @@ document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  document.getElementById('class-room-close').textContent=t('cancel');
  document.getElementById('class-room-enter').textContent=t('joinNow');
  document.getElementById('class-room-leave').textContent=t('leave');
+ document.getElementById('class-room-fullscreen').textContent=document.fullscreenElement?t('exitFullScreen'):t('fullScreen');
+ document.getElementById('class-share-screen').textContent=activeRoom?.screenStream?t('stopSharing'):t('shareScreen');
+ document.getElementById('class-raise-hand').textContent=activeRoom?.handRaised?t('lowerHand'):t('raiseHand');
  document.getElementById('class-mic-toggle').textContent=t('mute');
  document.getElementById('class-camera-toggle').textContent=t('cameraOff');
  document.getElementById('class-speaker-test').textContent=t('speakerTest');
