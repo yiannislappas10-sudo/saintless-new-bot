@@ -682,3 +682,71 @@ with check (
   and exists (select 1 from public.announcements a where a.id = announcement_id)
 );
 grant select, insert on public.announcement_reads to authenticated;
+
+create or replace function public.save_echo_announcement(
+  announcement_title text,
+  announcement_body text,
+  announcement_pinned boolean,
+  announcement_audience text,
+  recipient_ids uuid[],
+  target_announcement_id uuid default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+declare
+  saved_id uuid;
+  recipients uuid[] := coalesce(recipient_ids, array[]::uuid[]);
+begin
+  if auth.uid() is null or not public.is_echo_professor() then
+    raise exception 'Only the professor can manage announcements.';
+  end if;
+  if char_length(trim(coalesce(announcement_title,''))) not between 1 and 120 then
+    raise exception 'Announcement title must contain 1 to 120 characters.';
+  end if;
+  if char_length(trim(coalesce(announcement_body,''))) not between 1 and 6000 then
+    raise exception 'Announcement message must contain 1 to 6000 characters.';
+  end if;
+  if announcement_audience not in ('everyone','selected') then
+    raise exception 'Choose a valid announcement audience.';
+  end if;
+  if announcement_audience = 'selected' and cardinality(recipients) = 0 then
+    raise exception 'Select at least one student.';
+  end if;
+  if exists (
+    select 1
+    from unnest(recipients) as chosen(student_id)
+    left join public.profiles p on p.id = chosen.student_id
+    where p.id is null or p.role <> 'student'
+  ) then
+    raise exception 'Every selected recipient must be a student account.';
+  end if;
+
+  if target_announcement_id is null then
+    insert into public.announcements(title,body,published,created_by,pinned,audience)
+    values(trim(announcement_title),trim(announcement_body),true,auth.uid(),coalesce(announcement_pinned,false),announcement_audience)
+    returning id into saved_id;
+  else
+    update public.announcements
+    set title=trim(announcement_title),
+        body=trim(announcement_body),
+        pinned=coalesce(announcement_pinned,false),
+        audience=announcement_audience
+    where id=target_announcement_id
+    returning id into saved_id;
+    if not found then raise exception 'Announcement not found.'; end if;
+    delete from public.announcement_recipients ar where ar.announcement_id=saved_id;
+  end if;
+
+  if announcement_audience='selected' then
+    insert into public.announcement_recipients(announcement_id,student_id)
+    select saved_id, chosen.student_id
+    from (select distinct unnest(recipients) as student_id) chosen;
+  end if;
+  return saved_id;
+end;
+$$;
+revoke all on function public.save_echo_announcement(text,text,boolean,text,uuid[],uuid) from public;
+grant execute on function public.save_echo_announcement(text,text,boolean,text,uuid[],uuid) to authenticated;
