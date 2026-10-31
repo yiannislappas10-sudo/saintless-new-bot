@@ -26,8 +26,11 @@ export async function onRequestPost({ request, env }) {
     if (typeof sessionId !== "string" || !sessionId) throw new ClassroomError("The media service did not create a receiving session.", 502);
     const result = await sfuRequest(ctx,
       "/sessions/"+encodeURIComponent(sessionId)+"/tracks/new", "POST", {tracks});
-    if (!result?.sessionDescription || result.sessionDescription.type !== "offer") {
-      throw new ClassroomError("The media service did not return a receiving offer.", 502);
+    const receivedTracks=result?.tracks||[];
+    if (!result?.sessionDescription || result.sessionDescription.type !== "offer" ||
+        !receivedTracks.length || receivedTracks.every(track=>track?.errorCode||track?.errorDescription)) {
+      throw new ClassroomError(receivedTracks.find(track=>track?.errorDescription)?.errorDescription||
+        "The media service did not return a usable receiving offer.", 502);
     }
     await dbRequest(ctx,
       "class_room_subscriptions?on_conflict=class_id,subscriber_id,publisher_id",
