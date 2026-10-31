@@ -32,7 +32,7 @@ const words = {
     migration:'Classroom database migration is required before classes can be used.',
     liveUnavailable:'Live audio/video is not configured yet. The class schedule and attendance are separate and remain available.',
     rosterError:'Could not update the student list. Review the class and try again.',
-    fullScreen:'Full screen',exitFullScreen:'Exit full screen',shareScreen:'Share screen',stopSharing:'Stop sharing',screenShareUnavailable:'Screen sharing is not available in this browser.',screenShareDenied:'Screen sharing permission was denied.',raiseHand:'Raise hand',lowerHand:'Lower hand',handRaised:'Hand raised',reactions:'Reactions',muteParticipant:'Mute participant',unmuteParticipant:'Allow microphone',stopParticipantShare:'Stop screen share',removeParticipant:'Remove from meeting',removedFromMeeting:'The teacher removed you from this meeting.',mutedByTeacher:'Your microphone was muted by the teacher.',teacherMuted:'The teacher has muted your microphone.',reactionSent:'Reaction sent',meetingControls:'Meeting controls',sharing:'Sharing screen',noScreenShare:'No one is sharing a screen.',
+    fullScreen:'Full screen',exitFullScreen:'Exit full screen',shareScreen:'Share screen',stopSharing:'Stop sharing',screenShareUnavailable:'Screen sharing is not available in this browser.',screenShareDenied:'Screen sharing permission was denied.',raiseHand:'Raise hand',lowerHand:'Lower hand',handRaised:'Hand raised',reactions:'Reactions',muteParticipant:'Mute participant',unmuteParticipant:'Allow microphone',stopParticipantShare:'Stop screen share',removeParticipant:'Remove from meeting',readmit:'Restore meeting access',removedFromMeeting:'The teacher removed you from this meeting.',mutedByTeacher:'Your microphone was muted by the teacher.',teacherMuted:'The teacher has muted your microphone.',reactionSent:'Reaction sent',meetingControls:'Meeting controls',sharing:'Sharing screen',noScreenShare:'No one is sharing a screen.',
   },
   el:{
     tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',speakerOutput:'Έλεγχος ήχου ηχείων',sfuCheck:'Σύνδεση με τον διακομιστή ζωντανής μετάδοσης',announcementCheck:'Πρόσβαση στη βάση ανακοινώσεων',messageCheck:'Πρόσβαση στη βάση μηνυμάτων',profileCheck:'Πρόσβαση στο προφίλ σας',speakerQuestion:'Ακούσατε καθαρά τον δοκιμαστικό ήχο;',startClass:'Έναρξη μαθήματος',endClass:'Τερματισμός μαθήματος',waitingProfessor:'Αναμονή καθηγητή',prejoinTitle:'Προετοιμασία συμμετοχής',joinNow:'Είσοδος στην τάξη',leave:'Αποχώρηση από την τάξη',microphone:'Μικρόφωνο',camera:'Κάμερα',speakerTest:'Έλεγχος ηχείων',cameraUnavailable:'Η κάμερα δεν είναι διαθέσιμη — συμμετοχή μόνο με ήχο.',mediaDenied:'Δεν δόθηκε άδεια για μικρόφωνο ή κάμερα.',mediaReady:'Οι συσκευές είναι έτοιμες.',mediaConnecting:'Σύνδεση με την τάξη…',mediaConnected:'Συνδεθήκατε στη ζωντανή τάξη.',mediaDisconnected:'Η σύνδεση χάθηκε ή έληξε. Ελέγξτε το δίκτυο, τις άδειες και τη συσκευή σας.',mediaEnded:'Ο καθηγητής τερμάτισε το μάθημα.',tapUnmute:'Πατήστε στο βίντεο ενός συμμετέχοντα για ενεργοποίηση του ήχου.',joined:'Συνδέθηκε',notJoined:'Δεν συνδέθηκε',mute:'Σίγαση',unmute:'Ενεργοποίηση μικροφώνου',cameraOff:'Κάμερα κλειστή',cameraOn:'Κάμερα ανοιχτή',materials:'Εκπαιδευτικό υλικό',
@@ -56,7 +56,7 @@ const words = {
     runChecks:'Εκτέλεση ελέγχων',passed:'Επιτυχία',failed:'Αποτυχία',notTested:'Δεν ελέγχθηκε',
     migration:'Απαιτείται η μεταφορά της βάσης μαθημάτων.',liveUnavailable:'Δεν έχει ρυθμιστεί ακόμη η ζωντανή κλήση ήχου/εικόνας.',
     rosterError:'Δεν ήταν δυνατή η ενημέρωση των μαθητών.',
-    fullScreen:'Πλήρης οθόνη',exitFullScreen:'Έξοδος πλήρους οθόνης',shareScreen:'Κοινή χρήση οθόνης',stopSharing:'Διακοπή κοινής χρήσης',screenShareUnavailable:'Η κοινή χρήση οθόνης δεν υποστηρίζεται σε αυτό το πρόγραμμα περιήγησης.',screenShareDenied:'Δεν δόθηκε άδεια για κοινή χρήση οθόνης.',raiseHand:'Σήκωμα χεριού',lowerHand:'Κατέβασμα χεριού',handRaised:'Σηκωμένο χέρι',reactions:'Αντιδράσεις',muteParticipant:'Σίγαση συμμετέχοντα',unmuteParticipant:'Ενεργοποίηση μικροφώνου',stopParticipantShare:'Διακοπή κοινής χρήσης οθόνης',removeParticipant:'Αφαίρεση από τη συνάντηση',removedFromMeeting:'Ο καθηγητής σας αφαίρεσε από τη συνάντηση.',mutedByTeacher:'Ο καθηγητής έκανε σίγαση στο μικρόφωνό σας.',teacherMuted:'Ο καθηγητής έχει κάνει σίγαση στο μικρόφωνό σας.',reactionSent:'Η αντίδραση στάλθηκε',meetingControls:'Έλεγχος συνάντησης',sharing:'Κοινή χρήση οθόνης',noScreenShare:'Κανείς δεν μοιράζεται την οθόνη του.'
+    fullScreen:'Πλήρης οθόνη',exitFullScreen:'Έξοδος πλήρους οθόνης',shareScreen:'Κοινή χρήση οθόνης',stopSharing:'Διακοπή κοινής χρήσης',screenShareUnavailable:'Η κοινή χρήση οθόνης δεν υποστηρίζεται σε αυτό το πρόγραμμα περιήγησης.',screenShareDenied:'Δεν δόθηκε άδεια για κοινή χρήση οθόνης.',raiseHand:'Σήκωμα χεριού',lowerHand:'Κατέβασμα χεριού',handRaised:'Σηκωμένο χέρι',reactions:'Αντιδράσεις',muteParticipant:'Σίγαση συμμετέχοντα',unmuteParticipant:'Ενεργοποίηση μικροφώνου',stopParticipantShare:'Διακοπή κοινής χρήσης οθόνης',removeParticipant:'Αφαίρεση από τη συνάντηση',readmit:'Επαναφορά πρόσβασης στη συνάντηση',removedFromMeeting:'Ο καθηγητής σας αφαίρεσε από τη συνάντηση.',mutedByTeacher:'Ο καθηγητής έκανε σίγαση στο μικρόφωνό σας.',teacherMuted:'Ο καθηγητής έχει κάνει σίγαση στο μικρόφωνό σας.',reactionSent:'Η αντίδραση στάλθηκε',meetingControls:'Έλεγχος συνάντησης',sharing:'Κοινή χρήση οθόνης',noScreenShare:'Κανείς δεν μοιράζεται την οθόνη του.'
   }
 };
 const t = key => words[lang()][key] || words.en[key] || key;
@@ -513,12 +513,16 @@ function renderRoomRoster(room,participants){
   if(person?.hand_raised){const hand=document.createElement('span');hand.className='class-room-hand-badge';hand.textContent='✋ '+t('handRaised');details.append(hand);}
   if(room.sharingUsers.has(id)){const sharing=document.createElement('span');sharing.className='class-room-sharing-badge';sharing.textContent='▣ '+t('sharing');details.append(sharing);}
   row.append(details);
-  if(teacher&&id!==user.id&&active.has(id)){
+  if(teacher&&id!==user.id){
    const control=room.controlsMap.get(id)||{};
-   addRosterAction(row,control.teacher_muted?t('unmuteParticipant'):t('muteParticipant'),()=>{void moderateParticipant(id,control.teacher_muted?'unmute':'mute');});
-   if(room.sharingUsers.has(id))addRosterAction(row,t('stopParticipantShare'),()=>{void moderateParticipant(id,'stop-share');},true);
-   if(person?.hand_raised)addRosterAction(row,t('lowerHand'),()=>{void moderateParticipant(id,'lower-hand');});
-   addRosterAction(row,t('removeParticipant'),()=>{void moderateParticipant(id,'remove');},true);
+   if(control.removed){
+    addRosterAction(row,t('readmit'),()=>{void moderateParticipant(id,'readmit');});
+   }else if(active.has(id)){
+    addRosterAction(row,control.teacher_muted?t('unmuteParticipant'):t('muteParticipant'),()=>{void moderateParticipant(id,control.teacher_muted?'unmute':'mute');});
+    if(room.sharingUsers.has(id))addRosterAction(row,t('stopParticipantShare'),()=>{void moderateParticipant(id,'stop-share');},true);
+    if(person?.hand_raised)addRosterAction(row,t('lowerHand'),()=>{void moderateParticipant(id,'lower-hand');});
+    addRosterAction(row,t('removeParticipant'),()=>{void moderateParticipant(id,'remove');},true);
+   }
   }
   area.append(row);
  };
@@ -614,7 +618,7 @@ async function moderateParticipant(targetUserId,action){
    await broadcastRoomEvent({type:'moderation',action,targetUserId});
   }
   if(action==='lower-hand')setRoomStatus(t('lowerHand'));
-  else setRoomStatus(action==='remove'?t('removeParticipant'):action==='stop-share'?t('stopParticipantShare'):action==='mute'?t('muteParticipant'):t('unmuteParticipant'));
+  else setRoomStatus(action==='remove'?t('removeParticipant'):action==='readmit'?t('readmit'):action==='stop-share'?t('stopParticipantShare'):action==='mute'?t('muteParticipant'):t('unmuteParticipant'));
   await syncClassroom(room);
   return result;
  }catch(error){setRoomStatus(error.message||t('mediaDisconnected'),true);}
