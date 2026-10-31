@@ -226,6 +226,12 @@ begin
   end if;
   if now() > class_row.ends_at then raise exception 'This class has already ended.'; end if;
   if not public.is_echo_professor() and not exists (
+    select 1 from public.class_live_rooms r
+    where r.class_id = target_class_id and r.status = 'live'
+  ) then
+    raise exception 'The professor has not started this class yet.';
+  end if;
+  if not public.is_echo_professor() and not exists (
     select 1 from public.class_enrollments ce
     where ce.class_id = target_class_id and ce.student_id = auth.uid() and not ce.is_demo
   ) and not class_row.allow_unassigned then
@@ -406,3 +412,244 @@ create unique index if not exists class_attendance_one_open_session_idx
 
 -- Prevent arbitrary student-side updates of class records via table grants.
 grant select, insert, update, delete on public.classes to authenticated;
+
+-- Live classroom state and private SFU session discovery.
+create table if not exists public.class_live_rooms (
+  id uuid primary key default gen_random_uuid(),
+  class_id uuid not null references public.classes(id) on delete cascade,
+  status text not null default 'live' check (status in ('live','ended')),
+  started_by uuid not null references public.profiles(id) on delete restrict,
+  started_at timestamptz not null default now(),
+  ended_at timestamptz
+);
+create unique index if not exists class_live_rooms_one_active_idx
+  on public.class_live_rooms(class_id) where status = 'live';
+
+create or replace function public.is_echo_class_member(target_class_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $$
+  select exists (
+    select 1 from public.classes c
+    where c.id = target_class_id
+      and not c.is_demo
+      and (
+        public.is_echo_owner()
+        or public.is_echo_professor()
+        or c.allow_unassigned
+        or exists (
+          select 1 from public.class_enrollments ce
+          where ce.class_id = c.id and ce.student_id = auth.uid() and not ce.is_demo
+        )
+      )
+  );
+$$;
+revoke all on function public.is_echo_class_member(uuid) from public;
+grant execute on function public.is_echo_class_member(uuid) to authenticated;
+
+create table if not exists public.class_room_participants (
+  class_id uuid not null references public.classes(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  session_id text not null unique,
+  display_name text not null check (char_length(trim(display_name)) between 1 and 120),
+  status text not null default 'joining' check (status in ('joining','active','left')),
+  joined_at timestamptz not null default now(),
+  left_at timestamptz,
+  primary key (class_id, user_id)
+);
+create index if not exists class_room_participants_class_status_idx
+  on public.class_room_participants(class_id,status);
+
+create table if not exists public.class_room_publications (
+  class_id uuid not null references public.classes(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  session_id text not null,
+  track_name text not null check (track_name in ('audio','video')),
+  created_at timestamptz not null default now(),
+  primary key (class_id,user_id,track_name)
+);
+create index if not exists class_room_publications_class_idx
+  on public.class_room_publications(class_id,created_at);
+
+create table if not exists public.class_room_subscriptions (
+  class_id uuid not null references public.classes(id) on delete cascade,
+  subscriber_id uuid not null references public.profiles(id) on delete cascade,
+  publisher_id uuid not null references public.profiles(id) on delete cascade,
+  session_id text not null unique,
+  status text not null default 'active' check (status in ('active','ended')),
+  created_at timestamptz not null default now(),
+  primary key (class_id,subscriber_id,publisher_id),
+  constraint class_room_subscription_no_self check (subscriber_id <> publisher_id)
+);
+
+alter table public.class_live_rooms enable row level security;
+alter table public.class_room_participants enable row level security;
+alter table public.class_room_publications enable row level security;
+alter table public.class_room_subscriptions enable row level security;
+
+drop policy if exists "ECHO class members can read live room status" on public.class_live_rooms;
+create policy "ECHO class members can read live room status"
+on public.class_live_rooms for select to authenticated
+using (public.is_echo_class_member(class_id));
+
+drop policy if exists "ECHO class members can read participants" on public.class_room_participants;
+create policy "ECHO class members can read participants"
+on public.class_room_participants for select to authenticated
+using (public.is_echo_class_member(class_id));
+
+drop policy if exists "ECHO users can create their own room participant" on public.class_room_participants;
+create policy "ECHO users can create their own room participant"
+on public.class_room_participants for insert to authenticated
+with check (
+  user_id = auth.uid()
+  and public.is_echo_class_member(class_id)
+  and exists (select 1 from public.class_live_rooms r where r.class_id = class_room_participants.class_id and r.status = 'live')
+);
+
+drop policy if exists "ECHO users and teachers can update room participants" on public.class_room_participants;
+create policy "ECHO users and teachers can update room participants"
+on public.class_room_participants for update to authenticated
+using (user_id = auth.uid() or public.is_echo_professor() or public.is_echo_owner())
+with check (
+  (user_id = auth.uid() or public.is_echo_professor() or public.is_echo_owner())
+  and public.is_echo_class_member(class_id)
+);
+
+drop policy if exists "ECHO users and teachers can remove room participants" on public.class_room_participants;
+create policy "ECHO users and teachers can remove room participants"
+on public.class_room_participants for delete to authenticated
+using (user_id = auth.uid() or public.is_echo_professor() or public.is_echo_owner());
+
+drop policy if exists "ECHO class members can read publications" on public.class_room_publications;
+create policy "ECHO class members can read publications"
+on public.class_room_publications for select to authenticated
+using (public.is_echo_class_member(class_id));
+
+drop policy if exists "ECHO active participants can publish their tracks" on public.class_room_publications;
+create policy "ECHO active participants can publish their tracks"
+on public.class_room_publications for insert to authenticated
+with check (
+  user_id = auth.uid()
+  and public.is_echo_class_member(class_id)
+  and exists (
+    select 1 from public.class_room_participants p
+    where p.class_id = class_room_publications.class_id
+      and p.user_id = auth.uid()
+      and p.session_id = class_room_publications.session_id
+      and p.status in ('joining','active')
+  )
+);
+
+drop policy if exists "ECHO owners can remove their publications" on public.class_room_publications;
+create policy "ECHO owners can remove their publications"
+on public.class_room_publications for delete to authenticated
+using (user_id = auth.uid() or public.is_echo_professor() or public.is_echo_owner());
+
+drop policy if exists "ECHO participants can read subscriptions" on public.class_room_subscriptions;
+create policy "ECHO participants can read subscriptions"
+on public.class_room_subscriptions for select to authenticated
+using (
+  subscriber_id = auth.uid()
+  or publisher_id = auth.uid()
+  or public.is_echo_professor()
+  or public.is_echo_owner()
+);
+
+drop policy if exists "ECHO participants can create subscriptions" on public.class_room_subscriptions;
+create policy "ECHO participants can create subscriptions"
+on public.class_room_subscriptions for insert to authenticated
+with check (
+  subscriber_id = auth.uid()
+  and public.is_echo_class_member(class_id)
+  and exists (
+    select 1 from public.class_room_participants p
+    where p.class_id = class_room_subscriptions.class_id
+      and p.user_id = subscriber_id and p.status = 'active'
+  )
+  and exists (
+    select 1 from public.class_room_participants p
+    where p.class_id = class_room_subscriptions.class_id
+      and p.user_id = publisher_id and p.status = 'active'
+  )
+);
+
+drop policy if exists "ECHO participants can update subscriptions" on public.class_room_subscriptions;
+create policy "ECHO participants can update subscriptions"
+on public.class_room_subscriptions for update to authenticated
+using (subscriber_id = auth.uid() or public.is_echo_professor() or public.is_echo_owner())
+with check (subscriber_id = auth.uid() or public.is_echo_professor() or public.is_echo_owner());
+
+drop policy if exists "ECHO participants can delete subscriptions" on public.class_room_subscriptions;
+create policy "ECHO participants can delete subscriptions"
+on public.class_room_subscriptions for delete to authenticated
+using (subscriber_id = auth.uid() or public.is_echo_professor() or public.is_echo_owner());
+
+create or replace function public.start_echo_classroom(target_class_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+declare
+  room_id uuid;
+  class_row public.classes%rowtype;
+begin
+  if auth.uid() is null or not (public.is_echo_professor() or public.is_echo_owner()) then
+    raise exception 'Only the professor can start this classroom.';
+  end if;
+  select * into class_row from public.classes c
+  where c.id = target_class_id and not c.is_demo;
+  if not found then raise exception 'Class not found.'; end if;
+  if class_row.status = 'cancelled' then raise exception 'This class was cancelled.'; end if;
+  if now() > class_row.ends_at then raise exception 'This class has already ended.'; end if;
+  insert into public.class_live_rooms(class_id,status,started_by,started_at,ended_at)
+  values(target_class_id,'live',auth.uid(),now(),null)
+  on conflict (class_id) where status = 'live'
+  do update set started_by = excluded.started_by, started_at = now(), ended_at = null
+  returning id into room_id;
+  return room_id;
+end;
+$$;
+
+create or replace function public.end_echo_classroom(target_class_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+begin
+  if auth.uid() is null or not (public.is_echo_professor() or public.is_echo_owner()) then
+    raise exception 'Only the professor can end this classroom.';
+  end if;
+  update public.class_live_rooms
+  set status='ended', ended_at=now()
+  where class_id=target_class_id and status='live';
+  update public.class_room_participants
+  set status='left', left_at=coalesce(left_at,now())
+  where class_id=target_class_id and status <> 'left';
+  update public.class_room_publications
+  set created_at=created_at
+  where false;
+  update public.class_room_subscriptions
+  set status='ended'
+  where class_id=target_class_id and status='active';
+  update public.class_attendance
+  set left_at=coalesce(left_at,now())
+  where class_id=target_class_id and left_at is null;
+end;
+$$;
+
+revoke all on function public.start_echo_classroom(uuid) from public;
+revoke all on function public.end_echo_classroom(uuid) from public;
+grant execute on function public.start_echo_classroom(uuid) to authenticated;
+grant execute on function public.end_echo_classroom(uuid) to authenticated;
+
+grant select on public.class_live_rooms to authenticated;
+grant select, insert, update, delete on public.class_room_participants to authenticated;
+grant select, insert, delete on public.class_room_publications to authenticated;
+grant select, insert, update, delete on public.class_room_subscriptions to authenticated;
+
+-- Students may join only after an authorized professor has opened the room.
