@@ -173,7 +173,7 @@ function periodBounds(){
  const next=new Date(Date.UTC(Number(p.year),Number(p.month),1)).toISOString().slice(0,10);
  return [new Date(toAthensISO(first+'T00:00')),new Date(toAthensISO(next+'T00:00'))];
 }
-function classStatus(c){if(c.status==='cancelled')return 'cancelled';if(c.liveRoom?.status==='live')return 'live';if(Date.now()>new Date(c.ends_at).getTime())return 'completed';return 'upcoming';}
+function classStatus(c){if(c.status==='cancelled')return 'cancelled';if(Date.now()>new Date(c.ends_at).getTime())return 'completed';if(c.liveRoom?.status==='live')return 'live';return 'upcoming';}
 function dateKey(value){
  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
  const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;
@@ -593,7 +593,17 @@ async function showDetail(id){
   const actions=document.createElement('div');actions.className='class-detail-actions';
   if(c.status!=='cancelled'&&state!=='completed'){
    const cancel=document.createElement('button');cancel.className='btn';cancel.type='button';cancel.textContent=t('cancelClass');
-   cancel.onclick=async()=>{if(!confirm(t('confirmCancel')))return;cancel.disabled=true;const {error}=await db.from('classes').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',c.id);if(error){alert(error.message);cancel.disabled=false;return;}await loadClasses();void showDetail(c.id);};
+   cancel.onclick=async()=>{
+    if(!confirm(t('confirmCancel')))return;cancel.disabled=true;
+    if(c.liveRoom){
+     const ended=await db.rpc('end_echo_classroom',{target_class_id:c.id});
+     if(ended.error){alert(ended.error.message);cancel.disabled=false;return;}
+     if(activeRoom?.classId===c.id)await leaveRoom({automatic:true});
+    }
+    const {error}=await db.from('classes').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',c.id);
+    if(error){alert(error.message);cancel.disabled=false;return;}
+    await loadClasses();void showDetail(c.id);
+   };
    actions.append(cancel);
   }
   const edit=document.createElement('button');edit.className='btn';edit.type='button';edit.textContent=t('edit');edit.onclick=()=>openEditor(c);
