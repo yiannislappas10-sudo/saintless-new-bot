@@ -31,13 +31,13 @@ export async function onRequestPost({ request, env }) {
     try { body = await request.json(); } catch { throw new ClassroomError("Invalid request body."); }
     const { classId, targetUserId, action } = body || {};
     if (!validId(classId) || !validId(targetUserId)) throw new ClassroomError("Choose a valid participant.");
-    if (!["mute","unmute","remove","lower-hand","readmit"].includes(action)) throw new ClassroomError("Unknown moderation action.");
+    if (!["mute","unmute","camera-off","camera-on","remove","lower-hand","readmit"].includes(action)) throw new ClassroomError("Unknown moderation action.");
 
     const teacher = await dbRpc(ctx, "is_echo_professor", {});
     if (teacher !== true) throw new ClassroomError("Only the professor can moderate this meeting.", 403);
 
     if (action === "readmit") {
-      await writeControl(ctx, classId, targetUserId, { teacher_muted:false, removed:false });
+      await writeControl(ctx, classId, targetUserId, { teacher_muted:false, teacher_camera_off:false, removed:false });
       return response({ action, targetUserId, restored:true });
     }
 
@@ -59,9 +59,15 @@ export async function onRequestPost({ request, env }) {
       return response({ action, targetUserId, teacherMuted:action === "mute" });
     }
 
+    if (action === "camera-off" || action === "camera-on") {
+      if (participantRows[0].status !== "active") throw new ClassroomError("This participant is no longer active.", 409);
+      await writeControl(ctx, classId, targetUserId, { teacher_camera_off:action === "camera-off" });
+      return response({ action, targetUserId, teacherCameraOff:action === "camera-off" });
+    }
+
     // Removing a participant is a meeting-only block. Their session is closed and
     // the removed flag prevents them from creating another media session.
-    await writeControl(ctx, classId, targetUserId, { teacher_muted:true, removed:true });
+    await writeControl(ctx, classId, targetUserId, { teacher_muted:true, teacher_camera_off:true, removed:true });
 
     const [publications, subscriptions] = await Promise.all([
       dbRequest(ctx,
