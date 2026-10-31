@@ -169,7 +169,13 @@ function applyFeatureLanguage() {
   set('announcement-title-label', tr('title'));
   set('announcement-body-label', tr('body'));
   set('announcement-professor-only', tr('professorOnly'));
+  set('announcement-cancel-edit',tr('cancelEdit'));
   set('announcement-submit', editingAnnouncementId ? tr('update') : tr('publish'));
+  set('announcement-audience-label',tr('audience'));
+  const audience=document.getElementById('announcement-audience');
+  audience.options[0].textContent=tr('everyone');audience.options[1].textContent=tr('selectedStudents');
+  set('announcement-pinned-label',tr('pinned'));
+  set('announcement-cancel-edit',tr('cancelEdit'));
   set('announcement-audience-label',tr('audience'));
   const audience=document.getElementById('announcement-audience');
   audience.options[0].textContent=tr('everyone');audience.options[1].textContent=tr('selectedStudents');
@@ -574,30 +580,97 @@ function renderContacts() {
   }
   syncCallControls();
 }
+function renderAnnouncementStudents(selectedIds=[]){
+ const area=document.getElementById('announcement-students');area.replaceChildren();
+ const selected=new Set(selectedIds);
+ for(const person of announcementStudents){
+  const label=el('label','announcement-recipient');
+  const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=person.id;checkbox.checked=selected.has(person.id);
+  label.append(checkbox,el('span','',person.display_name||tr('student')));area.append(label);
+ }
+ area.classList.toggle('hidden',document.getElementById('announcement-audience').value!=='selected');
+}
+async function loadAnnouncementStudents(){
+ if(!professorMode())return;
+ const {data,error}=await supabase.from('profiles').select('id,display_name').eq('role','student').order('display_name');
+ if(error){status('announcement-status',error.message,true);return;}
+ announcementStudents=data||[];renderAnnouncementStudents();
+}
+function resetAnnouncementEditor(){
+ editingAnnouncementId=null;
+ document.getElementById('announcement-form').reset();
+ document.getElementById('announcement-audience').value='everyone';
+ document.getElementById('announcement-cancel-edit').classList.add('hidden');
+ renderAnnouncementStudents();
+ applyFeatureLanguage();
+}
+async function beginAnnouncementEdit(row){
+ editingAnnouncementId=row.id;
+ document.getElementById('announcement-title').value=row.title;
+ document.getElementById('announcement-body').value=row.body;
+ document.getElementById('announcement-audience').value=row.audience||'everyone';
+ document.getElementById('announcement-pinned').checked=!!row.pinned;
+ let recipients=[];
+ if(row.audience==='selected'){
+  const {data,error}=await supabase.from('announcement_recipients').select('student_id').eq('announcement_id',row.id);
+  if(error){status('announcement-status',error.message,true);return;}
+  recipients=(data||[]).map(x=>x.student_id);
+ }
+ renderAnnouncementStudents(recipients);
+ document.getElementById('announcement-cancel-edit').classList.remove('hidden');
+ applyFeatureLanguage();
+ document.getElementById('announcement-form').scrollIntoView({behavior:'smooth',block:'center'});
+}
 async function loadAnnouncements() {
-  const list = document.getElementById('announcement-list');
-  list.replaceChildren();
-  status('announcement-status', '');
-  const {data, error} = await supabase.from('announcements')
-    .select('id,title,body,created_at').order('created_at', {ascending:false});
-  if (error) { status('announcement-status', tr('failedAnnouncements'), true); return; }
-  if (!data?.length) { list.append(el('p', 'message-empty-note', tr('emptyAnnouncements'))); return; }
-  for (const row of data) {
-    const card = el('article', 'announcement-item');
-    card.append(el('h3', '', row.title), el('time', '', dateText(row.created_at)), el('p', '', row.body));
-    if (professorMode()) {
-      const remove = el('button', 'announcement-delete', tr('delete'));
-      remove.type = 'button';
-      remove.addEventListener('click', async () => {
-        if (!confirm(tr('confirmDelete'))) return;
-        const {error: deleteError} = await supabase.from('announcements').delete().eq('id', row.id);
-        if (deleteError) status('announcement-status', deleteError.message, true);
-        else { status('announcement-status', tr('deleted')); await loadAnnouncements(); }
-      });
-      card.append(remove);
-    }
-    list.append(card);
+ const list=document.getElementById('announcement-list');list.replaceChildren();status('announcement-status','');
+ const {data,error}=await supabase.from('announcements')
+  .select('id,title,body,created_at,pinned,audience')
+  .order('pinned',{ascending:false}).order('created_at',{ascending:false});
+ if(error){status('announcement-status',tr('failedAnnouncements')+' '+error.message,true);return;}
+ let readSet=new Set();
+ if(!professorMode()){
+  const reads=await supabase.from('announcement_reads').select('announcement_id').eq('user_id',user.id);
+  if(reads.error){status('announcement-status',reads.error.message,true);return;}
+  readSet=new Set((reads.data||[]).map(x=>x.announcement_id));
+ }
+ if(!data?.length){list.append(el('p','message-empty-note',tr('emptyAnnouncements')));return;}
+ for(const row of data){
+  const card=el('article','announcement-item'+(row.pinned?' announcement-pinned':''));
+  const heading=el('div','announcement-card-heading');
+  heading.append(el('h3','',row.title));
+  if(row.pinned)heading.append(el('span','announcement-pill pinned',tr('pinned')));
+  if(!professorMode()&&!readSet.has(row.id))heading.append(el('span','announcement-pill new',tr('newAnnouncement')));
+  card.append(heading,el('time','',dateText(row.created_at)),el('p','',row.body));
+  if(professorMode()){
+   const actions=el('div','announcement-actions');
+   const edit=el('button','announcement-action',tr('edit'));edit.type='button';
+   edit.addEventListener('click',()=>{void beginAnnouncementEdit(row);});
+   const pin=el('button','announcement-action',row.pinned?tr('unpin'):tr('pin'));pin.type='button';
+   pin.addEventListener('click',async()=>{
+    pin.disabled=true;const result=await supabase.from('announcements').update({pinned:!row.pinned}).eq('id',row.id);
+    pin.disabled=false;if(result.error)status('announcement-status',result.error.message,true);else await loadAnnouncements();
+   });
+   const remove=el('button','announcement-action danger',tr('delete'));remove.type='button';
+   remove.addEventListener('click',async()=>{
+    if(!confirm(tr('confirmDelete')))return;
+    remove.disabled=true;const result=await supabase.from('announcements').delete().eq('id',row.id);
+    if(result.error){remove.disabled=false;status('announcement-status',result.error.message,true);}
+    else{if(editingAnnouncementId===row.id)resetAnnouncementEditor();status('announcement-status',tr('deleted'));await loadAnnouncements();}
+   });
+   actions.append(edit,pin,remove);card.append(actions);
+  }else if(!readSet.has(row.id)){
+   const mark=el('button','announcement-action',tr('markRead'));mark.type='button';
+   mark.addEventListener('click',async()=>{
+    mark.disabled=true;const result=await supabase.from('announcement_reads').upsert(
+      {announcement_id:row.id,user_id:user.id},{onConflict:'announcement_id,user_id',ignoreDuplicates:true}
+    );
+    if(result.error){mark.disabled=false;status('announcement-status',result.error.message,true);}
+    else{status('announcement-status',tr('markedRead'));await loadAnnouncements();}
+   });
+   card.append(mark);
   }
+  list.append(card);
+ }
 }
 async function loadMessages() {
   const list = document.getElementById('message-list');
@@ -717,6 +790,8 @@ function resetFeatureState() {
   document.getElementById('announcement-admin').classList.add('hidden');
 }
 
+document.getElementById('announcement-audience').addEventListener('change',()=>renderAnnouncementStudents());
+document.getElementById('announcement-cancel-edit').addEventListener('click',resetAnnouncementEditor);
 document.getElementById('announcement-form').addEventListener('submit', async event => {
   event.preventDefault();
   if (!professorMode() || !user) return;
