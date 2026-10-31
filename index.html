@@ -15,6 +15,20 @@ button,input{font:inherit}
 button{cursor:pointer}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #151515;outline-offset:3px}
 .hidden{display:none!important}
+
+/* Soft ambient motion shared by the sign-in page and classroom */
+#login-shell,#app-shell{position:relative;isolation:isolate;overflow:hidden;background:#fff}
+.ambient-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background-image:linear-gradient(rgba(38,65,94,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(38,65,94,.018) 1px,transparent 1px);background-size:58px 58px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent 92%)}
+.ambient-bg .orb{position:absolute;display:block;border-radius:50%;filter:blur(68px);will-change:transform;opacity:.48}
+.ambient-bg .orb-one{width:min(56vw,620px);height:min(56vw,620px);top:-30%;left:-16%;background:radial-gradient(circle at 48% 48%,rgba(190,218,245,.78),rgba(220,235,249,.35) 48%,transparent 72%);animation:drift-one 23s ease-in-out infinite alternate}
+.ambient-bg .orb-two{width:min(54vw,590px);height:min(54vw,590px);right:-17%;bottom:-32%;background:radial-gradient(circle at 50% 50%,rgba(210,216,246,.72),rgba(232,235,249,.32) 49%,transparent 72%);animation:drift-two 27s ease-in-out infinite alternate}
+.ambient-bg .orb-three{width:min(34vw,380px);height:min(34vw,380px);top:34%;right:18%;background:radial-gradient(circle at 50% 50%,rgba(190,229,231,.54),rgba(224,242,242,.2) 52%,transparent 72%);animation:drift-three 19s ease-in-out infinite alternate}
+#login-shell>.login-main,#app-shell>.topbar,#app-shell>.app-content,#app-shell>.footer{position:relative;z-index:1}
+#app-shell .topbar{background:rgba(255,255,255,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#app-shell .info-card,#app-shell .join-card,#app-shell .nav-tabs,#app-shell .empty{background:rgba(255,255,255,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+@keyframes drift-one{from{transform:translate3d(-3%,0,0) scale(.92)}to{transform:translate3d(13%,16%,0) scale(1.12)}}
+@keyframes drift-two{from{transform:translate3d(4%,0,0) scale(1.04)}to{transform:translate3d(-13%,-17%,0) scale(.9)}}
+@keyframes drift-three{from{transform:translate3d(0,-8%,0) scale(.88)}to{transform:translate3d(-18%,13%,0) scale(1.14)}}
 #login-shell{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 20px}
 .login-main{width:100%;max-width:390px;animation:rise .65s cubic-bezier(.2,.75,.25,1) both}
 .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 42px;color:#111;font-size:15px;font-weight:750;letter-spacing:.2em}
@@ -101,6 +115,7 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
 </head>
 <body>
 <div id="login-shell">
+  <div class="ambient-bg" aria-hidden="true"><span class="orb orb-one"></span><span class="orb orb-two"></span><span class="orb orb-three"></span></div>
   <main class="login-main">
     <div class="brand"><span class="brand-mark"><svg viewBox="0 0 30 30" fill="none"><path d="M3 15h4l2.5-6 5 12 3.5-9 2.5 6H27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>ECHO</span></div>
     <section id="login-view">
@@ -130,6 +145,7 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
 </div>
 
 <div id="app-shell" class="hidden">
+  <div class="ambient-bg" aria-hidden="true"><span class="orb orb-one"></span><span class="orb orb-two"></span><span class="orb orb-three"></span></div>
   <header class="topbar">
     <div class="brand"><span class="brand-mark"><svg viewBox="0 0 30 30" fill="none"><path d="M3 15h4l2.5-6 5 12 3.5-9 2.5 6H27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>ECHO</span></div>
     <div class="topbar-right"><span class="account-email" id="account-email"></span><span class="avatar" id="avatar">E</span><button class="btn signout" id="signout-btn" type="button">Sign out</button></div>
