@@ -1,0 +1,63 @@
+/* ECHO personal calendar, class status, notifications, attendance and profile */
+.personal-calendar-toolbar{display:flex;align-items:center;justify-content:center;gap:16px;margin:10px 0 18px}
+.personal-calendar-toolbar strong{min-width:180px;text-align:center;font-size:14px;font-weight:650;text-transform:capitalize}
+.personal-month-nav,.personal-today{width:auto;min-width:36px;height:36px;padding:0 11px;border:1px solid #e5e5e5;border-radius:6px;background:#fff;color:#222;font-size:13px;font-weight:650;cursor:pointer}
+.personal-month-nav:hover,.personal-today:hover{border-color:#aaa;background:#f6f6f6}
+.personal-weekdays,.personal-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.personal-weekdays{margin-bottom:7px}
+.personal-weekdays span{padding:8px 2px;color:#888;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase}
+.personal-calendar-day{position:relative;min-height:84px;padding:9px;border:1px solid #e9e9e9;border-radius:7px;background:rgba(255,255,255,.86);color:#222;text-align:left;transition:background .16s,border-color .16s,transform .16s;cursor:pointer}
+.personal-calendar-day:hover{border-color:#aaa;background:#fafafa;transform:translateY(-1px)}
+.personal-calendar-day.outside{background:#f8f8f8;color:#aaa}
+.personal-calendar-day.selected{border-color:#171717;box-shadow:inset 0 0 0 1px #171717}
+.personal-calendar-day.today .personal-day-number{display:inline-grid;min-width:23px;height:23px;place-items:center;border-radius:50%;background:#171717;color:#fff}
+.personal-day-number{font-size:12px;font-weight:700}
+.personal-day-count{display:block;margin-top:12px;color:#777;font-size:10px;line-height:1.3}
+.personal-day-detail{margin-top:23px;padding-top:18px;border-top:1px solid #ededed}
+.personal-day-detail h3{margin:0 0 12px;font-size:14px;font-weight:650}
+.personal-status-filters{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 17px}
+.personal-filter{width:auto;min-height:33px;padding:0 12px;border:1px solid #e6e6e6;border-radius:5px;background:#fff;color:#666;font-size:11px;font-weight:650;cursor:pointer}
+.personal-filter.active{border-color:#171717;background:#171717;color:#fff}
+.personal-status-list,.personal-attendance-list,#personal-notification-list{display:grid;gap:9px}
+.personal-class-row,.personal-attendance-row,.personal-notification{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:16px 17px;border:1px solid #e8e8e8;border-radius:9px;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.personal-class-info{display:grid;min-width:0;gap:5px}
+.personal-class-info strong,.personal-notification-main strong,.personal-attendance-top strong{color:#222;font-size:13px;font-weight:650;overflow-wrap:anywhere}
+.personal-class-info span,.personal-attendance-row p{margin:0;color:#858585;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+.personal-class-row.compact{padding:13px 0;border:0;border-bottom:1px solid #eee;border-radius:0;background:transparent;backdrop-filter:none}
+.personal-state,.personal-attendance-badge{flex:none;padding:5px 8px;border:1px solid #e6e6e6;border-radius:5px;background:#fafafa;color:#666;font-size:9px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.personal-state.live{border-color:#c7ded5;background:#f2faf6;color:#28704e}
+.personal-state.cancelled{border-color:#ead8d8;background:#fcf6f6;color:#a14a4a}
+.personal-state.completed{background:#f1f1f1;color:#666}
+.personal-state.upcoming{border-color:#e6e2d5;background:#fbfaf5;color:#76663b}
+.personal-empty{padding:28px 18px;border:1px dashed #e0e0e0;border-radius:8px;color:#888;text-align:center;font-size:12px;line-height:1.6}
+.personal-notification{align-items:flex-start}
+.personal-notification-main{min-width:0;flex:1}
+.personal-notification-main p{margin:6px 0;color:#666;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.personal-notification-main time{color:#999;font-size:10px}
+.personal-action{flex:none;width:auto;min-height:32px;padding:0 10px;border:1px solid #dedede;border-radius:5px;background:#fff;color:#444;font-size:10px;font-weight:650;cursor:pointer}
+.personal-action:hover{border-color:#999;background:#f6f6f6}
+.personal-data-status{min-height:18px;margin:12px 0 0;color:#777;font-size:11px;line-height:1.5}
+.personal-attendance-note,.personal-profile-note{margin:0 0 13px;color:#888;font-size:11px;line-height:1.5}
+.personal-attendance-row{display:block}
+.personal-attendance-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.personal-attendance-badge{font-size:9px}
+.personal-attendance-row>p{margin-top:7px}
+.personal-attendance-meta{color:#777!important}
+.personal-profile-card{max-width:560px;padding:22px;border:1px solid #e8e8e8;border-radius:10px;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.personal-profile-card label{display:block;margin:15px 0 7px;color:#333;font-size:11px;font-weight:650}
+.personal-profile-card label:first-child{margin-top:0}
+.personal-profile-card input,.personal-profile-card select{display:block;width:100%;height:43px;padding:0 12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#222;font-size:12px}
+.personal-profile-card input[readonly]{background:#f7f7f7;color:#777}
+.personal-profile-card .btn{width:auto;min-height:40px;margin-top:18px;padding:0 18px;font-size:11px}
+.personal-profile-card .btn:disabled{opacity:.55;cursor:wait}
+@media(max-width:760px){
+ .personal-calendar-day{min-height:64px;padding:6px}
+ .personal-day-count{font-size:9px;margin-top:7px}
+ .personal-weekdays,.personal-calendar-grid{gap:4px}
+ .personal-class-row,.personal-notification{align-items:flex-start;flex-direction:column}
+ .personal-action{width:100%}
+ .personal-calendar-toolbar{gap:8px}
+ .personal-calendar-toolbar strong{min-width:120px;font-size:12px}
+ .personal-profile-card{padding:17px}
+}
+@media(prefers-reduced-motion:reduce){.personal-calendar-day,.personal-month-nav,.personal-today{transition:none}}
