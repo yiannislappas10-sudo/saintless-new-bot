@@ -288,8 +288,9 @@ function openEditor(c=null){
  const end=c?.ends_at?fromISO(c.ends_at):fromISO(new Date(now.getTime()+7200000).toISOString());
  document.getElementById('class-start').value=start;document.getElementById('class-end').value=end;
  document.getElementById('class-open').checked=!!c?.allow_unassigned;
- document.getElementById('class-demo').checked=!!c?.is_demo&&isOwner;
- document.getElementById('class-demo').disabled=!isOwner;
+ const professorDemoPreview=isOwner&&ownerPreviewRole==='professor';
+ document.getElementById('class-demo').checked=professorDemoPreview||!!c?.is_demo&&isOwner;
+ document.getElementById('class-demo').disabled=!isOwner||professorDemoPreview;
  document.getElementById('class-demo-names').value=(c?.is_demo?(c.roster||[]).map(x=>x.display_name).join('\n'):'');
  toggleDemoEditor();
  const assigned=new Set((c?.roster||[]).map(x=>x.id).filter(Boolean));const opts=document.getElementById('class-student-options');opts.replaceChildren();
@@ -597,7 +598,24 @@ async function showDetail(id){
   const join=document.createElement('button');join.type='button';join.className='btn btn-dark';join.textContent=t('join');join.disabled=state==='cancelled'||state==='completed'||c.is_demo;
   join.addEventListener('click',()=>{void openPrejoin(c.id);});roomActions.append(join);
  }else{
-  const waiting=document.createElement('button');waiting.type='button';waiting.className='btn';waiting.textContent=t('waitingProfessor');waiting.disabled=true;roomActions.append(waiting);
+  const waiting=document.createElement('button');waiting.type='button';waiting.className='btn';waiting.textContent=t('waitingProfessor');
+  waiting.addEventListener('click',()=>{
+   if(waitingRoomTimer)clearInterval(waitingRoomTimer);
+   const until=Date.now()+5*60*1000;
+   const note=document.createElement('p');note.className='class-form-status';note.textContent=t('waitingProfessor');detail.append(note);
+   const check=async()=>{
+    if(Date.now()>until){clearInterval(waitingRoomTimer);waitingRoomTimer=null;note.textContent=t('waitingProfessor');return;}
+    const {data,error}=await db.from('class_live_rooms').select('status').eq('class_id',c.id).eq('status','live').limit(1);
+    if(error){note.textContent=error.message;note.classList.add('error');clearInterval(waitingRoomTimer);waitingRoomTimer=null;return;}
+    if(data?.length){
+     clearInterval(waitingRoomTimer);waitingRoomTimer=null;
+     await loadClasses();void showDetail(c.id);
+    }
+   };
+   waiting.disabled=true;void check();
+   waitingRoomTimer=setInterval(()=>{void check();},5000);
+  });
+  roomActions.append(waiting);
  }
  detail.append(roomActions);
  if(professorMode()){
@@ -733,6 +751,8 @@ document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  document.getElementById('class-live-camera').textContent=activeRoom?.previewStream?.getVideoTracks()[0]?.enabled===false?t('cameraOn'):t('cameraOff');
 }
 async function boot(session){
+ if(waitingRoomTimer){clearInterval(waitingRoomTimer);waitingRoomTimer=null;}
+ ownerPreviewRole=null;
  user=session.user;isOwner=(user.email||'').toLowerCase()===OWNER_EMAIL;
  const {data,error}=await db.from('profiles').select('id,display_name,role').eq('id',user.id).maybeSingle();
  profile=data||{id:user.id,role:'student'};
