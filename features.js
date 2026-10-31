@@ -587,9 +587,15 @@ function renderContacts() {
 }
 async function loadAnnouncements() {
  const list=document.getElementById('announcement-list');list.replaceChildren();status('announcement-status','');
- const {data,error}=await supabase.from('announcements')
-  .select('id,title,body,created_at,pinned,audience')
+ let result=await supabase.from('announcements')
+  .select('id,title,body,created_at,pinned,audience,notify_in_notifications')
   .order('pinned',{ascending:false}).order('created_at',{ascending:false});
+ if(result.error&&/notify_in_notifications/i.test(result.error.message)){
+  result=await supabase.from('announcements')
+   .select('id,title,body,created_at,pinned,audience')
+   .order('pinned',{ascending:false}).order('created_at',{ascending:false});
+ }
+ const {data,error}=result;
  if(error){status('announcement-status',tr('failedAnnouncements')+' '+error.message,true);return;}
  let readSet=new Set();
  if(!professorMode()){
@@ -604,7 +610,7 @@ async function loadAnnouncements() {
   const heading=el('div','announcement-card-heading');
   heading.append(el('h3','',row.title));
   if(row.pinned)heading.append(el('span','announcement-pill pinned',tr('pinned')));
-  if(!professorMode()&&!readSet.has(row.id))heading.append(el('span','announcement-pill new',tr('newAnnouncement')));
+  if(!professorMode()&&row.notify_in_notifications!==false&&!readSet.has(row.id))heading.append(el('span','announcement-pill new',tr('newAnnouncement')));
   card.append(heading,el('time','',dateText(row.created_at)),el('p','',row.body));
   if(professorMode()){
    const actions=el('div','announcement-actions');
@@ -623,7 +629,7 @@ async function loadAnnouncements() {
     else{if(editingAnnouncementId===row.id)resetAnnouncementEditor();status('announcement-status',tr('deleted'));await loadAnnouncements();}
    });
    actions.append(edit,pin,remove);card.append(actions);
-  }else if(!readSet.has(row.id)){
+  }else if(row.notify_in_notifications!==false&&!readSet.has(row.id)){
    const mark=el('button','announcement-action',tr('markRead'));mark.type='button';
    mark.addEventListener('click',async()=>{
     mark.disabled=true;const result=await supabase.from('announcement_reads').upsert(
@@ -650,6 +656,7 @@ async function loadMessages() {
  const unreadIds=[];
  for(const row of data){
   const bubble=el('article','message-bubble'+(row.sender_id===me?' sent':''));
+  bubble.id='message-'+row.id;
   bubble.append(el('p','',row.body),el('time','',dateText(row.created_at)));
   list.append(bubble);
   if(row.sender_id===other&&row.recipient_id===me&&!row.read_at)unreadIds.push(row.id);
