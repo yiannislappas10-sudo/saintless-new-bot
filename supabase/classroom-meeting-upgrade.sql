@@ -16,11 +16,15 @@ create table if not exists public.class_room_controls (
   class_id uuid not null references public.classes(id) on delete cascade,
   user_id uuid not null references public.profiles(id) on delete cascade,
   teacher_muted boolean not null default false,
+  teacher_camera_off boolean not null default false,
   removed boolean not null default false,
   updated_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now(),
   primary key (class_id,user_id)
 );
+
+alter table public.class_room_controls
+  add column if not exists teacher_camera_off boolean not null default false;
 
 alter table public.class_room_controls enable row level security;
 
