@@ -80,6 +80,7 @@ using (
   public.is_echo_owner()
   or (not is_demo and (
     public.is_echo_professor()
+    or allow_unassigned
     or exists (
       select 1 from public.class_enrollments ce
       where ce.class_id = classes.id and ce.student_id = auth.uid() and not ce.is_demo
