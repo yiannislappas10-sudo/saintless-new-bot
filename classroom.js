@@ -10,10 +10,10 @@ const ZONE = 'Europe/Athens';
 const lang = () => localStorage.getItem('echo-language') === 'el' ? 'el' : 'en';
 const words = {
   en:{
-    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',
+    tab:'Classes',title:'Class management',intro:'Create lessons, assign students and manage your teaching timetable.',materials:'Learning materials',
     create:'Create a class',edit:'Edit class',name:'Class name',subject:'Subject',description:'Description',
     image:'Image URL (optional)',start:'Starts',end:'Ends',students:'Assign students',save:'Save class',
-    cancel:'Cancel',delete:'Delete class',confirmDelete:'Delete this class and its assignments?',
+    cancel:'Cancel',delete:'Delete class',cancelClass:'Cancel class',confirmCancel:'Cancel this class?',confirmDelete:'Delete this class and its assignments?',
     empty:'No classes have been scheduled yet.',loadError:'Could not load classes. Run the classroom database migration first.',
     saveError:'Could not save the class. Check the form and database permissions.',saved:'Class saved.',
     deleted:'Class deleted.',noStudents:'No student accounts are available yet.',
@@ -34,10 +34,10 @@ const words = {
     rosterError:'Could not update the student list. Review the class and try again.'
   },
   el:{
-    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',
+    tab:'Μαθήματα',title:'Διαχείριση μαθημάτων',intro:'Δημιουργήστε μαθήματα, αναθέστε μαθητές και διαχειριστείτε το πρόγραμμά σας.',materials:'Εκπαιδευτικό υλικό',
     create:'Δημιουργία μαθήματος',edit:'Επεξεργασία μαθήματος',name:'Όνομα μαθήματος',subject:'Αντικείμενο',description:'Περιγραφή',
     image:'Σύνδεσμος εικόνας (προαιρετικό)',start:'Έναρξη',end:'Λήξη',students:'Ανάθεση μαθητών',save:'Αποθήκευση',
-    cancel:'Ακύρωση',delete:'Διαγραφή μαθήματος',confirmDelete:'Να διαγραφεί αυτό το μάθημα και οι αναθέσεις του;',
+    cancel:'Ακύρωση',delete:'Διαγραφή μαθήματος',cancelClass:'Ακύρωση μαθήματος',confirmCancel:'Να ακυρωθεί αυτό το μάθημα;',confirmDelete:'Να διαγραφεί αυτό το μάθημα και οι αναθέσεις του;',
     empty:'Δεν έχουν προγραμματιστεί μαθήματα.',loadError:'Αδυναμία φόρτωσης. Εκτελέστε πρώτα τη μεταφορά της βάσης μαθημάτων.',
     saveError:'Δεν ήταν δυνατή η αποθήκευση. Ελέγξτε τη φόρμα και τα δικαιώματα.',saved:'Το μάθημα αποθηκεύτηκε.',
     deleted:'Το μάθημα διαγράφηκε.',noStudents:'Δεν υπάρχουν ακόμη λογαριασμοί μαθητών.',
@@ -245,7 +245,7 @@ async function saveClass(event){
  }catch(error){status.textContent=(error?.message||t('saveError'));status.classList.add('error');}
  finally{button.disabled=false;}
 }
-function showDetail(id){
+async function showDetail(id){
  const c=classes.find(x=>x.id===id);if(!c)return;
  const detail=document.getElementById('class-detail');detail.classList.remove('hidden');detail.replaceChildren();
  const head=document.createElement('div');head.className='class-detail-head';
@@ -292,6 +292,11 @@ function showDetail(id){
  detail.append(join);
  if(professorMode()){
   const actions=document.createElement('div');actions.className='class-detail-actions';
+  if(c.status!=='cancelled'&&state!=='completed'){
+   const cancel=document.createElement('button');cancel.className='btn';cancel.type='button';cancel.textContent=t('cancelClass');
+   cancel.onclick=async()=>{if(!confirm(t('confirmCancel')))return;cancel.disabled=true;const {error}=await db.from('classes').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',c.id);if(error){alert(error.message);cancel.disabled=false;return;}await loadClasses();void showDetail(c.id);};
+   actions.append(cancel);
+  }
   const edit=document.createElement('button');edit.className='btn';edit.type='button';edit.textContent=t('edit');edit.onclick=()=>openEditor(c);
   const del=document.createElement('button');del.className='btn class-danger';del.type='button';del.textContent=t('delete');del.onclick=async()=>{if(!confirm(t('confirmDelete')))return;const {error}=await db.from('classes').delete().eq('id',c.id);if(error){alert(error.message);return;}detail.classList.add('hidden');await loadClasses();};
   actions.append(edit,del);detail.append(actions);
