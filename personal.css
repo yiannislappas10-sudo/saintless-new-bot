@@ -75,3 +75,9 @@
  .personal-notification-toolbar{justify-content:stretch}
  .personal-notification-toolbar .personal-action{width:100%}
 }
+
+
+/* Make notification content visibly interactive. */
+.personal-notification-openable{cursor:pointer;border-radius:8px;transition:background .16s,border-color .16s,box-shadow .16s}
+.personal-notification-openable:hover{background:#f7f7f7}
+.personal-notification-openable:focus-visible{outline:2px solid #555;outline-offset:3px}
