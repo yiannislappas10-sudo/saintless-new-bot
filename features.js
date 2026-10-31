@@ -26,7 +26,7 @@ const text = {
     callError:'Could not connect. Check your microphone and network, then try again.',
     callSecureError:'Could not open a private call channel. Run the updated ECHO SQL and disable public Realtime channel access.',
     failedMessages:'Could not load private messages. Run the ECHO setup SQL first.', sent:'Message sent.',
-    owner:'Professor access', ownerIntro:'Grant or remove professor permissions for ECHO accounts.',
+    owner:'Owner panel', ownerIntro:'Manage professor access for ECHO accounts.',
     ownerNotice:'Owner-only controls · Only the designated ECHO account can change roles.',
     makeProfessor:'Make professor', removeProfessor:'Remove professor access',
     student:'Student', professor:'Professor', noAccounts:'No other ECHO accounts have signed in yet.',
@@ -53,7 +53,7 @@ const text = {
     callError:'Η σύνδεση απέτυχε. Ελέγξτε το μικρόφωνο και το δίκτυό σας και δοκιμάστε ξανά.',
     callSecureError:'Δεν ήταν δυνατή η δημιουργία ιδιωτικής σύνδεσης. Εκτελέστε το νέο SQL του ECHO και απενεργοποιήστε τη δημόσια πρόσβαση στα Realtime κανάλια.',
     failedMessages:'Δεν ήταν δυνατή η φόρτωση των μηνυμάτων. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.', sent:'Το μήνυμα στάλθηκε.',
-    owner:'Πρόσβαση καθηγητών', ownerIntro:'Δώστε ή αφαιρέστε δικαιώματα καθηγητή από λογαριασμούς ECHO.',
+    owner:'Πίνακας ιδιοκτήτη', ownerIntro:'Διαχειριστείτε την πρόσβαση καθηγητών στους λογαριασμούς ECHO.',
     ownerNotice:'Μόνο για τον ιδιοκτήτη · Μόνο ο καθορισμένος λογαριασμός ECHO μπορεί να αλλάζει ρόλους.',
     makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
     student:'Μαθητής', professor:'Καθηγητής', noAccounts:'Δεν έχουν συνδεθεί ακόμη άλλοι λογαριασμοί ECHO.',
@@ -743,22 +743,35 @@ function startMessageRefresh() {
 async function loadForSession(session) {
   if (!session?.user || !supabase) return;
   user = session.user;
-  const emailOwner = OWNER_EMAILS.has((user.email || '').trim().toLowerCase());
-  // Database is authoritative; email matching is a safe UI fallback so the
-  // owner panel remains visible if the RPC grant itself is the problem.
-  const ownerCheck = await supabase.rpc('is_echo_owner');
-  isOwner = ownerCheck.data === true || emailOwner;
+
+  // Reveal the owner menu immediately for the designated sign-in address.
+  // Do not wait for a database RPC before showing the menu: a slow or
+  // unavailable RPC must not hide the owner's controls.
+  const email = (user.email || '').trim().toLowerCase();
+  const emailOwner = OWNER_EMAILS.has(email);
+  isOwner = emailOwner;
   document.getElementById('owner-tab').classList.toggle('hidden', !isOwner);
-  if (emailOwner && ownerCheck.error) {
-    status('owner-status', 'Owner check needs database attention: '+ownerCheck.error.message, true);
+
+  // Keep the database owner check for diagnostics, but never let it block
+  // the rest of the dashboard if the request fails.
+  try {
+    const ownerCheck = await supabase.rpc('is_echo_owner');
+    if (ownerCheck.data === true) isOwner = true;
+    if (emailOwner && ownerCheck.error) {
+      status('owner-status', 'Owner access is being shown for '+email+'. Database check: '+ownerCheck.error.message, true);
+    }
+  } catch (error) {
+    if (emailOwner) status('owner-status', 'Owner access is being shown for '+email+'. Database check failed: '+(error?.message || 'network error'), true);
   }
+  document.getElementById('owner-tab').classList.toggle('hidden', !isOwner);
+
   const {data, error} = await supabase.from('profiles')
     .select('id,display_name,role').eq('id', user.id).maybeSingle();
   profile = data || {id:user.id, display_name:user.email, role:'student'};
   if (error) {
-    status('announcement-status', tr('setup'), true);
-    status('messages-status', tr('setup'), true);
-    if (isOwner) status('owner-status', tr('setup'), true);
+    status('announcement-status', tr('setup')+' '+error.message, true);
+    status('messages-status', tr('setup')+' '+error.message, true);
+    if (isOwner) status('owner-status', 'Owner panel is visible, but profile loading failed: '+error.message, true);
     return;
   }
   document.getElementById('announcement-admin').classList.toggle('hidden', !professorMode());
