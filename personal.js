@@ -20,7 +20,7 @@ const words = {
     saveProfile:'Save profile', profileSaved:'Profile settings saved.', profileFailed:'Could not save profile.',
     nameRequired:'Enter a display name between 2 and 60 characters.',
     unreadAnnouncements:'Unread announcements', unreadMessages:'Unread private messages',
-    markRead:'Mark as read', open:'Open', noNotifications:'You are all caught up.',
+    markRead:'Mark as read', markAllRead:'Mark all as read', pin:'Pin', unpin:'Unpin', pinned:'Pinned', readAllDone:'All notifications marked as read.', pinSaved:'Notification pin updated.', open:'Open', noNotifications:'You are all caught up.',
     upcomingLessons:'Upcoming lessons', noUpcoming:'No upcoming lessons.',
     newAnnouncement:'New announcement', newMessage:'New private message',
     announcementRead:'Announcement marked as read.', messageRead:'Message marked as read.',
@@ -40,7 +40,7 @@ const words = {
     saveProfile:'Αποθήκευση προφίλ', profileSaved:'Οι ρυθμίσεις αποθηκεύτηκαν.', profileFailed:'Δεν ήταν δυνατή η αποθήκευση.',
     nameRequired:'Πληκτρολογήστε όνομα εμφάνισης από 2 έως 60 χαρακτήρες.',
     unreadAnnouncements:'Μη αναγνωσμένες ανακοινώσεις', unreadMessages:'Μη αναγνωσμένα προσωπικά μηνύματα',
-    markRead:'Σήμανση ως αναγνωσμένο', open:'Άνοιγμα', noNotifications:'Δεν υπάρχουν νέες ειδοποιήσεις.',
+    markRead:'Σήμανση ως αναγνωσμένο', markAllRead:'Σήμανση όλων ως αναγνωσμένων', pin:'Καρφίτσωμα', unpin:'Ξεκαρφίτσωμα', pinned:'Καρφιτσωμένο', readAllDone:'Όλες οι ειδοποιήσεις σημειώθηκαν ως αναγνωσμένες.', pinSaved:'Η καρφίτσα ενημερώθηκε.', open:'Άνοιγμα', noNotifications:'Δεν υπάρχουν νέες ειδοποιήσεις.',
     upcomingLessons:'Επόμενα μαθήματα', noUpcoming:'Δεν υπάρχουν επόμενα μαθήματα.',
     newAnnouncement:'Νέα ανακοίνωση', newMessage:'Νέο προσωπικό μήνυμα',
     announcementRead:'Η ανακοίνωση σημειώθηκε ως αναγνωσμένη.', messageRead:'Το μήνυμα σημειώθηκε ως αναγνωσμένο.',
@@ -82,7 +82,7 @@ if (!nav || !host) throw new Error('ECHO personal dashboard layout was not found
 const panelMarkup = [
   ['personal-calendar', 'calendar', '<div class="panel-heading"><div><h2 id="personal-calendar-title"></h2><p id="personal-calendar-intro"></p></div><button class="btn" id="personal-calendar-refresh" type="button"></button></div><div class="personal-calendar-toolbar"><button class="personal-month-nav" id="personal-month-prev" type="button" aria-label="Previous month">‹</button><strong id="personal-month-label"></strong><button class="personal-month-nav" id="personal-month-next" type="button" aria-label="Next month">›</button><button class="personal-today" id="personal-today" type="button"></button></div><div class="personal-weekdays" id="personal-weekdays"></div><div class="personal-calendar-grid" id="personal-calendar-grid"></div><section class="personal-day-detail"><h3 id="personal-selected-day"></h3><div id="personal-day-classes"></div></section>'],
   ['class-status', 'statusTab', '<div class="panel-heading"><div><h2 id="class-status-title"></h2><p id="class-status-intro"></p></div><button class="btn" id="class-status-refresh" type="button"></button></div><div class="personal-status-filters" id="personal-status-filters"></div><div class="personal-status-list" id="personal-status-list"></div>'],
-  ['notifications', 'notifications', '<div class="panel-heading"><div><h2 id="personal-notifications-title"></h2><p id="personal-notifications-intro"></p></div><button class="btn" id="personal-notifications-refresh" type="button"></button></div><div id="personal-notification-list" aria-live="polite"></div><p class="personal-data-status" id="personal-notification-status" role="status"></p>'],
+  ['notifications', 'notifications', '<div class="panel-heading"><div><h2 id="personal-notifications-title"></h2><p id="personal-notifications-intro"></p></div><button class="btn" id="personal-notifications-refresh" type="button"></button></div><div class="personal-notification-toolbar"><button class="personal-action personal-action-primary" id="personal-mark-all-read" type="button" hidden></button></div><div id="personal-notification-list" aria-live="polite"></div><p class="personal-data-status" id="personal-notification-status" role="status"></p>'],
   ['profile', 'profile', '<div class="panel-heading"><div><h2 id="personal-profile-title"></h2><p id="personal-profile-intro"></p></div></div><form class="personal-profile-card" id="personal-profile-form"><label for="personal-profile-name" id="personal-profile-name-label"></label><input id="personal-profile-name" type="text" minlength="2" maxlength="60" autocomplete="name" required><label for="personal-profile-email" id="personal-profile-email-label"></label><input id="personal-profile-email" type="email" readonly><p class="personal-profile-note" id="personal-profile-email-note"></p><label for="personal-profile-language" id="personal-profile-language-label"></label><select id="personal-profile-language"><option value="en"></option><option value="el"></option></select><button class="btn btn-dark" id="personal-profile-save" type="submit"></button><p class="personal-data-status" id="personal-profile-status" role="status"></p></form>']
 ];
 
@@ -131,6 +131,7 @@ function applyLanguage() {
   set('personal-notifications-title',t('notifications'));
   set('personal-notifications-intro',t('notificationsIntro'));
   set('personal-notifications-refresh',t('refresh'));
+  set('personal-mark-all-read',t('markAllRead'));
   set('personal-profile-title',t('profile'));
   set('personal-profile-intro',t('profileIntro'));
   set('personal-profile-name-label',t('displayName'));
@@ -253,16 +254,22 @@ function renderClassStatuses() {
   if (!rows.length) list.append(make('div','personal-empty',t('noClasses')));
   else rows.forEach(c=>list.append(classRow(c)));
 }
-function notificationCard(kind,title,description,time,actionText,action) {
-  const card = make('article','personal-notification');
+function notificationCard(title,description,time,actions=[],pinned=false,read=false) {
+  const card = make('article','personal-notification'+(pinned?' is-pinned':'')+(read?' is-read':''));
   const main = make('div','personal-notification-main');
   main.append(make('strong','',title));
+  if (pinned) main.append(make('span','personal-notification-pinned',t('pinned')));
   main.append(make('p','',description || ''));
   main.append(make('time','',fmtDate(time)+' · '+fmtTime(time)));
-  const button = make('button','personal-action',actionText);
-  button.type = 'button';
-  button.addEventListener('click',action);
-  card.append(main,button);
+  const actionArea = make('div','personal-notification-actions');
+  for (const action of actions) {
+    const button = make('button','personal-action'+(action.primary?' personal-action-primary':''),action.label);
+    button.type = 'button';
+    button.disabled = !!action.disabled;
+    button.addEventListener('click',action.onClick);
+    actionArea.append(button);
+  }
+  card.append(main,actionArea);
   return card;
 }
 function renderNotifications() {
@@ -270,33 +277,106 @@ function renderNotifications() {
   if (!list) return;
   list.replaceChildren();
   const rows = notificationRows;
-  const unreadCount = rows.filter(x=>x.kind==='announcement'||x.kind==='message').length;
+  const unreadCount = rows.filter(x=>(x.kind==='announcement'||x.kind==='message')&&!x.read).length;
   const tab = tabButtons.get('notifications');
   if (tab) tab.textContent = t('notifications')+(unreadCount?' ('+unreadCount+')':'');
+  const markAll = $('personal-mark-all-read');
+  if (markAll) {
+    markAll.textContent = t('markAllRead');
+    markAll.hidden = unreadCount===0;
+    markAll.disabled = unreadCount===0;
+  }
   if (!rows.length) {
     list.append(make('div','personal-empty',t('noNotifications')));
     return;
   }
   for (const item of rows) {
-    if (item.kind==='announcement') {
-      list.append(notificationCard(item.kind,t('newAnnouncement'),item.title,item.created_at,t('markRead'),async()=>{
-        const {error} = await db.from('announcement_reads').upsert(
-          {announcement_id:item.id,user_id:user.id},
-          {onConflict:'announcement_id,user_id',ignoreDuplicates:true}
-        );
-        if (error) { $('personal-notification-status').textContent=error.message; return; }
-        await loadNotifications();
-      }));
-    } else if (item.kind==='message') {
-      list.append(notificationCard(item.kind,t('newMessage'),item.preview,item.created_at,t('markRead'),async()=>{
-        const {error} = await db.from('private_messages').update({read_at:new Date().toISOString()})
-          .eq('id',item.id).eq('recipient_id',user.id);
-        if (error) { $('personal-notification-status').textContent=error.message; return; }
-        await loadNotifications();
-      }));
+    if (item.kind==='announcement'||item.kind==='message') {
+      const actions = [];
+      if (!item.read) actions.push({
+        label:t('markRead'),
+        primary:true,
+        onClick:()=>{void markNotificationRead(item);}
+      });
+      actions.push({
+        label:item.pinned?t('unpin'):t('pin'),
+        onClick:()=>{void toggleNotificationPin(item);}
+      });
+      const title=item.kind==='announcement'?t('newAnnouncement'):t('newMessage');
+      list.append(notificationCard(title,item.preview||item.title,item.created_at,actions,item.pinned,item.read));
     } else {
-      list.append(notificationCard(item.kind,t('upcomingLessons'),item.title,item.starts_at,t('open'),()=>activate('class-status')));
+      list.append(notificationCard(t('upcomingLessons'),item.title,item.starts_at,[{
+        label:t('open'),onClick:()=>activate('class-status')
+      }]));
     }
+  }
+}
+async function markNotificationRead(item) {
+  const status=$('personal-notification-status');
+  status.textContent='';
+  try {
+    let result;
+    if (item.kind==='announcement') {
+      result=await db.from('announcement_reads').upsert(
+        {announcement_id:item.id,user_id:user.id},
+        {onConflict:'announcement_id,user_id',ignoreDuplicates:true}
+      );
+    } else {
+      result=await db.from('private_messages').update({read_at:new Date().toISOString()})
+        .eq('id',item.id).eq('recipient_id',user.id);
+    }
+    if (result.error) throw result.error;
+    await loadNotifications();
+  } catch(error) {
+    status.textContent=error.message||t('failedNotifications');
+  }
+}
+async function toggleNotificationPin(item) {
+  const status=$('personal-notification-status');
+  status.textContent='';
+  try {
+    const field=item.kind==='announcement'?'announcement_id':'message_id';
+    let result;
+    if (item.pinned) {
+      result=await db.from('notification_pins').delete()
+        .eq('user_id',user.id).eq(field,item.id);
+    } else {
+      result=await db.from('notification_pins').insert({user_id:user.id,[field]:item.id});
+    }
+    if (result.error) throw result.error;
+    await loadNotifications();
+    status.textContent=t('pinSaved');
+  } catch(error) {
+    status.textContent=error.message||t('failedNotifications');
+  }
+}
+async function markAllNotificationsRead() {
+  if (!db||!user) return;
+  const button=$('personal-mark-all-read');
+  const status=$('personal-notification-status');
+  button.disabled=true;
+  status.textContent='';
+  try {
+    const announcementIds=notificationRows
+      .filter(x=>x.kind==='announcement'&&!x.read)
+      .map(x=>x.id);
+    const announcementPromise=announcementIds.length
+      ? db.from('announcement_reads').upsert(
+          announcementIds.map(id=>({announcement_id:id,user_id:user.id})),
+          {onConflict:'announcement_id,user_id',ignoreDuplicates:true}
+        )
+      : Promise.resolve({error:null});
+    const messagePromise=db.from('private_messages')
+      .update({read_at:new Date().toISOString()})
+      .eq('recipient_id',user.id).is('read_at',null);
+    const [announcementResult,messageResult]=await Promise.all([announcementPromise,messagePromise]);
+    if (announcementResult.error) throw announcementResult.error;
+    if (messageResult.error) throw messageResult.error;
+    await loadNotifications();
+    status.textContent=t('readAllDone');
+  } catch(error) {
+    status.textContent=error.message||t('failedNotifications');
+    button.disabled=false;
   }
 }
 async function loadNotifications() {
@@ -304,38 +384,64 @@ async function loadNotifications() {
   const status = $('personal-notification-status');
   status.textContent = '';
   try {
-    const [announcementResult,readResult,messageResult] = await Promise.all([
-      db.from('announcements').select('id,title,created_at,created_by').eq('published',true).order('created_at',{ascending:false}).limit(30),
+    const [announcementResult,readResult,messageResult,pinResult] = await Promise.all([
+      db.from('announcements').select('id,title,created_at,created_by').eq('published',true).order('created_at',{ascending:false}).limit(1000),
       db.from('announcement_reads').select('announcement_id').eq('user_id',user.id),
-      db.from('private_messages').select('id,sender_id,body,created_at').eq('recipient_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(30)
+      db.from('private_messages').select('id,sender_id,recipient_id,body,created_at,read_at')
+        .eq('recipient_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(1000),
+      db.from('notification_pins').select('announcement_id,message_id').eq('user_id',user.id)
     ]);
     if (announcementResult.error) throw announcementResult.error;
     if (readResult.error) throw readResult.error;
     if (messageResult.error) throw messageResult.error;
+    if (pinResult.error) throw pinResult.error;
+
     const readIds = new Set((readResult.data||[]).map(x=>x.announcement_id));
-    // Never turn an announcement authored by this account into its own unread notification.
-    const unreadAnnouncements = (announcementResult.data||[])
-      .filter(x=>x.created_by!==user.id && !readIds.has(x.id))
-      .map(x=>({...x,kind:'announcement'}));
-    const unreadMessages = messageResult.data||[];
+    const pinnedAnnouncementIds = new Set((pinResult.data||[]).map(x=>x.announcement_id).filter(Boolean));
+    const pinnedMessageIds = new Set((pinResult.data||[]).map(x=>x.message_id).filter(Boolean));
+
+    const announcementMap=new Map((announcementResult.data||[]).map(x=>[x.id,x]));
+    const missingAnnouncementIds=[...pinnedAnnouncementIds].filter(id=>!announcementMap.has(id));
+    if(missingAnnouncementIds.length){
+      const {data,error}=await db.from('announcements').select('id,title,created_at,created_by')
+        .eq('published',true).in('id',missingAnnouncementIds);
+      if(error)throw error;
+      for(const row of data||[])announcementMap.set(row.id,row);
+    }
+    const unreadAnnouncements=[...announcementMap.values()]
+      .filter(x=>((x.created_by!==user.id&&!readIds.has(x.id))||pinnedAnnouncementIds.has(x.id)))
+      .map(x=>({...x,kind:'announcement',read:readIds.has(x.id),pinned:pinnedAnnouncementIds.has(x.id)}));
+
+    const messageMap=new Map((messageResult.data||[]).map(x=>[x.id,x]));
+    const missingMessageIds=[...pinnedMessageIds].filter(id=>!messageMap.has(id));
+    if(missingMessageIds.length){
+      const {data,error}=await db.from('private_messages')
+        .select('id,sender_id,recipient_id,body,created_at,read_at')
+        .eq('recipient_id',user.id).in('id',missingMessageIds);
+      if(error)throw error;
+      for(const row of data||[])messageMap.set(row.id,row);
+    }
+    const visibleMessages=[...messageMap.values()]
+      .filter(x=>x.recipient_id===user.id&&(!x.read_at||pinnedMessageIds.has(x.id)));
     let senderNames = new Map();
-    if (unreadMessages.length) {
-      const ids = [...new Set(unreadMessages.map(x=>x.sender_id))];
-      const {data:senders} = await db.from('profiles').select('id,display_name').in('id',ids);
+    if (visibleMessages.length) {
+      const ids = [...new Set(visibleMessages.map(x=>x.sender_id))];
+      const {data:senders,error}=await db.from('profiles').select('id,display_name').in('id',ids);
+      if(error)throw error;
       senderNames = new Map((senders||[]).map(x=>[x.id,x.display_name]));
     }
-    const messageItems = unreadMessages.map(x=>({
-      kind:'message',id:x.id,created_at:x.created_at,
+    const messageItems = visibleMessages.map(x=>({
+      kind:'message',id:x.id,created_at:x.created_at,read:!!x.read_at,pinned:pinnedMessageIds.has(x.id),
       preview:(senderNames.get(x.sender_id)||t('professor'))+': '+String(x.body||'').slice(0,140)
     }));
     const upcoming = classes.filter(c=>classStatus(c)==='upcoming'&&new Date(c.starts_at).getTime()>Date.now())
       .sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,3)
       .map(c=>({kind:'upcoming',title:c.title+' · '+classTimeLabel(c),starts_at:c.starts_at}));
     notificationRows = [
-      ...unreadAnnouncements.map(x=>({...x,kind:'announcement'})),
+      ...unreadAnnouncements,
       ...messageItems,
       ...upcoming
-    ].sort((a,b)=>new Date(b.created_at||b.starts_at)-new Date(a.created_at||a.starts_at));
+    ].sort((a,b)=>(Number(!!b.pinned)-Number(!!a.pinned))||new Date(b.created_at||b.starts_at)-new Date(a.created_at||a.starts_at));
     renderNotifications();
   } catch (error) {
     status.textContent = error.message || t('failedNotifications');
@@ -402,6 +508,7 @@ async function boot(session) {
   if (notificationTimer) clearInterval(notificationTimer);
   notificationTimer=setInterval(()=>{void loadNotifications();},45000);
 }
+$('personal-mark-all-read').addEventListener('click',()=>{void markAllNotificationsRead();});
 for (const id of ['personal-calendar-refresh','class-status-refresh']) {
   $(id).addEventListener('click',()=>{void loadClasses().catch(e=>{$('class-status-title').textContent=t('failedClasses')+': '+e.message;});});
 }
