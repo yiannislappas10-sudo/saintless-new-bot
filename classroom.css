@@ -315,3 +315,5 @@
  #class-student-search{height:44px;font-size:16px}
  .class-student-selected-chip{font-size:11px}
 }
+
+.class-student-search-wrap{display:block;width:100%}
