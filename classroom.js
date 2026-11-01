@@ -275,7 +275,8 @@ function makeClassCard(c){
  const sub=document.createElement('p');sub.textContent=(c.subject||'')+' · '+fmt(c.ends_at);
  const people=document.createElement('p');people.className='class-card-people';people.textContent=(c.student_count??roster.length)+' '+t('studentCount')+(c.capacity?' · '+(c.student_count??roster.length)+'/'+c.capacity:'');
  const professor=document.createElement('p');professor.className='class-card-professor';professor.textContent=t('classProfessor')+': '+(c.professorName||'ECHO');
- main.append(h,sub,professor,people);
+ main.append(h,sub,professor);
+ if(professorMode())main.append(people);
  if(c.groupNames?.length){const groupsLine=document.createElement('p');groupsLine.className='class-card-groups';groupsLine.textContent=t('assignedGroups')+': '+c.groupNames.join(', ');main.append(groupsLine);}
  const meta=document.createElement('div');meta.className='class-card-meta';
  const badge=document.createElement('span');badge.className='class-state '+st;badge.textContent=t(st);meta.append(badge);
@@ -401,7 +402,7 @@ async function loadClasses(){
  classes=rows;renderClasses();
 }
 function groupCanManage(group){
- return !!group&&(isOwner|| (profile?.role==='professor'&&group.professor_id===user?.id));
+ return !!group&&((isOwner&&ownerPreviewRole!=='student')|| (profile?.role==='professor'&&group.professor_id===user?.id));
 }
 async function loadGroups(){
  const status=document.getElementById('class-group-status');
@@ -1155,7 +1156,8 @@ async function showDetail(id){
   roster.append(p);
  }
  if(!c.roster?.length){const p=document.createElement('p');p.textContent=t('noRoster');roster.append(p);}
- detail.append(head,info,details,stateLine,desc,roster);
+ detail.append(head,info,details,stateLine,desc);
+ if(canManage)detail.append(roster);
  const materialArea=document.createElement('div');materialArea.className='class-detail-roster';const materialsTitle=document.createElement('strong');materialsTitle.textContent=t('materials');materialArea.append(materialsTitle);
  const {data:materials,error:materialsError}=await db.from('class_materials').select('id,title,description,resource_url,created_at').eq('class_id',c.id).order('created_at',{ascending:false});
  if(materialsError){const m=document.createElement('p');m.textContent=materialsError.message; m.className='class-form-status error';materialArea.append(m);}
