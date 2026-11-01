@@ -1411,18 +1411,24 @@ async function boot(session){
  ownerPreviewRole=null;
  user=session.user;isOwner=OWNER_EMAILS.has((user.email||'').toLowerCase());
  const {data,error}=await db.from('profiles').select('id,display_name,role').eq('id',user.id).maybeSingle();
+ if(error)throw error;
  profile=data||{id:user.id,role:'student'};
  tab.classList.toggle('hidden',!user);testTab.classList.toggle('hidden',!isOwner);
- document.getElementById('class-new').classList.toggle('hidden',!professorMode());
- if(professorMode()){await loadStudents();if(isOwner)await loadProfessors();}else{students=[];professors=[];}
- await loadClasses().catch(e=>{document.getElementById('class-status').textContent=e.message||t('loadError');document.getElementById('class-status').classList.add('error');});
+ if(professorMode()){
+  await loadStudents();
+  if(isOwner)await loadProfessors();else professors=[];
+ }else{students=[];professors=[];}
+ await loadGroups();
+ showClassSection('lessons');
+ await loadClasses();
+ applyLanguage();
 }
 async function start(){
  try{
   const cfg=await fetch('/config',{cache:'no-store'}).then(r=>r.json());
   db=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   const {data}=await db.auth.getSession();if(data.session)await boot(data.session);
-  db.auth.onAuthStateChange((_event,session)=>{if(session)void boot(session);else{user=null;profile=null;classes=[];renderClasses();}});
+  db.auth.onAuthStateChange((_event,session)=>{if(session)void boot(session).catch(error=>{document.getElementById('class-status').textContent=error?.message||t('loadError');document.getElementById('class-status').classList.add('error');});else{user=null;profile=null;classes=[];groups=[];groupMemberships=[];students=[];professors=[];renderClasses();renderGroups();}});
  }catch(e){document.getElementById('class-status').textContent=e.message||t('loadError');}
 }
 window.addEventListener('storage',e=>{if(e.key==='echo-language')applyLanguage();});
