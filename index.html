@@ -123,6 +123,55 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
 @media(max-width:760px){.topbar{height:64px;padding:0 18px}.app-content{display:block;padding:30px 18px 55px}.app-sidebar{position:static;padding:0 0 24px}.sidebar-heading{margin-bottom:8px}.app-main{padding-top:0}.grid{grid-template-columns:1fr}.welcome{font-size:27px}.nav-tabs{flex-direction:row;width:100%;gap:3px;overflow-x:auto;justify-content:flex-start}.tab{flex:0 0 auto;width:auto;min-height:38px;padding:0 11px;font-size:11px}.tab:hover{transform:translateY(-1px)}.account-email{max-width:105px}.panel-heading{align-items:flex-start;flex-direction:column}.footer{padding:18px}.info-card{min-height:0}}
 @media(max-width:420px){#login-shell{padding:28px 22px}.login-main{max-width:360px}.brand{margin-bottom:38px}h1{font-size:27px}.topbar-right{gap:9px}.signout{padding:0 9px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Mobile refinement: compact navigation, stable scrolling and lighter effects */
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+#app-shell{min-height:100dvh}
+.app-content,.app-main,.panel{min-width:0}
+@media(max-width:760px){
+  html,body{overflow-x:hidden}
+  #app-shell{overflow:clip}
+  .topbar{position:sticky;top:0;z-index:50;height:60px;min-height:60px;padding:0 13px;gap:9px;background:rgba(255,255,255,.94)!important;border-bottom:1px solid rgba(0,0,0,.06);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .topbar-right{min-width:0;gap:6px}
+  .topbar-right .language-switch{min-height:38px;padding:0 9px;font-size:9px}
+  .account-email{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+  .avatar{width:38px;height:38px;flex:none}
+  .signout{min-height:38px;padding:0 9px;font-size:10px}
+  .app-content{padding:18px 13px calc(34px + env(safe-area-inset-bottom))}
+  .app-sidebar{padding:0 0 15px}
+  .sidebar-heading{margin-bottom:7px}
+  .nav-tabs{position:sticky;top:60px;z-index:30;display:flex;gap:5px;width:calc(100% + 26px);margin:0 -13px;padding:8px 13px 10px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(0,0,0,.055)}
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .tab{min-height:42px;flex:0 0 auto;padding:0 14px;border-radius:7px;white-space:nowrap;touch-action:pan-x}
+  .tab:hover{transform:none}
+  .app-main{padding-top:2px}
+  .panel-heading{gap:9px;margin-bottom:16px}
+  .panel-heading h2{font-size:21px;line-height:1.2}
+  .panel-heading p{font-size:12px;line-height:1.5}
+  .grid{gap:12px}
+  .info-card,.join-card,.empty{border-radius:11px}
+  .info-card{padding:16px}
+  .btn,button{touch-action:manipulation}
+  .btn{min-height:42px}
+  input,select,textarea{max-width:100%;font-size:16px!important}
+  .footer{padding:15px 13px calc(15px + env(safe-area-inset-bottom))}
+  .ambient-bg .orb{filter:blur(42px);opacity:.24;animation:none!important;will-change:auto}
+  .ambient-bg{background-size:44px 44px}
+}
+@media(max-width:420px){
+  .topbar{padding:0 10px}
+  .topbar-right{gap:5px}
+  .topbar-right .language-switch{padding:0 7px;font-size:8px}
+  .account-email{max-width:58px;font-size:9px}
+  .signout{padding:0 7px;font-size:9px}
+  .app-content{padding-right:11px;padding-left:11px}
+  .nav-tabs{width:calc(100% + 22px);margin-right:-11px;margin-left:-11px;padding-right:11px;padding-left:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .ambient-bg .orb{animation:none!important}
+}
+
 </style>
 </head>
 <body>
