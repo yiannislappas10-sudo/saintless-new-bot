@@ -28,7 +28,7 @@ const text = {
     failedMessages:'Could not load private messages. Run the ECHO setup SQL first.', sent:'Message sent.',
     owner:'Professor access', ownerIntro:'Choose which ECHO accounts can teach and manage classes.',
     ownerNotice:'Select an account below and choose “Make professor”. Professor access can be removed here at any time. Only designated ECHO owners can make these changes.',
-    searchStudents:'Search students…', noMatchingStudents:'No matching students.', selectedCount:'selected', makeProfessor:'Make professor', removeProfessor:'Remove professor access',
+    searchStudents:'Search students…', noMatchingStudents:'No matching students.', searchContacts:'Search conversations…', noMatchingContacts:'No matching conversations.', selectedCount:'selected', makeProfessor:'Make professor', removeProfessor:'Remove professor access',
     student:'Student', professor:'Professor', noAccounts:'No other ECHO accounts have signed in yet.',
     failedOwner:'Could not load accounts. Run the ECHO setup SQL first.',
     roleUpdated:'Account permissions updated.', denied:'This account is not permitted to manage roles.',
@@ -55,7 +55,7 @@ const text = {
     failedMessages:'Δεν ήταν δυνατή η φόρτωση των μηνυμάτων. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.', sent:'Το μήνυμα στάλθηκε.',
     owner:'Πρόσβαση καθηγητών', ownerIntro:'Επιλέξτε ποιοι λογαριασμοί ECHO μπορούν να διδάσκουν και να διαχειρίζονται μαθήματα.',
     ownerNotice:'Επιλέξτε έναν λογαριασμό και πατήστε «Ορισμός ως καθηγητή». Η πρόσβαση μπορεί να αφαιρεθεί από εδώ. Μόνο ο ιδιοκτήτης ECHO μπορεί να κάνει αλλαγές.',
-    searchStudents:'Αναζήτηση μαθητών…', noMatchingStudents:'Δεν βρέθηκαν μαθητές.', selectedCount:'επιλεγμένοι', makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
+    searchStudents:'Αναζήτηση μαθητών…', noMatchingStudents:'Δεν βρέθηκαν μαθητές.', searchContacts:'Αναζήτηση συνομιλιών…', noMatchingContacts:'Δεν βρέθηκαν συνομιλίες.', selectedCount:'επιλεγμένοι', makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
     student:'Μαθητής', professor:'Καθηγητής', noAccounts:'Δεν έχουν συνδεθεί ακόμη άλλοι λογαριασμοί ECHO.',
     failedOwner:'Δεν ήταν δυνατή η φόρτωση λογαριασμών. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
     roleUpdated:'Τα δικαιώματα του λογαριασμού ενημερώθηκαν.', denied:'Αυτός ο λογαριασμός δεν έχει δικαίωμα διαχείρισης ρόλων.',
@@ -76,7 +76,7 @@ const el = (tag, cls, value) => {
 
 const css = document.createElement('link');
 css.rel = 'stylesheet';
-css.href = '/features.css?v=20261101-student-search';
+css.href = '/features.css?v=20261101-everywhere-search';
 document.head.append(css);
 
 const nav = document.querySelector('.nav-tabs');
@@ -121,6 +121,7 @@ const panelsMarkup = `
   <div class="messages-layout">
     <aside class="message-contacts">
       <div class="message-contacts-heading" id="message-contacts-heading"></div>
+      <input id="message-contact-search" class="message-contact-search" type="search" autocomplete="off" placeholder="Search conversations…" aria-label="Search conversations">
       <div id="message-contacts-list"></div>
     </aside>
     <section class="message-conversation">
@@ -181,6 +182,8 @@ function applyFeatureLanguage() {
   set('messages-heading', tr('messages'));
   set('messages-intro', tr('messagesIntro'));
   set('message-contacts-heading', tr('conversations'));
+   const contactSearch=document.getElementById('message-contact-search');
+   if(contactSearch){contactSearch.placeholder=tr('searchContacts');contactSearch.setAttribute('aria-label',tr('searchContacts'));}
   set('message-thread-heading', tr('selectConversation'));
   document.getElementById('message-input').placeholder = tr('messagePlaceholder');
   set('message-send', tr('send'));
@@ -814,7 +817,16 @@ async function loadUnreadCounts() {
 function renderContacts() {
   const list = document.getElementById('message-contacts-list');
   list.replaceChildren();
-  for (const contact of contacts) {
+  const query=(document.getElementById('message-contact-search')?.value||'').trim().toLocaleLowerCase();
+  const visibleContacts=contacts.filter(contact=>
+    !query||[contact.display_name,contact.role].some(value=>String(value||'').toLocaleLowerCase().includes(query))
+  );
+  if(!visibleContacts.length){
+    list.append(el('p','message-empty-note',query?tr('noMatchingContacts'):tr('noContacts')));
+    syncCallControls();
+    return;
+  }
+  for (const contact of visibleContacts) {
     const count = unreadCounts.get(contact.id) || 0;
     const button = el('button', 'message-contact' + (contact.id === contactId ? ' active' : ''));
     button.type = 'button';
@@ -1080,6 +1092,7 @@ function resetFeatureState() {
   document.getElementById('owner-tab').classList.add('hidden');
   document.getElementById('announcement-admin').classList.add('hidden');
   document.getElementById('message-contacts-list').replaceChildren();
+  document.getElementById('message-contact-search').value='';
   document.getElementById('message-list').replaceChildren(el('p', 'message-empty', tr('selectConversation')));
   document.getElementById('message-input').disabled = true;
   document.getElementById('message-send').disabled = true;
@@ -1088,6 +1101,7 @@ function resetFeatureState() {
   resetAnnouncementEditor();
 }
 
+document.getElementById('message-contact-search').addEventListener('input',renderContacts);
 document.getElementById('announcement-audience').addEventListener('change', () => {
   if(document.getElementById('announcement-audience').value!=='selected')announcementStudentSearch='';
   renderAnnouncementStudents();
