@@ -645,32 +645,38 @@ function addWeeksLocal(value,weeks){
 }
 async function saveClass(event){
  event.preventDefault();
+ if(!professorMode())return;
  const status=document.getElementById('class-form-status');status.textContent='';status.classList.remove('error');
  const title=document.getElementById('class-title').value.trim();
  const subject=document.getElementById('class-subject').value.trim();
  if(!title){status.textContent=t('noTitle');return;}
  let starts_at,ends_at;
- try{starts_at=toAthensISO(document.getElementById('class-start').value);ends_at=toAthensISO(document.getElementById('class-end').value);}
- catch{status.textContent=t('invalidTime');return;}
+ try{
+  starts_at=toAthensISO(document.getElementById('class-start').value);
+  ends_at=toAthensISO(document.getElementById('class-end').value);
+ }catch{status.textContent=t('invalidTime');return;}
  if(new Date(ends_at)<=new Date(starts_at)){status.textContent=t('invalidTime');return;}
  const demo=isOwner&&document.getElementById('class-demo').checked;
- const picked=demo?[]:[...document.querySelectorAll('#class-student-options input:checked')].map(x=>x.value);
- const demoNames=demo?[...new Set(document.getElementById('class-demo-names').value.split('\n').map(x=>x.trim()).filter(Boolean))]:[];
- const allow=document.getElementById('class-open').checked;
- if((demo?!demoNames.length:!picked.length)&&!allow){status.textContent=t('studentsRequired');return;}
+ const groupIds=demo?[]:[...document.querySelectorAll('#class-group-options input:checked')].map(box=>box.value);
+ const publicationStatus=demo?'draft':document.getElementById('class-publication').value;
+ const demoNames=demo?[...new Set(document.getElementById('class-demo-names').value.split('\n').map(value=>value.trim()).filter(Boolean))]:[];
+ if(demo&&!demoNames.length){status.textContent=t('studentsRequired');return;}
+ if(!demo&&publicationStatus==='published'&&!groupIds.length){status.textContent=t('groupsRequired');return;}
  const capInput=document.getElementById('class-capacity').value.trim();
  const capacity=capInput?Number(capInput):null;
  if(capacity!==null&&(!Number.isInteger(capacity)||capacity<1||capacity>5000)){status.textContent=t('capacityReached');return;}
- if(capacity!==null&&!demo&&picked.length>capacity){status.textContent=t('capacityReached');return;}
+ const assignedStudentIds=new Set(groupMemberships.filter(member=>groupIds.includes(member.group_id)).map(member=>member.student_id));
+ if(capacity!==null&&!demo&&assignedStudentIds.size>capacity){status.textContent=t('capacityReached');return;}
  const base={
   title,subject,
   description:document.getElementById('class-description').value.trim(),
   image_url:document.getElementById('class-image').value.trim()||null,
-  starts_at,ends_at,timezone:ZONE,allow_unassigned:allow,
+  starts_at,ends_at,timezone:ZONE,allow_unassigned:false,
   is_demo:demo,status:'scheduled',created_by:user.id,
   professor_id:demo?user.id:(isOwner?document.getElementById('class-professor').value:user.id),
   classroom_location:document.getElementById('class-location').value.trim(),
-  capacity,lifecycle_status:document.getElementById('class-lifecycle').value
+  capacity,lifecycle_status:document.getElementById('class-lifecycle').value,
+  publication_status:publicationStatus
  };
  const button=document.getElementById('class-save');button.disabled=true;
  try{
@@ -684,8 +690,13 @@ async function saveClass(event){
     const {error:demoDelError}=await db.from('class_demo_participants').delete().eq('class_id',selected);if(demoDelError)throw demoDelError;
    }else{
     const repeat=document.getElementById('class-repeat').checked?Math.max(2,Math.min(16,Number(document.getElementById('class-repeat-count').value)||4)):1;
-    const records=Array.from({length:repeat},(_,i)=>({...base,starts_at:toAthensISO(addWeeksLocal(document.getElementById('class-start').value,i)),ends_at:toAthensISO(addWeeksLocal(document.getElementById('class-end').value,i))}));
-    const {data,error}=await db.from('classes').insert(records).select('id');if(error)throw error;savedRows=data||[];
+    const records=Array.from({length:repeat},(_,i)=>({
+     ...base,
+     starts_at:toAthensISO(addWeeksLocal(document.getElementById('class-start').value,i)),
+     ends_at:toAthensISO(addWeeksLocal(document.getElementById('class-end').value,i))
+    }));
+    const {data,error}=await db.from('classes').insert(records).select('id');
+    if(error)throw error;savedRows=data||[];
    }
    if(demoNames.length){
     const demoRows=savedRows.flatMap(row=>demoNames.map(display_name=>({class_id:row.id,display_name})));
@@ -693,18 +704,20 @@ async function saveClass(event){
    }
   }else{
    const repeat=selected?1:(document.getElementById('class-repeat').checked?Math.max(2,Math.min(16,Number(document.getElementById('class-repeat-count').value)||4)):1);
-   const classData={...base};
-   const {error}=await db.rpc('save_echo_class',{
-    target_class_id:selected,
-    class_data:classData,
-    student_ids:picked,
+   const {error}=await db.rpc('save_echo_lesson',{
+    target_lesson_id:selected,
+    lesson_data:base,
+    group_ids:groupIds,
     recurrence_weeks:repeat
    });
    if(error)throw error;
   }
-  closeEditor();status.textContent=t('saved');await loadClasses();
- }catch(error){status.textContent=error?.message||t('saveError');status.classList.add('error');}
- finally{button.disabled=false;}
+  closeEditor();
+  status.textContent=publicationStatus==='published'?t('published'):t('draft');
+  await loadClasses();
+ }catch(error){
+  status.textContent=error?.message||t('saveError');status.classList.add('error');
+ }finally{button.disabled=false;}
 }
 async function callApi(path,payload){
  const {data:{session},error}=await db.auth.getSession();
