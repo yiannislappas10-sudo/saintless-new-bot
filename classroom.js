@@ -77,7 +77,7 @@ function toAthensISO(value){
   return result.toISOString();
 }
 function fromISO(value){const p=athensParts(new Date(value));return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute;}
-let db=null,user=null,profile=null,isOwner=false,classes=[],students=[],professors=[],selected=null,selectedDemo=false,view='week',cursor=new Date(),ownerPreviewRole=null,waitingRoomTimer=null;
+let db=null,user=null,profile=null,isOwner=false,classes=[],students=[],professors=[],groups=[],groupMemberships=[],selected=null,selectedDemo=false,selectedGroup=null,view='week',classSection='lessons',cursor=new Date(),ownerPreviewRole=null,waitingRoomTimer=null;
 const nav=document.querySelector('.nav-tabs');
 nav.querySelector('[data-tab="schedule"]')?.remove();
 nav.querySelector('[data-tab="join"]')?.remove();
