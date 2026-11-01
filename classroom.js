@@ -124,7 +124,7 @@ panel.innerHTML=`
   <input id="class-group-search-filter" class="class-group-search-filter" type="search" placeholder="${t('groupSearch')}" autocomplete="off">
   <div id="class-group-editor" class="class-group-editor hidden">
    <form id="class-group-form">
-    <div class="class-form-grid"><label>${t('groupName')}<input id="class-group-name" maxlength="100" required></label><label class="class-form-wide">${t('groupDescription')}<textarea id="class-group-description" rows="2" maxlength="2000"></textarea></label></div>
+    <div class="class-form-grid"><label>${t('groupName')}<input id="class-group-name" maxlength="100" required></label><label class="class-form-wide">${t('groupDescription')}<textarea id="class-group-description" rows="2" maxlength="2000"></textarea></label><label id="class-group-professor-wrap">${t('assignedProfessor')}<select id="class-group-professor"></select></label></div>
     <div class="class-student-picker" id="class-group-member-picker"><div class="class-picker-heading"><strong>${t('members')}</strong><span id="class-group-member-count"></span></div><div id="class-group-member-selection" class="class-student-selection"></div><div class="class-student-search-wrap"><input id="class-group-member-search" type="search" placeholder="${t('memberSearch')}" autocomplete="off" aria-autocomplete="list" aria-controls="class-group-member-options"><div id="class-group-member-options" role="listbox" aria-multiselectable="true"></div></div></div>
     <p id="class-group-form-status" class="class-form-status" role="status"></p>
     <div class="class-form-actions"><button type="button" class="btn" id="class-group-cancel">${t('cancel')}</button><button type="submit" class="btn btn-dark" id="class-group-save">${t('save')}</button></div>
