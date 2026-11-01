@@ -222,3 +222,26 @@
  .class-room-reaction{right:12px;bottom:150px;font-size:21px}
 }
 @media(prefers-reduced-motion:reduce){.class-room-emoji,.class-room-reaction{animation:none;transition:none}}
+
+/* Centralized class management */
+.class-management-filters{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:9px;margin:0 0 15px}
+.class-management-filters input,.class-management-filters select{width:100%;height:39px;padding:0 11px;border:1px solid #dedede;border-radius:6px;background:rgba(255,255,255,.9);color:#222;font-size:11px}
+.class-manager-toolbar{margin-bottom:11px}
+.class-manager-toolbar .class-view-switch button[data-view="list"]{margin-left:4px}
+.class-card-professor{color:#777!important;font-size:10px!important}
+.class-card-meta .lifecycle-active{border-color:#c9dfd3;background:#f3faf5;color:#28704e}
+.class-card-meta .lifecycle-archived{background:#f1f1f1;color:#888}
+.class-picker-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+.class-picker-heading strong{margin:0}
+#class-student-search{display:block;width:100%;height:36px;margin-bottom:9px;padding:0 10px;border:1px solid #dedede;border-radius:5px;background:#fff;font-size:11px}
+#class-student-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:220px;overflow:auto;padding:2px}
+.class-student-option.hidden{display:none!important}
+.class-roster-member{padding:0;border:0;background:transparent;color:#333;font:inherit;font-size:12px;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:#ccc;text-underline-offset:3px}
+.class-roster-member:hover{color:#000;text-decoration-color:#555}
+.class-state.lifecycle-upcoming{border-color:#e7e2d3;background:#fbfaf5;color:#76663b}
+@media(max-width:760px){
+ .class-management-filters{grid-template-columns:1fr}
+ #class-student-options{grid-template-columns:1fr}
+ .class-manager-toolbar .class-view-switch{max-width:100%;overflow-x:auto}
+ .class-picker-heading{align-items:flex-start}
+}
