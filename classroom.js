@@ -891,6 +891,7 @@ async function leaveRoom({automatic=false}={}){
 
 async function showDetail(id){
  const c=classes.find(x=>x.id===id);if(!c)return;
+ const canManage=canManageClass(c);
  const detail=document.getElementById('class-detail');detail.classList.remove('hidden');detail.replaceChildren();
  const head=document.createElement('div');head.className='class-detail-head';
  const title=document.createElement('h3');title.textContent=c.title;
@@ -900,17 +901,25 @@ async function showDetail(id){
  }
  const desc=document.createElement('p');desc.textContent=c.description||c.subject;
  const state=classStatus(c),stateLine=document.createElement('p');stateLine.className='class-detail-meta';stateLine.textContent=t(state)+' · '+t('classProfessor')+': '+(c.professorName||'ECHO');
- const info=document.createElement('p');info.textContent=fmt(c.starts_at)+' – '+fmt(c.ends_at)+' · '+c.subject;
+ const info=document.createElement('p');info.textContent=t('scheduleLabel')+': '+fmt(c.starts_at)+' – '+fmt(c.ends_at)+' · '+c.subject;
+ const details=document.createElement('p');details.textContent=(c.classroom_location?t('classLocation')+': '+c.classroom_location+' · ':'')+(c.capacity?t('capacity')+': '+(c.roster||[]).filter(x=>x.id).length+'/'+c.capacity+' · ':'')+t(c.lifecycle_status==='active'?'activeStatus':c.lifecycle_status==='archived'?'archivedStatus':'upcomingStatus');
  const roster=document.createElement('div');roster.className='class-detail-roster';const rosterTitle=document.createElement('strong');rosterTitle.textContent=t('roster');roster.append(rosterTitle);
- for(const person of c.roster||[]){const p=document.createElement('p');p.textContent=person.display_name;roster.append(p);}
+ for(const person of c.roster||[]){
+  const p=document.createElement('p');
+  if(person.id){
+   const button=document.createElement('button');button.type='button';button.className='class-roster-member';button.textContent=person.display_name;
+   button.addEventListener('click',()=>window.echoOpenProfile?.(person.id));p.append(button);
+  }else p.textContent=person.display_name;
+  roster.append(p);
+ }
  if(!c.roster?.length){const p=document.createElement('p');p.textContent=t('noRoster');roster.append(p);}
- detail.append(head,info,stateLine,desc,roster);
+ detail.append(head,info,details,stateLine,desc,roster);
  const materialArea=document.createElement('div');materialArea.className='class-detail-roster';const materialsTitle=document.createElement('strong');materialsTitle.textContent=t('materials');materialArea.append(materialsTitle);
  const {data:materials,error:materialsError}=await db.from('class_materials').select('id,title,description,resource_url,created_at').eq('class_id',c.id).order('created_at',{ascending:false});
  if(materialsError){const m=document.createElement('p');m.textContent=materialsError.message; m.className='class-form-status error';materialArea.append(m);}
  else if(!materials?.length){const m=document.createElement('p');m.textContent=t('noMaterials');materialArea.append(m);}
  else for(const item of materials){const p=document.createElement('p');const a=document.createElement('a');a.href=item.resource_url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=item.title;p.append(a);if(item.description)p.append(document.createTextNode(' — '+item.description));materialArea.append(p);}
- if(professorMode()){
+ if(canManage){
   const add=document.createElement('form');add.className='class-material-form';
   const nm=document.createElement('input');nm.placeholder=t('materialTitle');nm.maxLength=160;nm.required=true;
   const url=document.createElement('input');url.type='url';url.placeholder=t('materialURL');url.required=true;
@@ -918,7 +927,7 @@ async function showDetail(id){
   add.append(nm,url,submit);add.addEventListener('submit',async ev=>{ev.preventDefault();let parsed;try{parsed=new URL(url.value)}catch{return;}if(parsed.protocol!=='https:')return;submit.disabled=true;const {error}=await db.from('class_materials').insert({class_id:c.id,title:nm.value.trim(),resource_url:parsed.href,created_by:user.id});submit.disabled=false;if(error){alert(error.message);return;}showDetail(c.id);});materialArea.append(add);
  }
  detail.append(materialArea);
- if(professorMode()){
+ if(canManage){
   const attendance=document.createElement('div');attendance.className='class-detail-roster';const ah=document.createElement('strong');ah.textContent=t('attendance');attendance.append(ah);
   const {data:records,error:attendanceError}=await db.rpc('get_echo_class_attendance',{target_class_id:c.id});
   if(attendanceError){const p=document.createElement('p');p.textContent=attendanceError.message;attendance.append(p);}
@@ -927,7 +936,7 @@ async function showDetail(id){
   detail.append(attendance);
  }
  const roomActions=document.createElement('div');roomActions.className='class-detail-actions';
- if(professorMode()){
+ if(canManage){
   const start=document.createElement('button');start.type='button';start.className='btn btn-dark';start.textContent=c.liveRoom?t('join'):t('startClass');
   start.disabled=state==='cancelled'||state==='completed'||c.is_demo;
   start.addEventListener('click',async()=>{
@@ -974,7 +983,7 @@ async function showDetail(id){
   roomActions.append(waiting);
  }
  detail.append(roomActions);
- if(professorMode()){
+ if(canManage){
   const actions=document.createElement('div');actions.className='class-detail-actions';
   if(c.status!=='cancelled'&&state!=='completed'){
    const cancel=document.createElement('button');cancel.className='btn';cancel.type='button';cancel.textContent=t('cancelClass');
@@ -991,9 +1000,21 @@ async function showDetail(id){
    };
    actions.append(cancel);
   }
+  const archive=document.createElement('button');archive.className='btn';archive.type='button';archive.textContent=c.lifecycle_status==='archived'?t('unarchive'):t('archive');
+  archive.onclick=async()=>{
+   archive.disabled=true;
+   const nextStatus=c.lifecycle_status==='archived'?'upcoming':'archived';
+   const {error}=await db.from('classes').update({lifecycle_status:nextStatus,updated_at:new Date().toISOString()}).eq('id',c.id);
+   if(error){archive.disabled=false;alert(error.message);return;}
+   if(nextStatus==='archived'&&c.liveRoom){
+    try{await callApi('/api/classroom/end',{classId:c.id});if(activeRoom?.classId===c.id)await leaveRoom({automatic:true});}
+    catch(error){alert(error.message);}
+   }
+   await loadClasses();void showDetail(c.id);
+  };
   const edit=document.createElement('button');edit.className='btn';edit.type='button';edit.textContent=t('edit');edit.onclick=()=>openEditor(c);
   const del=document.createElement('button');del.className='btn class-danger';del.type='button';del.textContent=t('delete');del.onclick=async()=>{if(!confirm(t('confirmDelete')))return;const {error}=await db.from('classes').delete().eq('id',c.id);if(error){alert(error.message);return;}detail.classList.add('hidden');await loadClasses();};
-  actions.append(edit,del);detail.append(actions);
+  actions.append(archive,edit,del);detail.append(actions);
  }
  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
