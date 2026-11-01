@@ -89,6 +89,8 @@ const host=document.querySelector('.app-main');
 const panel=document.createElement('section');panel.className='panel';panel.id='panel-classes';
 panel.innerHTML=`
  <div class="panel-heading"><div><h2>${t('title')}</h2><p>${t('intro')}</p></div><button class="btn btn-dark class-primary-action" id="class-new">${t('create')}</button></div>
+ <div class="class-section-tabs"><button type="button" id="class-lessons-tab" class="active">${t('lessonsTab')}</button><button type="button" id="class-groups-tab">${t('groupsTab')}</button></div>
+ <section id="class-lessons-section">
  <div class="class-toolbar class-manager-toolbar"><div class="class-view-switch"><button type="button" data-view="day">${t('day')}</button><button type="button" data-view="week" class="active">${t('week')}</button><button type="button" data-view="month">${t('month')}</button><button type="button" data-view="list">${t('list')}</button></div><div class="class-date-nav"><button type="button" id="class-prev" aria-label="Previous period">‹</button><strong id="class-period"></strong><button type="button" id="class-next" aria-label="Next period">›</button></div></div>
  <div class="class-management-filters"><input id="class-search" type="search" placeholder="${t('searchClasses')}" autocomplete="off"><select id="class-lifecycle-filter" aria-label="${t('lifecycleStatus')}"><option value="">${t('allStatuses')}</option><option value="active">${t('activeStatus')}</option><option value="upcoming">${t('upcomingStatus')}</option><option value="archived">${t('archivedStatus')}</option></select></div>
  <div id="class-editor" class="class-editor hidden"><form id="class-form">
@@ -103,10 +105,11 @@ panel.innerHTML=`
    <label>${t('location')}<input id="class-location" maxlength="160"></label>
    <label>${t('capacity')}<input id="class-capacity" type="number" min="1" max="5000" step="1"></label>
    <label>${t('lifecycleStatus')}<select id="class-lifecycle"><option value="upcoming">${t('upcomingStatus')}</option><option value="active">${t('activeStatus')}</option><option value="archived">${t('archivedStatus')}</option></select></label>
+   <label>${t('published')}<select id="class-publication"><option value="draft">${t('draft')}</option><option value="published">${t('published')}</option></select></label>
   </div>
-  <div class="class-student-picker" id="class-real-student-picker"><div class="class-picker-heading"><strong>${t('students')}</strong><span id="class-student-count"></span></div><div id="class-student-selection" class="class-student-selection"></div><div class="class-student-search-wrap"><input id="class-student-search" type="search" placeholder="${t('studentSearch')}" autocomplete="off" aria-autocomplete="list" aria-controls="class-student-options"><div id="class-student-options" role="listbox" aria-multiselectable="true"></div></div></div>
+  <div class="class-student-picker" id="class-group-picker"><div class="class-picker-heading"><strong>${t('assignToClasses')}</strong><span id="class-group-count"></span></div><div id="class-group-selection" class="class-student-selection"></div><div class="class-student-search-wrap"><input id="class-group-search" type="search" placeholder="${t('groupSearch')}" autocomplete="off" aria-autocomplete="list" aria-controls="class-group-options"><div id="class-group-options" role="listbox" aria-multiselectable="true"></div></div><p id="class-group-summary" class="class-form-status"></p></div>
   <div class="class-demo-picker hidden" id="class-demo-picker"><label>${t('demoStudents')}<textarea id="class-demo-names" rows="3" maxlength="1200" placeholder="Demo Student 1&#10;Demo Student 2"></textarea></label></div>
-  <div class="class-form-options"><label class="class-inline"><input id="class-open" type="checkbox"> Allow students not assigned to this class</label>
+  <div class="class-form-options">
    <label class="class-inline"><input id="class-demo" type="checkbox"> ${t('demo')}</label>
    <label class="class-inline"><input id="class-repeat" type="checkbox"> ${t('recurrence')} <input id="class-repeat-count" type="number" min="2" max="16" value="4" class="class-repeat-count"></label>
   </div>
@@ -114,7 +117,22 @@ panel.innerHTML=`
   <div class="class-form-actions"><button type="button" class="btn" id="class-cancel">${t('cancel')}</button><button type="submit" class="btn btn-dark" id="class-save">${t('save')}</button></div>
  </form></div>
  <div id="class-list" class="class-list" aria-live="polite"></div><p class="class-status" id="class-status" role="status"></p>
- <div id="class-detail" class="class-detail hidden"></div>`;
+ <div id="class-detail" class="class-detail hidden"></div>
+ </section>
+ <section id="class-groups-section" class="hidden">
+  <div class="class-groups-heading"><div><h3 id="class-groups-title">${t('groupManagerTitle')}</h3><p id="class-groups-intro">${t('groupsIntro')}</p></div><button type="button" class="btn btn-dark" id="class-group-new">${t('newGroup')}</button></div>
+  <input id="class-group-search-filter" class="class-group-search-filter" type="search" placeholder="${t('groupSearch')}" autocomplete="off">
+  <div id="class-group-editor" class="class-group-editor hidden">
+   <form id="class-group-form">
+    <div class="class-form-grid"><label>${t('groupName')}<input id="class-group-name" maxlength="100" required></label><label class="class-form-wide">${t('groupDescription')}<textarea id="class-group-description" rows="2" maxlength="2000"></textarea></label></div>
+    <div class="class-student-picker" id="class-group-member-picker"><div class="class-picker-heading"><strong>${t('members')}</strong><span id="class-group-member-count"></span></div><div id="class-group-member-selection" class="class-student-selection"></div><div class="class-student-search-wrap"><input id="class-group-member-search" type="search" placeholder="${t('memberSearch')}" autocomplete="off" aria-autocomplete="list" aria-controls="class-group-member-options"><div id="class-group-member-options" role="listbox" aria-multiselectable="true"></div></div></div>
+    <p id="class-group-form-status" class="class-form-status" role="status"></p>
+    <div class="class-form-actions"><button type="button" class="btn" id="class-group-cancel">${t('cancel')}</button><button type="submit" class="btn btn-dark" id="class-group-save">${t('save')}</button></div>
+   </form>
+  </div>
+  <div id="class-group-list" class="class-group-list" aria-live="polite"></div>
+  <p class="class-status" id="class-group-status" role="status"></p>
+ </section>`;
 const testing=document.createElement('section');testing.className='panel';testing.id='panel-testing';
 testing.innerHTML=`<div class="panel-heading"><div><h2>${t('testTitle')}</h2><p>${t('testIntro')}</p></div><div class="class-test-actions"><button class="btn" id="class-speaker-check">${t('speakerOutput')}</button><button class="btn btn-dark" id="class-run-checks">${t('runChecks')}</button></div></div><div class="class-preview-controls"><button type="button" class="btn" id="class-preview-student">${t('previewStudent')}</button><button type="button" class="btn" id="class-preview-professor">${t('previewProfessor')}</button><button type="button" class="btn hidden" id="class-preview-end">${t('endPreview')}</button><p id="class-preview-banner" class="hidden">${t('previewBanner')}</p></div><div class="class-test-results" id="class-test-results"></div>`;
 host.append(panel,testing);
