@@ -299,3 +299,19 @@
   .class-card,.class-calendar-event,.class-view-switch button,.class-date-nav button,.class-primary-action{transition:none}
 }
 
+
+
+/* Searchable student selector */
+.class-student-search-wrap{position:relative}
+.class-student-selection{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.class-student-selected-chip{max-width:100%;padding:4px 8px;border:1px solid #e6e6e6;border-radius:5px;background:#f8f8f8;color:#555;font-size:10px;overflow-wrap:anywhere}
+.class-student-selected-chip.more{background:#222;border-color:#222;color:#fff}
+#class-student-options{display:none;position:absolute;top:calc(100% + 5px);right:0;left:0;z-index:40;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:260px;overflow:auto;padding:9px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;box-shadow:0 14px 32px rgba(0,0,0,.12)}
+.class-student-search-wrap:focus-within #class-student-options{display:grid}
+#class-student-search{height:42px;margin:0;border-radius:7px;font-size:14px}
+.class-student-option{min-width:0}
+@media(max-width:760px){
+ #class-student-options{grid-template-columns:1fr;max-height:44vh}
+ #class-student-search{height:44px;font-size:16px}
+ .class-student-selected-chip{font-size:11px}
+}
