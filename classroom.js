@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const classroomStyle = document.createElement('link');
 classroomStyle.rel = 'stylesheet';
-classroomStyle.href = '/classroom.css?v=20261101-mobile-smooth';
+classroomStyle.href = '/classroom.css?v=20261101-student-search';
 document.head.append(classroomStyle);
 
 const OWNER_EMAILS = new Set(['yiannislappas8@gmail.com', 'yiannislappas10@gmail.com']);
@@ -102,7 +102,7 @@ panel.innerHTML=`
    <label>${t('capacity')}<input id="class-capacity" type="number" min="1" max="5000" step="1"></label>
    <label>${t('lifecycleStatus')}<select id="class-lifecycle"><option value="upcoming">${t('upcomingStatus')}</option><option value="active">${t('activeStatus')}</option><option value="archived">${t('archivedStatus')}</option></select></label>
   </div>
-  <div class="class-student-picker" id="class-real-student-picker"><div class="class-picker-heading"><strong>${t('students')}</strong><span id="class-student-count"></span></div><input id="class-student-search" type="search" placeholder="${t('studentSearch')}" autocomplete="off"><div id="class-student-options"></div></div>
+  <div class="class-student-picker" id="class-real-student-picker"><div class="class-picker-heading"><strong>${t('students')}</strong><span id="class-student-count"></span></div><div id="class-student-selection" class="class-student-selection"></div><div class="class-student-search-wrap"><input id="class-student-search" type="search" placeholder="${t('studentSearch')}" autocomplete="off" aria-autocomplete="list" aria-controls="class-student-options"><div id="class-student-options" role="listbox" aria-multiselectable="true"></div></div></div>
   <div class="class-demo-picker hidden" id="class-demo-picker"><label>${t('demoStudents')}<textarea id="class-demo-names" rows="3" maxlength="1200" placeholder="Demo Student 1&#10;Demo Student 2"></textarea></label></div>
   <div class="class-form-options"><label class="class-inline"><input id="class-open" type="checkbox"> Allow students not assigned to this class</label>
    <label class="class-inline"><input id="class-demo" type="checkbox"> ${t('demo')}</label>
@@ -339,10 +339,18 @@ async function loadClasses(){
  classes=rows;renderClasses();
 }
 function updateStudentCount(){
- const picked=document.querySelectorAll('#class-student-options input:checked').length;
+ const checked=[...document.querySelectorAll('#class-student-options input:checked')];
+ const picked=checked.length;
  const total=students.length;
  const count=document.getElementById('class-student-count');
  if(count)count.textContent=picked+' '+t('selectedCount')+' · '+total+' '+t('students').toLowerCase();
+ const selected=document.getElementById('class-student-selection');
+ if(selected){
+  selected.replaceChildren();
+  const names=checked.map(box=>students.find(student=>student.id===box.value)?.display_name||'Student');
+  names.slice(0,5).forEach(name=>{const chip=document.createElement('span');chip.className='class-student-selected-chip';chip.textContent=name;selected.append(chip);});
+  if(names.length>5){const more=document.createElement('span');more.className='class-student-selected-chip more';more.textContent='+'+(names.length-5);selected.append(more);}
+ }
 }
 function filterStudentPicker(){
  const q=(document.getElementById('class-student-search')?.value||'').trim().toLowerCase();
@@ -361,6 +369,7 @@ function filterStudentPicker(){
 }
 function buildStudentPicker(assignedIds=[]){
  const opts=document.getElementById('class-student-options');opts.replaceChildren();
+ const search=document.getElementById('class-student-search');if(search)search.value='';
  const assigned=new Set(assignedIds);
  for(const student of students){
   const label=document.createElement('label');label.className='class-student-option';label.dataset.search=(student.display_name||'Student').toLowerCase();
