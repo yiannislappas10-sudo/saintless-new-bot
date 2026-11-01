@@ -1145,7 +1145,8 @@ async function showDetail(id){
  const state=classStatus(c),stateLine=document.createElement('p');stateLine.className='class-detail-meta';stateLine.textContent=t(state)+' · '+t('classProfessor')+': '+(c.professorName||'ECHO');
  const info=document.createElement('p');info.textContent=t('scheduleLabel')+': '+fmt(c.starts_at)+' – '+fmt(c.ends_at)+' · '+c.subject;
  const details=document.createElement('p');details.textContent=(c.classroom_location?t('classLocation')+': '+c.classroom_location+' · ':'')+(canManage&&c.capacity?t('capacity')+': '+(c.student_count??(c.roster||[]).filter(x=>x.id).length)+'/'+c.capacity+' · ':'')+t(c.lifecycle_status==='active'?'activeStatus':c.lifecycle_status==='archived'?'archivedStatus':'upcomingStatus');
- if(c.groupNames?.length){const assigned=document.createElement('p');assigned.className='class-detail-meta';assigned.textContent=t('assignedGroups')+': '+c.groupNames.join(', ');detail.append(assigned);}
+ let assignedGroupsLine=null;
+ if(c.groupNames?.length){assignedGroupsLine=document.createElement('p');assignedGroupsLine.className='class-detail-meta';assignedGroupsLine.textContent=t('assignedGroups')+': '+c.groupNames.join(', ');}
  const roster=document.createElement('div');roster.className='class-detail-roster';const rosterTitle=document.createElement('strong');rosterTitle.textContent=t('roster');roster.append(rosterTitle);
  for(const person of c.roster||[]){
   const p=document.createElement('p');
@@ -1157,6 +1158,7 @@ async function showDetail(id){
  }
  if(!c.roster?.length){const p=document.createElement('p');p.textContent=t('noRoster');roster.append(p);}
  detail.append(head,info,details,stateLine,desc);
+ if(assignedGroupsLine)detail.append(assignedGroupsLine);
  if(canManage)detail.append(roster);
  const materialArea=document.createElement('div');materialArea.className='class-detail-roster';const materialsTitle=document.createElement('strong');materialsTitle.textContent=t('materials');materialArea.append(materialsTitle);
  const {data:materials,error:materialsError}=await db.from('class_materials').select('id,title,description,resource_url,created_at').eq('class_id',c.id).order('created_at',{ascending:false});
