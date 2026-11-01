@@ -77,7 +77,7 @@ function make(tag, className='', text='') {
 }
 function dateValue(value) {
   if(!value)return '';
-  try{return new Date(value+'T00:00:00').toISOString().slice(0,10);}catch{return '';}
+  try{return String(value).slice(0,10);}catch{return '';}
 }
 function ageFromBirthday(value) {
   if(!value)return null;
@@ -363,7 +363,7 @@ function renderDirectory() {
     const button=make('button','echo-profile-directory-card');
     button.type='button';button.append(make('strong','',row.display_name||'ECHO student'));
     button.append(make('span','',row.class_count+' '+t('assigned')));
-    button.addEventListener('click',async()=>{setView('mine');await loadProfile(row.profile_id);});
+    button.addEventListener('click',async()=>{$('profile-back').hidden=false;setView('mine');await loadProfile(row.profile_id);});
     list.append(button);
   }
 }
