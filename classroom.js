@@ -338,74 +338,146 @@ async function loadClasses(){
  }
  classes=rows;renderClasses();
 }
+function updateStudentCount(){
+ const picked=document.querySelectorAll('#class-student-options input:checked').length;
+ const total=students.length;
+ const count=document.getElementById('class-student-count');
+ if(count)count.textContent=picked+' '+t('selectedCount')+' · '+total+' '+t('students').toLowerCase();
+}
+function filterStudentPicker(){
+ const q=(document.getElementById('class-student-search')?.value||'').trim().toLowerCase();
+ const options=document.querySelectorAll('#class-student-options .class-student-option');
+ let visible=0;
+ for(const option of options){
+  const show=option.dataset.search.includes(q);
+  option.classList.toggle('hidden',!show);
+  if(show)visible++;
+ }
+ let empty=document.getElementById('class-student-no-match');
+ if(!visible){
+  if(!empty){empty=document.createElement('p');empty.id='class-student-no-match';empty.className='class-form-status';document.getElementById('class-student-options').append(empty);}
+  empty.textContent=t('noMatchingStudents');
+ }else empty?.remove();
+}
+function buildStudentPicker(assignedIds=[]){
+ const opts=document.getElementById('class-student-options');opts.replaceChildren();
+ const assigned=new Set(assignedIds);
+ for(const student of students){
+  const label=document.createElement('label');label.className='class-student-option';label.dataset.search=(student.display_name||'Student').toLowerCase();
+  const box=document.createElement('input');box.type='checkbox';box.value=student.id;box.checked=assigned.has(student.id);
+  box.addEventListener('change',updateStudentCount);
+  const span=document.createElement('span');span.textContent=student.display_name||'Student';
+  label.append(box,span);opts.append(label);
+ }
+ updateStudentCount();filterStudentPicker();
+}
+function fillProfessorPicker(c=null){
+ const wrap=document.getElementById('class-professor-wrap'),select=document.getElementById('class-professor');
+ if(!isOwner){wrap.classList.add('hidden');select.replaceChildren();return;}
+ wrap.classList.remove('hidden');select.replaceChildren();
+ const choices=professors.length?professors:[{id:user.id,display_name:profile?.display_name||'Primary Owner'}];
+ for(const item of choices){const option=document.createElement('option');option.value=item.id;option.textContent=item.display_name;select.append(option);}
+ const wanted=c?.professor_id||user.id;
+ select.value=choices.some(x=>x.id===wanted)?wanted:(choices[0]?.id||user.id);
+}
 function openEditor(c=null){
- selected=c?.id||null;const form=document.getElementById('class-form');form.reset();
+ selected=c?.id||null;selectedDemo=!!c?.is_demo;
+ const form=document.getElementById('class-form');form.reset();
  document.getElementById('class-editor').classList.remove('hidden');
  document.getElementById('class-form-status').textContent='';
  document.getElementById('class-title').value=c?.title||'';
  document.getElementById('class-subject').value=c?.subject||'';
  document.getElementById('class-description').value=c?.description||'';
  document.getElementById('class-image').value=c?.image_url||'';
- const now=new Date();const start=c?.starts_at?fromISO(c.starts_at):fromISO(new Date(now.getTime()+3600000).toISOString());
+ const now=new Date();
+ const start=c?.starts_at?fromISO(c.starts_at):fromISO(new Date(now.getTime()+3600000).toISOString());
  const end=c?.ends_at?fromISO(c.ends_at):fromISO(new Date(now.getTime()+7200000).toISOString());
  document.getElementById('class-start').value=start;document.getElementById('class-end').value=end;
+ document.getElementById('class-location').value=c?.classroom_location||'';
+ document.getElementById('class-capacity').value=c?.capacity??'';
+ document.getElementById('class-lifecycle').value=c?.lifecycle_status||'upcoming';
  document.getElementById('class-open').checked=!!c?.allow_unassigned;
  const professorDemoPreview=isOwner&&ownerPreviewRole==='professor';
  document.getElementById('class-demo').checked=professorDemoPreview||!!c?.is_demo&&isOwner;
  document.getElementById('class-demo').disabled=!isOwner||professorDemoPreview;
  document.getElementById('class-demo-names').value=(c?.is_demo?(c.roster||[]).map(x=>x.display_name).join('\n'):'');
- toggleDemoEditor();
- const assigned=new Set((c?.roster||[]).map(x=>x.id).filter(Boolean));const opts=document.getElementById('class-student-options');opts.replaceChildren();
- if(!students.length){opts.textContent=t('noStudents');}
- for(const student of students){const label=document.createElement('label');label.className='class-student-option';const box=document.createElement('input');box.type='checkbox';box.value=student.id;box.checked=assigned.has(student.id);const span=document.createElement('span');span.textContent=student.display_name||'Student';label.append(box,span);opts.append(label);}
  document.getElementById('class-repeat').checked=false;document.getElementById('class-repeat').disabled=!!c;
  document.getElementById('class-repeat-count').disabled=!!c;
+ fillProfessorPicker(c);
+ buildStudentPicker((c?.roster||[]).map(x=>x.id).filter(Boolean));
+ toggleDemoEditor();
  document.getElementById('class-save').textContent=c?t('save'):t('create');
  document.getElementById('class-editor').scrollIntoView({behavior:'smooth',block:'start'});
 }
-function closeEditor(){document.getElementById('class-editor').classList.add('hidden');selected=null;}
+function closeEditor(){document.getElementById('class-editor').classList.add('hidden');selected=null;selectedDemo=false;}
 function addWeeksLocal(value,weeks){
  const [date,time]=value.split('T'),[y,m,d]=date.split('-').map(Number);
  const next=new Date(Date.UTC(y,m-1,d+weeks*7));
  return next.toISOString().slice(0,10)+'T'+time;
 }
 async function saveClass(event){
- event.preventDefault();const status=document.getElementById('class-form-status');status.textContent='';
- const title=document.getElementById('class-title').value.trim(),subject=document.getElementById('class-subject').value.trim();
+ event.preventDefault();
+ const status=document.getElementById('class-form-status');status.textContent='';status.classList.remove('error');
+ const title=document.getElementById('class-title').value.trim();
+ const subject=document.getElementById('class-subject').value.trim();
  if(!title){status.textContent=t('noTitle');return;}
- let starts_at,ends_at;try{starts_at=toAthensISO(document.getElementById('class-start').value);ends_at=toAthensISO(document.getElementById('class-end').value);}catch{status.textContent=t('invalidTime');return;}
+ let starts_at,ends_at;
+ try{starts_at=toAthensISO(document.getElementById('class-start').value);ends_at=toAthensISO(document.getElementById('class-end').value);}
+ catch{status.textContent=t('invalidTime');return;}
  if(new Date(ends_at)<=new Date(starts_at)){status.textContent=t('invalidTime');return;}
  const demo=isOwner&&document.getElementById('class-demo').checked;
  const picked=demo?[]:[...document.querySelectorAll('#class-student-options input:checked')].map(x=>x.value);
  const demoNames=demo?[...new Set(document.getElementById('class-demo-names').value.split('\n').map(x=>x.trim()).filter(Boolean))]:[];
  const allow=document.getElementById('class-open').checked;
  if((demo?!demoNames.length:!picked.length)&&!allow){status.textContent=t('studentsRequired');return;}
- const base={title,subject,description:document.getElementById('class-description').value.trim(),image_url:document.getElementById('class-image').value.trim()||null,starts_at,ends_at,timezone:ZONE,allow_unassigned:allow,is_demo:demo,status:'scheduled',created_by:user.id};
+ const capInput=document.getElementById('class-capacity').value.trim();
+ const capacity=capInput?Number(capInput):null;
+ if(capacity!==null&&(!Number.isInteger(capacity)||capacity<1||capacity>5000)){status.textContent=t('capacityReached');return;}
+ if(capacity!==null&&!demo&&picked.length>capacity){status.textContent=t('capacityReached');return;}
+ const base={
+  title,subject,
+  description:document.getElementById('class-description').value.trim(),
+  image_url:document.getElementById('class-image').value.trim()||null,
+  starts_at,ends_at,timezone:ZONE,allow_unassigned:allow,
+  is_demo:demo,status:'scheduled',created_by:user.id,
+  professor_id:demo?user.id:(isOwner?document.getElementById('class-professor').value:user.id),
+  classroom_location:document.getElementById('class-location').value.trim(),
+  capacity,lifecycle_status:document.getElementById('class-lifecycle').value
+ };
  const button=document.getElementById('class-save');button.disabled=true;
  try{
-  let savedRows=[];
-  if(selected){
-   const {data,error}=await db.from('classes').update({...base,created_by:undefined,updated_at:new Date().toISOString()}).eq('id',selected).select('id').single();
-   if(error)throw error;savedRows=[data];
-   const {error:delError}=await db.from('class_enrollments').delete().eq('class_id',selected);if(delError)throw delError;
-   const {error:demoDelError}=await db.from('class_demo_participants').delete().eq('class_id',selected);if(demoDelError)throw demoDelError;
+  if(demo){
+   let savedRows=[];
+   if(selected){
+    const update={...base,updated_at:new Date().toISOString()};delete update.created_by;
+    const {data,error}=await db.from('classes').update(update).eq('id',selected).select('id').single();
+    if(error)throw error;savedRows=[data];
+    const {error:delError}=await db.from('class_enrollments').delete().eq('class_id',selected);if(delError)throw delError;
+    const {error:demoDelError}=await db.from('class_demo_participants').delete().eq('class_id',selected);if(demoDelError)throw demoDelError;
+   }else{
+    const repeat=document.getElementById('class-repeat').checked?Math.max(2,Math.min(16,Number(document.getElementById('class-repeat-count').value)||4)):1;
+    const records=Array.from({length:repeat},(_,i)=>({...base,starts_at:toAthensISO(addWeeksLocal(document.getElementById('class-start').value,i)),ends_at:toAthensISO(addWeeksLocal(document.getElementById('class-end').value,i))}));
+    const {data,error}=await db.from('classes').insert(records).select('id');if(error)throw error;savedRows=data||[];
+   }
+   if(demoNames.length){
+    const demoRows=savedRows.flatMap(row=>demoNames.map(display_name=>({class_id:row.id,display_name})));
+    const {error}=await db.from('class_demo_participants').insert(demoRows);if(error)throw error;
+   }
   }else{
-   const repeat=document.getElementById('class-repeat').checked?Math.max(2,Math.min(16,Number(document.getElementById('class-repeat-count').value)||4)):1;
-   const records=Array.from({length:repeat},(_,i)=>({...base,starts_at:toAthensISO(addWeeksLocal(document.getElementById('class-start').value,i)),ends_at:toAthensISO(addWeeksLocal(document.getElementById('class-end').value,i))}));
-   const {data,error}=await db.from('classes').insert(records).select('id');if(error)throw error;savedRows=data||[];
-  }
-  if(demo&&demoNames.length){
-   const demoRows=savedRows.flatMap(r=>demoNames.map(display_name=>({class_id:r.id,display_name})));
-   const {error}=await db.from('class_demo_participants').insert(demoRows);if(error)throw error;
-  }else if(picked.length){
-   const enrollments=savedRows.flatMap(r=>picked.map(student_id=>({class_id:r.id,student_id,assigned_by:user.id,is_demo:false})));
-   const {error}=await db.from('class_enrollments').insert(enrollments);if(error)throw error;
+   const repeat=selected?1:(document.getElementById('class-repeat').checked?Math.max(2,Math.min(16,Number(document.getElementById('class-repeat-count').value)||4)):1);
+   const classData={...base};
+   const {error}=await db.rpc('save_echo_class',{
+    target_class_id:selected,
+    class_data:classData,
+    student_ids:picked,
+    recurrence_weeks:repeat
+   });
+   if(error)throw error;
   }
   closeEditor();status.textContent=t('saved');await loadClasses();
- }catch(error){status.textContent=(error?.message||t('saveError'));status.classList.add('error');}
+ }catch(error){status.textContent=error?.message||t('saveError');status.classList.add('error');}
  finally{button.disabled=false;}
 }
-
 async function callApi(path,payload){
  const {data:{session},error}=await db.auth.getSession();
  if(error||!session?.access_token)throw new Error(t('mediaDenied'));
