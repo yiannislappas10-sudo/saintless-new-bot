@@ -296,7 +296,7 @@ async function loadProfile(targetUserId) {
     $('profile-enrollment-date').readOnly=!academicEditable;
     $('profile-notes').readOnly=!(isOwner()||(staff&&!currentTarget));
     ['profile-full-name','profile-birthday','profile-gender','profile-phone','profile-biography'].forEach(id=>$(id).disabled=!record.can_manage);
-    $('profile-picture-file').disabled=!record.can_manage;
+    $('profile-picture-file').disabled=!(record.can_manage&&currentTarget);
     $('profile-visibility').classList.toggle('hidden',!record.can_manage);
     $('profile-save').classList.toggle('hidden',!record.can_manage);
     $('profile-save').disabled=false;$('profile-save').textContent=t('save');
