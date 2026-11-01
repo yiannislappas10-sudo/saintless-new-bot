@@ -680,10 +680,16 @@ async function openConversation(id) {
   await loadMessages();
 }
 async function loadContacts() {
-  const {data, error} = await supabase.from('profiles').select('id,display_name,role').order('display_name');
-  if (error) { status('messages-status', tr('failedMessages')+' '+error.message, true); return; }
-  const requiredRole = professorMode() ? 'student' : 'professor';
-  contacts = (data || []).filter(item => item.id !== user.id && item.role === requiredRole);
+  const {data, error} = await supabase.rpc('get_echo_message_contacts');
+  if (error) {
+    status('messages-status', tr('failedMessages') + ' ' + error.message, true);
+    return;
+  }
+  contacts = (data || []).map(item => ({
+    id: item.user_id,
+    display_name: item.display_name,
+    role: item.role
+  }));
   if (!contacts.some(item => item.id === contactId)) contactId = contacts[0]?.id || null;
   await loadUnreadCounts();
   if (!contacts.length) {
@@ -700,12 +706,23 @@ async function loadContacts() {
 }
 async function loadOwnerAccounts() {
   const list = document.getElementById('owner-role-list');
-  list.replaceChildren();
-  if (!isOwner) { status('owner-status', tr('denied'), true); return; }
+  list.replaceChildren(el('p', 'message-empty-note', 'Loading accounts…'));
+  status('owner-status', '');
   const {data, error} = await supabase.rpc('get_echo_role_candidates');
-  if (error) { status('owner-status', tr('failedOwner')+' '+error.message, true); return; }
-  const candidates = (data || []).filter(item => !OWNER_EMAILS.has((item.email || '').toLowerCase()));
-  if (!candidates.length) { list.append(el('p', 'message-empty-note', tr('noAccounts'))); return; }
+  if (error) {
+    list.replaceChildren(el('p', 'message-empty-note', error.message));
+    status('owner-status', tr('failedOwner') + ' ' + error.message, true);
+    return;
+  }
+  const candidates = (data || []).filter(item =>
+    !OWNER_EMAILS.has((item.email || '').trim().toLowerCase())
+  );
+  if (!candidates.length) {
+    list.replaceChildren(el('p', 'message-empty-note', tr('noAccounts')));
+    status('owner-status', '');
+    return;
+  }
+  status('owner-status', candidates.length + (candidates.length === 1 ? ' eligible account.' : ' eligible accounts.'));
   for (const account of candidates) {
     const row = el('div', 'owner-role-item');
     const details = el('div', 'owner-role-name');
@@ -826,15 +843,20 @@ document.getElementById('message-form').addEventListener('submit', async event =
   sendingPrivateMessage = true;
   const button = document.getElementById('message-send');
   button.disabled = true;
-  const {error} = await supabase.from('private_messages').insert({
-    sender_id:user.id, recipient_id:contactId, body
-  });
-  sendingPrivateMessage = false;
-  button.disabled = false;
-  if (error) { status('messages-status', error.message, true); return; }
-  document.getElementById('message-input').value = '';
-  status('messages-status', tr('sent'));
-  await loadMessages();
+  try {
+    const {error} = await supabase.from('private_messages').insert({
+      sender_id:user.id, recipient_id:contactId, body
+    });
+    if (error) throw error;
+    document.getElementById('message-input').value = '';
+    status('messages-status', tr('sent'));
+    await loadMessages();
+  } catch (error) {
+    status('messages-status', 'Could not send message: ' + (error?.message || 'Network error'), true);
+  } finally {
+    sendingPrivateMessage = false;
+    button.disabled = !contactId || !contacts.some(item => item.id === contactId);
+  }
 });
 document.getElementById('start-call').addEventListener('click', () => { void startVoiceCall(); });
 document.getElementById('end-call').addEventListener('click', () => {
@@ -857,6 +879,7 @@ function activateTab(name) {
 nav.querySelectorAll('[data-tab]').forEach(button => {
   button.addEventListener('click', () => activateTab(button.dataset.tab));
 });
+document.getElementById('owner-tab').addEventListener('click', () => { void loadOwnerAccounts(); });
 
 // Notifications dispatch these events so the target item opens in its full panel.
 window.addEventListener('echo:open-announcement', async event => {
