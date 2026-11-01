@@ -28,7 +28,7 @@ const copy = {
     visBiography:'Biography', visStudentId:'Student ID', visEnrollment:'Enrollment date', visClasses:'Assigned classes',
     noBio:'No biography added.', statusActive:'Active', statusUpcoming:'Upcoming', statusArchived:'Archived',
     assigned:'assigned classes', classProfessor:'Professor', location:'Location', schedule:'Schedule',
-    student:'Student', professor:'Professor', ageUnknown:'—'
+    student:'Student', professor:'Professor', owner:'Primary Owner', ageUnknown:'—'
   },
   el: {
     openProfile:'Άνοιγμα προφίλ', profile:'Προφίλ', subtitle:'Προσωπικά στοιχεία και τα μαθήματά σας.',
@@ -50,7 +50,7 @@ const copy = {
     visBiography:'Βιογραφικό', visStudentId:'Κωδικός μαθητή', visEnrollment:'Ημερομηνία εγγραφής', visClasses:'Ανατεθειμένα μαθήματα',
     noBio:'Δεν έχει προστεθεί βιογραφικό.', statusActive:'Ενεργό', statusUpcoming:'Προσεχές', statusArchived:'Αρχειοθετημένο',
     assigned:'ανατεθειμένα μαθήματα', classProfessor:'Καθηγητής', location:'Τοποθεσία', schedule:'Πρόγραμμα',
-    student:'Μαθητής', professor:'Καθηγητής', ageUnknown:'—'
+    student:'Μαθητής', professor:'Καθηγητής', owner:'Κύριος Ιδιοκτήτης', ageUnknown:'—'
   }
 };
 const t = key => copy[lang()][key] || copy.en[key] || key;
@@ -279,7 +279,7 @@ async function loadProfile(targetUserId) {
     const currentTarget=targetUserId===user.id;
     const staff= isOwner() || authProfile?.role==='professor';
     const academicEditable=staff&&(isOwner()||!currentTarget);
-    $('profile-role-chip').textContent=record.role==='professor'?t('professor'):t('student');
+    $('profile-role-chip').textContent=(isOwner()&&currentTarget)?t('owner'):(record.role==='professor'?t('professor'):t('student'));
     $('profile-permission-note').textContent=academicEditable?'':(currentTarget?t('permission'):'');
     $('profile-full-name').value=record.full_name||record.display_name||'';
     $('profile-birthday').value=dateValue(record.birthday);
