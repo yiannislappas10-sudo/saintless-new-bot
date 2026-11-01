@@ -317,3 +317,47 @@
 }
 
 .class-student-search-wrap{display:block;width:100%}
+
+/* ECHO class groups and private lesson targeting */
+.class-section-tabs{display:flex;gap:6px;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid #e8e8e8}
+.class-section-tabs button{min-height:38px;padding:0 14px;border:1px solid transparent;border-radius:7px;background:transparent;color:#777;font-size:11px;font-weight:700;cursor:pointer}
+.class-section-tabs button.active{border-color:#e2e2e2;background:#fff;color:#171717;box-shadow:0 1px 3px #00000008}
+.class-groups-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 15px}
+.class-groups-heading h3{margin:0;color:#202020;font-size:16px;font-weight:700}
+.class-groups-heading p{margin:5px 0 0;color:#858585;font-size:11px;line-height:1.5}
+.class-groups-heading .btn{width:auto;min-height:40px;padding:0 15px;white-space:nowrap}
+.class-group-search-filter{display:block;width:100%;height:42px;margin:0 0 13px;padding:0 12px;border:1px solid #dedede;border-radius:7px;background:#fff;color:#222;font:inherit;font-size:13px}
+.class-group-editor{margin:0 0 17px;padding:19px;border:1px solid #e7e7e7;border-radius:11px;background:rgba(255,255,255,.92)}
+.class-group-editor .class-form-grid{margin-bottom:14px}
+.class-group-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.class-group-card{display:grid;gap:12px;min-width:0;padding:16px;border:1px solid #e8e8e8;border-radius:10px;background:rgba(255,255,255,.9)}
+.class-group-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
+.class-group-card-main{display:grid;gap:5px;min-width:0}
+.class-group-card-main h3{margin:0;color:#202020;font-size:14px;font-weight:750;overflow-wrap:anywhere}
+.class-group-card-main p{margin:0;color:#6f6f6f;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.class-group-card-meta{color:#8a8a8a;font-size:10px;line-height:1.5}
+.class-group-edit{width:auto;min-height:34px;padding:0 11px;flex:none}
+.class-group-roster{display:flex;flex-wrap:wrap;gap:6px;padding-top:10px;border-top:1px solid #eee}
+.class-group-member-chip{max-width:100%;padding:5px 8px;border:1px solid #e5e5e5;border-radius:6px;background:#fff;color:#555;font-size:10px;text-align:left;overflow-wrap:anywhere;cursor:pointer}
+.class-group-member-chip:hover{border-color:#aaa;color:#111}
+.class-group-search-wrap{position:relative;min-width:0}
+#class-group-search,#class-group-member-search{display:block;width:100%;height:42px;margin:0;padding:0 11px;border:1px solid #dedede;border-radius:7px;background:#fff;color:#222;font:inherit;font-size:14px}
+#class-group-options,#class-group-member-options{display:none;position:absolute;top:calc(100% + 5px);right:0;left:0;z-index:45;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:270px;overflow:auto;padding:9px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;box-shadow:0 14px 32px rgba(0,0,0,.12)}
+.class-student-search-wrap:focus-within #class-group-options,.class-student-search-wrap:focus-within #class-group-member-options{display:grid}
+#class-group-options .class-student-option,#class-group-member-options .class-student-option{min-width:0;min-height:40px;cursor:pointer}
+#class-group-options .class-student-option.hidden,#class-group-member-options .class-student-option.hidden{display:none!important}
+.class-card-groups{margin:3px 0 0;color:#777!important;font-size:10px!important;line-height:1.5}
+.class-card-people{font-variant-numeric:tabular-nums}
+@media(max-width:760px){
+ .class-section-tabs{position:sticky;top:110px;z-index:15;background:rgba(255,255,255,.94);padding:7px 0 9px;overflow-x:auto;scrollbar-width:none}
+ .class-section-tabs::-webkit-scrollbar{display:none}
+ .class-section-tabs button{flex:none;min-height:42px}
+ .class-groups-heading{align-items:stretch;flex-direction:column}
+ .class-groups-heading .btn{width:100%}
+ .class-group-list{grid-template-columns:1fr}
+ .class-group-card{padding:14px}
+ .class-group-editor{padding:14px}
+ .class-group-search-filter,#class-group-search,#class-group-member-search{height:44px;font-size:16px}
+ #class-group-options,#class-group-member-options{grid-template-columns:1fr;max-height:42vh}
+ #class-group-options .class-student-option,#class-group-member-options .class-student-option{min-height:44px}
+}
