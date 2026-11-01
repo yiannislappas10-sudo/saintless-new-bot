@@ -135,3 +135,22 @@ body.echo-profile-open{overflow:hidden}
  .echo-global-student-result{min-height:44px}
 }
 @media(prefers-reduced-motion:reduce){.echo-global-student-trigger{transition:none}}
+
+/* Searchable announcement student picker */
+.announcement-student-picker{position:relative;display:grid;gap:8px;width:100%}
+.announcement-student-search{display:block;width:100%;height:42px;padding:0 11px;border:1px solid #dedede;border-radius:7px;background:#fff;color:#222;font:inherit;font-size:13px}
+.announcement-student-search:focus{outline:2px solid #222;outline-offset:1px}
+.announcement-student-selection{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.announcement-student-count{color:#777;font-size:10px;font-weight:700}
+.announcement-recipient-chip{max-width:100%;padding:4px 8px;border:1px solid #e5e5e5;border-radius:5px;background:#fff;color:#555;font-size:10px;overflow-wrap:anywhere}
+.announcement-recipient-chip.more{background:#222;border-color:#222;color:#fff}
+.announcement-student-options{display:none;position:absolute;top:100%;right:0;left:0;z-index:30;max-height:260px;overflow:auto;gap:6px;padding:9px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;box-shadow:0 14px 32px rgba(0,0,0,.12)}
+.announcement-student-picker:focus-within .announcement-student-options{display:grid}
+.announcement-student-options .announcement-recipient{min-height:39px}
+.announcement-student-options .announcement-recipient.hidden,.announcement-student-no-match.hidden{display:none!important}
+.announcement-student-no-match{margin:0;padding:10px;color:#888;font-size:11px}
+@media(max-width:760px){
+ .announcement-student-search{height:44px;font-size:16px}
+ .announcement-student-options{max-height:42vh}
+ .announcement-student-options .announcement-recipient{min-height:44px}
+}
