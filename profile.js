@@ -307,7 +307,10 @@ async function loadProfile(targetUserId) {
       try{const url=await signedAvatar(record.avatar_path);if(url){const img=make('img');img.src=url;img.alt='Profile picture';picture.replaceChildren(img);}}
       catch(error){$('profile-status').textContent=error.message||t('failed');}
     }
-    if(currentTarget)void updateHeaderAvatar();
+    if(currentTarget){
+      authProfile={...authProfile,full_name:record.full_name,display_name:record.display_name,avatar_path:record.avatar_path};
+      void updateHeaderAvatar();
+    }
   }catch(error){
     $('profile-status').textContent=error?.message||t('failed');
   }finally{
