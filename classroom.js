@@ -222,7 +222,7 @@ function showClassSection(name){
  document.getElementById('class-groups-tab').classList.toggle('active',!lessons);
  document.getElementById('class-new').classList.toggle('hidden',!lessons||!professorMode());
  document.getElementById('class-group-new').classList.toggle('hidden',lessons||!professorMode());
- if(!lessons)void loadGroups();
+ if(!lessons)void loadGroups().catch(()=>{});
 }
 function toggleDemoEditor(){
  const demo=isOwner&&document.getElementById('class-demo').checked;
@@ -445,7 +445,7 @@ function renderGroups(){
   const name=document.createElement('h3');name.textContent=group.name;
   const description=document.createElement('p');description.textContent=group.description||'';
   const meta=document.createElement('span');meta.className='class-group-card-meta';
-  meta.textContent=group.member_count+' '+t('memberCount')+' · '+t('classProfessor')+': '+(group.professor_name||'ECHO');
+  meta.textContent=(professorMode()?group.member_count+' '+t('memberCount')+' · ':'')+t('classProfessor')+': '+(group.professor_name||'ECHO');
   heading.append(name);if(group.description)heading.append(description);heading.append(meta);top.append(heading);
   if(groupCanManage(group)){
    const edit=document.createElement('button');edit.type='button';edit.className='btn class-group-edit';edit.textContent=t('edit');
@@ -1144,7 +1144,7 @@ async function showDetail(id){
  const desc=document.createElement('p');desc.textContent=c.description||c.subject;
  const state=classStatus(c),stateLine=document.createElement('p');stateLine.className='class-detail-meta';stateLine.textContent=t(state)+' · '+t('classProfessor')+': '+(c.professorName||'ECHO');
  const info=document.createElement('p');info.textContent=t('scheduleLabel')+': '+fmt(c.starts_at)+' – '+fmt(c.ends_at)+' · '+c.subject;
- const details=document.createElement('p');details.textContent=(c.classroom_location?t('classLocation')+': '+c.classroom_location+' · ':'')+(c.capacity?t('capacity')+': '+(c.student_count??(c.roster||[]).filter(x=>x.id).length)+'/'+c.capacity+' · ':'')+t(c.lifecycle_status==='active'?'activeStatus':c.lifecycle_status==='archived'?'archivedStatus':'upcomingStatus');
+ const details=document.createElement('p');details.textContent=(c.classroom_location?t('classLocation')+': '+c.classroom_location+' · ':'')+(canManage&&c.capacity?t('capacity')+': '+(c.student_count??(c.roster||[]).filter(x=>x.id).length)+'/'+c.capacity+' · ':'')+t(c.lifecycle_status==='active'?'activeStatus':c.lifecycle_status==='archived'?'archivedStatus':'upcomingStatus');
  if(c.groupNames?.length){const assigned=document.createElement('p');assigned.className='class-detail-meta';assigned.textContent=t('assignedGroups')+': '+c.groupNames.join(', ');detail.append(assigned);}
  const roster=document.createElement('div');roster.className='class-detail-roster';const rosterTitle=document.createElement('strong');rosterTitle.textContent=t('roster');roster.append(rosterTitle);
  for(const person of c.roster||[]){
