@@ -222,7 +222,7 @@ function dateKey(value){
 function canManageClass(c){
  if(!c||!user)return false;
  if(isOwner)return ownerPreviewRole!=='student';
- return profile?.role==='professor'&&(c.professor_id===user.id||c.created_by===user.id);
+ return profile?.role==='professor'&&c.professor_id===user.id;
 }
 function makeClassCard(c){
  const card=document.createElement('article');card.className='class-card';
