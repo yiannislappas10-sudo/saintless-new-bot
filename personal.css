@@ -59,3 +59,16 @@
 .personal-notification-openable{cursor:pointer;border-radius:8px;transition:background .16s,border-color .16s,box-shadow .16s}
 .personal-notification-openable:hover{background:#f7f7f7}
 .personal-notification-openable:focus-visible{outline:2px solid #555;outline-offset:3px}
+
+
+/* Mobile spacing and tap targets for status, attendance and notifications */
+@media(max-width:760px){
+  .personal-status-filters{gap:7px;overflow-x:auto;flex-wrap:nowrap;padding:2px 1px 7px;scrollbar-width:none;overscroll-behavior-x:contain}
+  .personal-status-filters::-webkit-scrollbar{display:none}
+  .personal-filter{min-height:40px;flex:none;white-space:nowrap}
+  .personal-status-list,.personal-attendance-list,#personal-notification-list{gap:8px}
+  .personal-class-row,.personal-attendance-row,.personal-notification{padding:13px;border-radius:10px}
+  .personal-action{min-height:42px}
+  .personal-notification-actions .personal-action{min-height:42px}
+}
+
