@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const classroomStyle = document.createElement('link');
 classroomStyle.rel = 'stylesheet';
-classroomStyle.href = '/classroom.css?v=20261101-class-manager';
+classroomStyle.href = '/classroom.css?v=20261101-mobile-smooth';
 document.head.append(classroomStyle);
 
 const OWNER_EMAILS = new Set(['yiannislappas8@gmail.com', 'yiannislappas10@gmail.com']);
