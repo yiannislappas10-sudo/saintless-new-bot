@@ -219,16 +219,24 @@ function dateKey(value){
  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
  const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;
 }
+function canManageClass(c){
+ if(!c||!user)return false;
+ if(isOwner)return ownerPreviewRole!=='student';
+ return profile?.role==='professor'&&(c.professor_id===user.id||c.created_by===user.id);
+}
 function makeClassCard(c){
  const card=document.createElement('article');card.className='class-card';
- const st=classStatus(c),roster=(c.roster||[]).map(x=>x.display_name).filter(Boolean);
+ const st=classStatus(c),life=c.lifecycle_status||'upcoming',roster=(c.roster||[]).map(x=>x.display_name).filter(Boolean);
  const when=document.createElement('div');when.className='class-card-time';when.textContent=fmt(c.starts_at);
  const main=document.createElement('div');main.className='class-card-main';
- const h=document.createElement('h3');h.textContent=c.title;const sub=document.createElement('p');sub.textContent=c.subject+' · '+fmt(c.ends_at);
- const people=document.createElement('p');people.className='class-card-people';people.textContent=roster.length?roster.join(', '):t('noRoster');
- main.append(h,sub,people);
+ const h=document.createElement('h3');h.textContent=c.title;
+ const sub=document.createElement('p');sub.textContent=(c.subject||'')+' · '+fmt(c.ends_at);
+ const people=document.createElement('p');people.className='class-card-people';people.textContent=(roster.length||0)+' '+t('studentCount')+(c.capacity?' · '+roster.length+'/'+c.capacity:'');
+ const professor=document.createElement('p');professor.className='class-card-professor';professor.textContent=t('classProfessor')+': '+(c.professorName||'ECHO');
+ main.append(h,sub,professor,people);
  const meta=document.createElement('div');meta.className='class-card-meta';
  const badge=document.createElement('span');badge.className='class-state '+st;badge.textContent=t(st);meta.append(badge);
+ const lifeBadge=document.createElement('span');lifeBadge.className='class-state lifecycle-'+life;lifeBadge.textContent=t(life==='active'?'activeStatus':life==='archived'?'archivedStatus':'upcomingStatus');meta.append(lifeBadge);
  if(c.is_demo){const demo=document.createElement('span');demo.className='class-demo-tag';demo.textContent='DEMO';meta.append(demo);}
  const action=document.createElement('button');action.type='button';action.className='btn class-open';action.textContent=t('details');action.addEventListener('click',()=>{void showDetail(c.id);});meta.append(action);
  card.append(when,main,meta);return card;
@@ -241,12 +249,18 @@ function makeCalendarEvent(c){
  event.addEventListener('click',()=>{void showDetail(c.id);});return event;
 }
 function renderClasses(){
- const list=document.getElementById('class-list');list.replaceChildren();
+ const list=document.getElementById('class-list');if(!list)return;list.replaceChildren();
+ const search=(document.getElementById('class-search')?.value||'').trim().toLowerCase();
+ const lifeFilter=document.getElementById('class-lifecycle-filter')?.value||'';
  const [start,end]=periodBounds();
- document.getElementById('class-period').textContent=fmt(start.toISOString())+' — '+fmt(new Date(end.getTime()-1).toISOString());
+ document.getElementById('class-period').textContent=view==='list'?t('all'):fmt(start.toISOString())+' — '+fmt(new Date(end.getTime()-1).toISOString());
  const visibleClasses=isOwner&&ownerPreviewRole?classes.filter(c=>c.is_demo):classes;
- const rows=visibleClasses.filter(c=>new Date(c.starts_at)>=start&&new Date(c.starts_at)<end).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
- if(view==='day'){
+ const searched=visibleClasses.filter(c=>
+   (!lifeFilter||(c.lifecycle_status||'upcoming')===lifeFilter)
+   &&(!search||[c.title,c.subject,c.description,c.professorName,...(c.roster||[]).map(x=>x.display_name)].some(v=>String(v||'').toLowerCase().includes(search)))
+ );
+ const rows=searched.filter(c=>view==='list'||(new Date(c.starts_at)>=start&&new Date(c.starts_at)<end)).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+ if(view==='list'||view==='day'){
   if(!rows.length){const p=document.createElement('div');p.className='class-empty';p.textContent=t('empty');list.append(p);return;}
   for(const c of rows)list.append(makeClassCard(c));
   return;
@@ -277,13 +291,20 @@ function renderClasses(){
  list.append(grid);
 }
 async function loadStudents(){
- const {data,error}=await db.from('profiles').select('id,display_name,role').eq('role','student').order('display_name');
- if(error)throw error;students=data||[];
+ const {data,error}=await db.rpc('get_echo_student_directory');
+ if(error)throw error;
+ students=(data||[]).map(row=>({id:row.user_id,display_name:row.display_name||'Student'}));
+}
+async function loadProfessors(){
+ if(!isOwner){professors=[];return;}
+ const {data,error}=await db.rpc('get_echo_professor_directory');
+ if(error)throw error;
+ professors=(data||[]).map(row=>({id:row.user_id,display_name:row.display_name||'Professor'}));
 }
 async function loadClasses(){
- const query=db.from('classes').select('id,title,subject,description,image_url,starts_at,ends_at,status,allow_unassigned,is_demo,created_by').order('starts_at',{ascending:true});
+ const query=db.from('classes').select('id,title,subject,description,image_url,starts_at,ends_at,status,allow_unassigned,is_demo,created_by,professor_id,classroom_location,capacity,lifecycle_status').order('starts_at',{ascending:true});
  const {data,error}=await query;if(error)throw error;
- const rows=data||[], ids=rows.map(x=>x.id);
+ const rows=data||[],ids=rows.map(x=>x.id);
  for(const row of rows){row.roster=[];row.liveRoom=null;}
  if(ids.length){
   const {data:liveRows,error:liveError}=await db.from('class_live_rooms').select('class_id,status,started_at').in('class_id',ids).eq('status','live');
@@ -306,11 +327,14 @@ async function loadClasses(){
   }
  }
  if(rows.length){
-  const creatorIds=[...new Set(rows.map(x=>x.created_by).filter(Boolean))];
-  const {data:creators,error:creatorError}=await db.from('profiles').select('id,display_name').in('id',creatorIds);
-  if(creatorError)throw creatorError;
-  const creatorNames=new Map((creators||[]).map(x=>[x.id,x.display_name]));
-  for(const row of rows)row.professorName=creatorNames.get(row.created_by)||'ECHO';
+  const professorIds=[...new Set(rows.map(x=>x.professor_id||x.created_by).filter(Boolean))];
+  const {data:professorRows,error:professorError}=await db.from('profiles').select('id,display_name').in('id',professorIds);
+  if(professorError)throw professorError;
+  const professorNames=new Map((professorRows||[]).map(x=>[x.id,x.display_name]));
+  for(const row of rows){
+   row.professorName=professorNames.get(row.professor_id||row.created_by)||'ECHO';
+   row.student_count=(row.roster||[]).filter(x=>x.id).length;
+  }
  }
  classes=rows;renderClasses();
 }
