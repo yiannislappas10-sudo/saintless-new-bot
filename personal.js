@@ -63,7 +63,7 @@ const make = (tag, cls, value) => {
 };
 const css = document.createElement('link');
 css.rel = 'stylesheet';
-css.href = '/personal.css';
+css.href = '/personal.css?v=20261101-no-calendar';
 document.head.append(css);
 
 const nav = document.querySelector('.nav-tabs');
