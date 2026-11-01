@@ -48,7 +48,7 @@ const fmtTime = value => {
 const make = (tag, cls, value) => {
   const node = document.createElement(tag);
   if (cls) node.className = cls;
-  if (value !== ) node.textContent = value;
+  if (value !== undefined) node.textContent = value;
   return node;
 };
 const css = document.createElement('link');
