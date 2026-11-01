@@ -148,7 +148,7 @@ roomOverlay.innerHTML=`
 document.body.append(roomOverlay);
 let activeRoom=null,callJoinPending=false,roomAudioContext=null;
 const ROOM_REACTIONS=new Set(['👍','❤️','😂','👏','🎉','👀']);
-function activate(name){document.querySelectorAll('.nav-tabs [data-tab]').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on));});document.querySelectorAll('#app-shell .panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));}
+function activate(name){document.getElementById('dashboard-welcome')?.classList.toggle('hidden',name!=='lessons');document.querySelectorAll('.nav-tabs [data-tab]').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on));});document.querySelectorAll('#app-shell .panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));}
 nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab="classes"],[data-tab="testing"]');if(b)activate(b.dataset.tab);});
 document.getElementById('class-new').addEventListener('click',()=>openEditor());
 document.getElementById('class-cancel').addEventListener('click',closeEditor);
