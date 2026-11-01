@@ -213,12 +213,14 @@ let unreadCounts = new Map();
 let editingAnnouncementId = null;
 let sendingPrivateMessage = false;
 let announcementStudents = [];
+let selectedAnnouncementStudents = new Set();
 let messagePoller = null;
 let incomingCallPoller = null;
 let activeCallPoller = null;
 let activeCall = null;
 let incomingCall = null;
 const remoteAudio = document.getElementById('remote-audio');
+let initializedSessionUserId = null;
 
 function showCallStatus(message, error = false) {
   const node = document.getElementById('call-status');
@@ -585,203 +587,402 @@ function renderContacts() {
  }
  syncCallControls();
 }
-async function loadAnnouncements() {
- const list=document.getElementById('announcement-list');list.replaceChildren();status('announcement-status','');
- let result=await supabase.from('announcements')
-  .select('id,title,body,created_at,pinned,audience,notify_in_notifications')
-  .order('pinned',{ascending:false}).order('created_at',{ascending:false});
- if(result.error&&/notify_in_notifications/i.test(result.error.message)){
-  result=await supabase.from('announcements')
-   .select('id,title,body,created_at,pinned,audience')
-   .order('pinned',{ascending:false}).order('created_at',{ascending:false});
- }
- const {data,error}=result;
- if(error){status('announcement-status',tr('failedAnnouncements')+' '+error.message,true);return;}
- let readSet=new Set();
- if(!professorMode()){
-  const reads=await supabase.from('announcement_reads').select('announcement_id').eq('user_id',user.id);
-  if(reads.error){status('announcement-status',reads.error.message,true);return;}
-  readSet=new Set((reads.data||[]).map(x=>x.announcement_id));
- }
- if(!data?.length){list.append(el('p','message-empty-note',tr('emptyAnnouncements')));return;}
- for(const row of data){
-  const card=el('article','announcement-item'+(row.pinned?' announcement-pinned':''));
-  card.id='announcement-'+row.id;
-  const heading=el('div','announcement-card-heading');
-  heading.append(el('h3','',row.title));
-  if(row.pinned)heading.append(el('span','announcement-pill pinned',tr('pinned')));
-  if(!professorMode()&&row.notify_in_notifications!==false&&!readSet.has(row.id))heading.append(el('span','announcement-pill new',tr('newAnnouncement')));
-  card.append(heading,el('time','',dateText(row.created_at)),el('p','',row.body));
-  if(professorMode()){
-   const actions=el('div','announcement-actions');
-   const edit=el('button','announcement-action',tr('edit'));edit.type='button';
-   edit.addEventListener('click',()=>{void beginAnnouncementEdit(row);});
-   const pin=el('button','announcement-action',row.pinned?tr('unpin'):tr('pin'));pin.type='button';
-   pin.addEventListener('click',async()=>{
-    pin.disabled=true;const result=await supabase.from('announcements').update({pinned:!row.pinned}).eq('id',row.id);
-    pin.disabled=false;if(result.error)status('announcement-status',result.error.message,true);else await loadAnnouncements();
-   });
-   const remove=el('button','announcement-action danger',tr('delete'));remove.type='button';
-   remove.addEventListener('click',async()=>{
-    if(!confirm(tr('confirmDelete')))return;
-    remove.disabled=true;const result=await supabase.from('announcements').delete().eq('id',row.id);
-    if(result.error){remove.disabled=false;status('announcement-status',result.error.message,true);}
-    else{if(editingAnnouncementId===row.id)resetAnnouncementEditor();status('announcement-status',tr('deleted'));await loadAnnouncements();}
-   });
-   actions.append(edit,pin,remove);card.append(actions);
-  }else if(row.notify_in_notifications!==false&&!readSet.has(row.id)){
-   const mark=el('button','announcement-action',tr('markRead'));mark.type='button';
-   mark.addEventListener('click',async()=>{
-    mark.disabled=true;const result=await supabase.from('announcement_reads').upsert(
-      {announcement_id:row.id,user_id:user.id},{onConflict:'announcement_id,user_id',ignoreDuplicates:true}
-    );
-    if(result.error){mark.disabled=false;status('announcement-status',result.error.message,true);}
-    else{status('announcement-status',tr('markedRead'));await loadAnnouncements();}
-   });
-   card.append(mark);
-  }
-  list.append(card);
- }
+function resetAnnouncementEditor() {
+  const form = document.getElementById('announcement-form');
+  if (!form) return;
+  editingAnnouncementId = null;
+  selectedAnnouncementStudents = new Set();
+  form.reset();
+  const audience = document.getElementById('announcement-audience');
+  if (audience) audience.value = 'everyone';
+  const cancel = document.getElementById('announcement-cancel-edit');
+  cancel?.classList.add('hidden');
+  const submit = document.getElementById('announcement-submit');
+  if (submit) submit.textContent = tr('publish');
+  renderAnnouncementStudents();
 }
+
+async function beginAnnouncementEdit(row) {
+  try {
+    editingAnnouncementId = row.id;
+    document.getElementById('announcement-title').value = row.title || '';
+    document.getElementById('announcement-body').value = row.body || '';
+    document.getElementById('announcement-pinned').checked = !!row.pinned;
+    document.getElementById('announcement-audience').value = row.audience === 'selected' ? 'selected' : 'everyone';
+    selectedAnnouncementStudents = new Set();
+
+    if (row.audience === 'selected') {
+      const {data, error} = await supabase.from('announcement_recipients')
+        .select('student_id').eq('announcement_id', row.id);
+      if (error) throw error;
+      selectedAnnouncementStudents = new Set((data || []).map(item => item.student_id));
+    }
+
+    renderAnnouncementStudents();
+    document.getElementById('announcement-admin').classList.remove('hidden');
+    document.getElementById('announcement-cancel-edit').classList.remove('hidden');
+    document.getElementById('announcement-submit').textContent = tr('update');
+    document.getElementById('announcement-title').focus();
+    document.getElementById('announcement-admin').scrollIntoView({behavior:'smooth', block:'nearest'});
+    status('announcement-status', '');
+  } catch (error) {
+    status('announcement-status', 'Could not open this announcement for editing: ' + (error?.message || error), true);
+  }
+}
+
+async function loadAnnouncements() {
+  const list = document.getElementById('announcement-list');
+  list.replaceChildren(el('p', 'message-empty-note', 'Loading announcements…'));
+  status('announcement-status', '');
+
+  try {
+    let result = await supabase.from('announcements')
+      .select('id,title,body,created_at,pinned,audience,notify_in_notifications')
+      .order('pinned', {ascending:false})
+      .order('created_at', {ascending:false});
+
+    if (result.error && /notify_in_notifications/i.test(result.error.message)) {
+      result = await supabase.from('announcements')
+        .select('id,title,body,created_at,pinned,audience')
+        .order('pinned', {ascending:false})
+        .order('created_at', {ascending:false});
+    }
+    if (result.error) throw result.error;
+
+    let readSet = new Set();
+    if (!professorMode()) {
+      const reads = await supabase.from('announcement_reads')
+        .select('announcement_id').eq('user_id', user.id);
+      if (reads.error) throw reads.error;
+      readSet = new Set((reads.data || []).map(item => item.announcement_id));
+    }
+
+    list.replaceChildren();
+    if (!result.data?.length) {
+      list.append(el('p', 'message-empty-note', tr('emptyAnnouncements')));
+      return;
+    }
+
+    for (const row of result.data) {
+      const card = el('article', 'announcement-item' + (row.pinned ? ' announcement-pinned' : ''));
+      card.id = 'announcement-' + row.id;
+
+      const heading = el('div', 'announcement-card-heading');
+      heading.append(el('h3', '', row.title));
+      if (row.pinned) heading.append(el('span', 'announcement-pill pinned', tr('pinned')));
+      if (!professorMode() && row.notify_in_notifications !== false && !readSet.has(row.id)) {
+        heading.append(el('span', 'announcement-pill new', tr('newAnnouncement')));
+      }
+      card.append(heading, el('time', '', dateText(row.created_at)), el('p', '', row.body));
+
+      if (professorMode()) {
+        const actions = el('div', 'announcement-actions');
+        const edit = el('button', 'announcement-action', tr('edit'));
+        edit.type = 'button';
+        edit.addEventListener('click', () => { void beginAnnouncementEdit(row); });
+
+        const pin = el('button', 'announcement-action', row.pinned ? tr('unpin') : tr('pin'));
+        pin.type = 'button';
+        pin.addEventListener('click', async () => {
+          pin.disabled = true;
+          try {
+            const {error} = await supabase.from('announcements')
+              .update({pinned:!row.pinned}).eq('id', row.id);
+            if (error) throw error;
+            await loadAnnouncements();
+          } catch (error) {
+            pin.disabled = false;
+            status('announcement-status', 'Could not update announcement: ' + (error?.message || error), true);
+          }
+        });
+
+        const remove = el('button', 'announcement-action danger', tr('delete'));
+        remove.type = 'button';
+        remove.addEventListener('click', async () => {
+          if (!confirm(tr('confirmDelete'))) return;
+          remove.disabled = true;
+          try {
+            const {error} = await supabase.from('announcements').delete().eq('id', row.id);
+            if (error) throw error;
+            if (editingAnnouncementId === row.id) resetAnnouncementEditor();
+            status('announcement-status', tr('deleted'));
+            await loadAnnouncements();
+          } catch (error) {
+            remove.disabled = false;
+            status('announcement-status', 'Could not delete announcement: ' + (error?.message || error), true);
+          }
+        });
+
+        actions.append(edit, pin, remove);
+        card.append(actions);
+      } else if (row.notify_in_notifications !== false && !readSet.has(row.id)) {
+        const mark = el('button', 'announcement-action', tr('markRead'));
+        mark.type = 'button';
+        mark.addEventListener('click', async () => {
+          mark.disabled = true;
+          try {
+            const {error} = await supabase.from('announcement_reads').upsert(
+              {announcement_id:row.id, user_id:user.id},
+              {onConflict:'announcement_id,user_id', ignoreDuplicates:true}
+            );
+            if (error) throw error;
+            status('announcement-status', tr('markedRead'));
+            await loadAnnouncements();
+          } catch (error) {
+            mark.disabled = false;
+            status('announcement-status', 'Could not mark announcement as read: ' + (error?.message || error), true);
+          }
+        });
+        card.append(mark);
+      }
+      list.append(card);
+    }
+  } catch (error) {
+    list.replaceChildren(el('p', 'message-empty-note', 'Announcements could not be loaded.'));
+    status('announcement-status', 'Announcements error: ' + (error?.message || error), true);
+  }
+}
+
 async function loadAnnouncementStudents() {
   const container = document.getElementById('announcement-students');
   container.replaceChildren(el('p', 'message-empty-note', 'Loading students…'));
-  const {data, error} = await supabase.rpc('get_echo_message_contacts');
-  if (error) {
+  try {
+    const {data, error} = await supabase.rpc('get_echo_message_contacts');
+    if (error) throw error;
+    announcementStudents = (data || []).filter(item => item.role === 'student');
+    renderAnnouncementStudents();
+  } catch (error) {
     announcementStudents = [];
-    container.replaceChildren(el('p', 'message-empty-note', 'Could not load students: ' + error.message));
-    status('announcement-status', 'Could not load announcement recipients: ' + error.message, true);
-    return;
+    container.replaceChildren(el('p', 'message-empty-note', 'Could not load students.'));
+    status('announcement-status', 'Announcement recipient error: ' + (error?.message || error), true);
   }
-  announcementStudents = (data || []).filter(item => item.role === 'student');
-  renderAnnouncementStudents();
 }
 
 function renderAnnouncementStudents() {
   const container = document.getElementById('announcement-students');
+  if (!container) return;
   container.replaceChildren();
   const selectedAudience = document.getElementById('announcement-audience').value === 'selected';
   container.classList.toggle('hidden', !selectedAudience);
   if (!selectedAudience) return;
+
   if (!announcementStudents.length) {
     container.append(el('p', 'message-empty-note', 'No student accounts are available.'));
     return;
   }
+
   for (const student of announcementStudents) {
     const label = el('label', 'announcement-recipient');
     const checkbox = el('input');
     checkbox.type = 'checkbox';
     checkbox.value = student.user_id;
+    checkbox.checked = selectedAnnouncementStudents.has(student.user_id);
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) selectedAnnouncementStudents.add(student.user_id);
+      else selectedAnnouncementStudents.delete(student.user_id);
+    });
     label.append(checkbox, el('span', '', student.display_name || 'ECHO student'));
     container.append(label);
   }
 }
 
-async function loadMessages() {
- const list=document.getElementById('message-list');list.replaceChildren();
- const contact=contacts.find(item=>item.id===contactId);
- if(!contact){list.append(el('p','message-empty',tr('noContacts')));return;}
- const me=user.id,other=contact.id;
- const expression='and(sender_id.eq.'+me+',recipient_id.eq.'+other+'),and(sender_id.eq.'+other+',recipient_id.eq.'+me+')';
- const {data,error}=await supabase.from('private_messages')
-  .select('id,sender_id,recipient_id,body,created_at,read_at').or(expression).order('created_at',{ascending:true});
- if(error){status('messages-status',tr('failedMessages')+' '+error.message,true);return;}
- if(!data?.length){list.append(el('p','message-empty',tr('emptyMessages')));await loadUnreadCounts();return;}
- const unreadIds=[];
- for(const row of data){
-  const bubble=el('article','message-bubble'+(row.sender_id===me?' sent':''));
-  bubble.id='message-'+row.id;
-  bubble.append(el('p','',row.body),el('time','',dateText(row.created_at)));
-  list.append(bubble);
-  if(row.sender_id===other&&row.recipient_id===me&&!row.read_at)unreadIds.push(row.id);
- }
- list.scrollTop=list.scrollHeight;
- if(unreadIds.length){
-  const marked=await supabase.from('private_messages').update({read_at:new Date().toISOString()}).in('id',unreadIds);
-  if(marked.error)status('messages-status',marked.error.message,true);
-  else await loadUnreadCounts();
- }
+async function loadUnreadCounts() {
+  if (!user) return;
+  try {
+    const {data, error} = await supabase.from('private_messages')
+      .select('sender_id').eq('recipient_id', user.id).is('read_at', null);
+    if (error) throw error;
+    unreadCounts = new Map();
+    for (const row of data || []) {
+      unreadCounts.set(row.sender_id, (unreadCounts.get(row.sender_id) || 0) + 1);
+    }
+    renderContacts();
+  } catch (error) {
+    status('messages-status', 'Could not load unread message counts: ' + (error?.message || error), true);
+  }
 }
+
+function renderContacts() {
+  const list = document.getElementById('message-contacts-list');
+  list.replaceChildren();
+  for (const contact of contacts) {
+    const count = unreadCounts.get(contact.id) || 0;
+    const button = el('button', 'message-contact' + (contact.id === contactId ? ' active' : ''));
+    button.type = 'button';
+    button.append(el('span', 'message-contact-name', contact.display_name || 'ECHO user'));
+    if (count) {
+      button.append(el('span', 'message-unread-count', count > 99 ? '99+' : String(count)));
+      button.setAttribute('aria-label', (contact.display_name || 'ECHO user') + ', ' + count + ' ' + tr('unread'));
+    }
+    button.addEventListener('click', () => { void openConversation(contact.id); });
+    list.append(button);
+  }
+  syncCallControls();
+}
+
+async function loadMessages() {
+  const list = document.getElementById('message-list');
+  list.replaceChildren();
+  const contact = contacts.find(item => item.id === contactId);
+  if (!contact || !user) {
+    list.append(el('p', 'message-empty', tr('noContacts')));
+    return;
+  }
+
+  try {
+    const me = user.id;
+    const other = contact.id;
+    const expression = 'and(sender_id.eq.' + me + ',recipient_id.eq.' + other + '),and(sender_id.eq.' + other + ',recipient_id.eq.' + me + ')';
+    const {data, error} = await supabase.from('private_messages')
+      .select('id,sender_id,recipient_id,body,created_at,read_at')
+      .or(expression).order('created_at', {ascending:true});
+    if (error) throw error;
+
+    list.replaceChildren();
+    if (!data?.length) {
+      list.append(el('p', 'message-empty', tr('emptyMessages')));
+      await loadUnreadCounts();
+      return;
+    }
+
+    const unreadIds = [];
+    for (const row of data) {
+      const bubble = el('article', 'message-bubble' + (row.sender_id === me ? ' sent' : ''));
+      bubble.id = 'message-' + row.id;
+      bubble.append(el('p', '', row.body), el('time', '', dateText(row.created_at)));
+      list.append(bubble);
+      if (row.sender_id === other && row.recipient_id === me && !row.read_at) unreadIds.push(row.id);
+    }
+    list.scrollTop = list.scrollHeight;
+
+    if (unreadIds.length) {
+      const marked = await supabase.from('private_messages')
+        .update({read_at:new Date().toISOString()}).in('id', unreadIds);
+      if (marked.error) throw marked.error;
+      await loadUnreadCounts();
+    }
+    status('messages-status', '');
+  } catch (error) {
+    list.replaceChildren(el('p', 'message-empty', 'This conversation could not be loaded.'));
+    status('messages-status', 'Private messages error: ' + (error?.message || error), true);
+  }
+}
+
 async function openConversation(id) {
+  const contact = contacts.find(item => item.id === id);
+  if (!contact) return;
   contactId = id;
   renderContacts();
-  const contact = contacts.find(item => item.id === id);
-  document.getElementById('message-thread-heading').textContent = contact?.display_name || tr('selectConversation');
-  document.getElementById('message-input').disabled = !contact;
-  document.getElementById('message-send').disabled = !contact;
+  document.getElementById('message-thread-heading').textContent = contact.display_name || tr('selectConversation');
+  document.getElementById('message-input').disabled = false;
+  document.getElementById('message-send').disabled = false;
   if (!activeCall) showCallStatus('');
   syncCallControls();
   await loadMessages();
 }
+
 async function loadContacts() {
-  const {data, error} = await supabase.rpc('get_echo_message_contacts');
-  if (error) {
-    status('messages-status', tr('failedMessages') + ' ' + error.message, true);
-    return;
-  }
-  contacts = (data || []).map(item => ({
-    id: item.user_id,
-    display_name: item.display_name,
-    role: item.role
-  }));
-  if (!contacts.some(item => item.id === contactId)) contactId = contacts[0]?.id || null;
-  await loadUnreadCounts();
-  if (!contacts.length) {
-    status('messages-status', tr('noContacts'));
-    document.getElementById('message-thread-heading').textContent = tr('selectConversation');
+  const list = document.getElementById('message-contacts-list');
+  list.replaceChildren(el('p', 'message-empty-note', 'Loading conversations…'));
+  try {
+    const {data, error} = await supabase.rpc('get_echo_message_contacts');
+    if (error) throw error;
+
+    contacts = (data || []).map(item => ({
+      id:item.user_id,
+      display_name:item.display_name || 'ECHO user',
+      role:item.role
+    })).filter(item => item.id && item.id !== user?.id);
+
+    if (!contacts.some(item => item.id === contactId)) contactId = contacts[0]?.id || null;
+    await loadUnreadCounts();
+
+    if (!contacts.length) {
+      list.replaceChildren(el('p', 'message-empty-note', tr('noContacts')));
+      document.getElementById('message-thread-heading').textContent = tr('selectConversation');
+      document.getElementById('message-list').replaceChildren(el('p', 'message-empty', tr('noContacts')));
+      document.getElementById('message-input').disabled = true;
+      document.getElementById('message-send').disabled = true;
+      status('messages-status', tr('noContacts'));
+      syncCallControls();
+      return;
+    }
+
+    status('messages-status', '');
+    await openConversation(contactId);
+  } catch (error) {
+    contacts = [];
+    contactId = null;
+    renderContacts();
+    list.replaceChildren(el('p', 'message-empty-note', 'Conversations could not be loaded.'));
     document.getElementById('message-list').replaceChildren(el('p', 'message-empty', tr('noContacts')));
     document.getElementById('message-input').disabled = true;
     document.getElementById('message-send').disabled = true;
-    syncCallControls();
-    return;
+    status('messages-status', 'Contacts error: ' + (error?.message || error), true);
   }
-  status('messages-status', '');
-  await openConversation(contactId);
 }
+
 async function loadOwnerAccounts() {
   const list = document.getElementById('owner-role-list');
   list.replaceChildren(el('p', 'message-empty-note', 'Loading accounts…'));
   status('owner-status', '');
-  const {data, error} = await supabase.rpc('get_echo_role_candidates');
-  if (error) {
-    list.replaceChildren(el('p', 'message-empty-note', error.message));
-    status('owner-status', tr('failedOwner') + ' ' + error.message, true);
+
+  if (!isOwner) {
+    list.replaceChildren(el('p', 'message-empty-note', tr('denied')));
+    status('owner-status', tr('denied'), true);
     return;
   }
-  const candidates = (data || []).filter(item =>
-    !OWNER_EMAILS.has((item.email || '').trim().toLowerCase())
-  );
-  if (!candidates.length) {
-    list.replaceChildren(el('p', 'message-empty-note', tr('noAccounts')));
-    status('owner-status', '');
-    return;
-  }
-  status('owner-status', candidates.length + (candidates.length === 1 ? ' eligible account.' : ' eligible accounts.'));
-  for (const account of candidates) {
-    const row = el('div', 'owner-role-item');
-    const details = el('div', 'owner-role-name');
-    details.append(el('strong', '', account.display_name || account.email || 'ECHO user'));
-    details.append(el('span', '', account.email || ''));
-    details.append(el('span', 'role-chip', account.role === 'professor' ? tr('professor') : tr('student')));
-    const action = el('button', 'role-toggle' + (account.role === 'professor' ? ' demote' : ''),
-      account.role === 'professor' ? tr('removeProfessor') : tr('makeProfessor'));
-    action.type = 'button';
-    action.addEventListener('click', async () => {
-      action.disabled = true;
-      const {error: updateError} = await supabase.rpc('set_echo_professor', {
-        target_user_id: account.user_id,
-        make_professor: account.role !== 'professor'
+
+  try {
+    const {data, error} = await supabase.rpc('get_echo_role_candidates');
+    if (error) throw error;
+    const candidates = (data || []).filter(item =>
+      !OWNER_EMAILS.has((item.email || '').trim().toLowerCase())
+    );
+
+    list.replaceChildren();
+    if (!candidates.length) {
+      list.append(el('p', 'message-empty-note', tr('noAccounts')));
+      status('owner-status', '');
+      return;
+    }
+
+    status('owner-status', candidates.length + (candidates.length === 1 ? ' eligible account.' : ' eligible accounts.'));
+    for (const account of candidates) {
+      const row = el('div', 'owner-role-item');
+      const details = el('div', 'owner-role-name');
+      details.append(el('strong', '', account.display_name || account.email || 'ECHO user'));
+      details.append(el('span', '', account.email || ''));
+      details.append(el('span', 'role-chip', account.role === 'professor' ? tr('professor') : tr('student')));
+
+      const action = el('button', 'role-toggle' + (account.role === 'professor' ? ' demote' : ''),
+        account.role === 'professor' ? tr('removeProfessor') : tr('makeProfessor'));
+      action.type = 'button';
+      action.addEventListener('click', async () => {
+        action.disabled = true;
+        try {
+          const {error:updateError} = await supabase.rpc('set_echo_professor', {
+            target_user_id:account.user_id,
+            make_professor:account.role !== 'professor'
+          });
+          if (updateError) throw updateError;
+          status('owner-status', tr('roleUpdated'));
+          await loadOwnerAccounts();
+          await Promise.allSettled([loadContacts(), loadAnnouncementStudents()]);
+        } catch (error) {
+          action.disabled = false;
+          status('owner-status', 'Could not update permissions: ' + (error?.message || error), true);
+        }
       });
-      action.disabled = false;
-      if (updateError) { status('owner-status', updateError.message, true); return; }
-      status('owner-status', tr('roleUpdated'));
-      await loadOwnerAccounts();
-      await loadContacts();
-    });
-    row.append(details, action);
-    list.append(row);
+      row.append(details, action);
+      list.append(row);
+    }
+  } catch (error) {
+    list.replaceChildren(el('p', 'message-empty-note', 'Account list could not be loaded.'));
+    status('owner-status', 'Professor Access error: ' + (error?.message || error), true);
   }
 }
+
 function startMessageRefresh() {
   if (messagePoller) window.clearInterval(messagePoller);
   messagePoller = window.setInterval(() => {
@@ -793,120 +994,160 @@ function startMessageRefresh() {
 }
 async function loadForSession(session) {
   if (!session?.user || !supabase) return;
-  user = session.user;
+  const sessionUser = session.user;
+  if (initializedSessionUserId === sessionUser.id) return;
+  initializedSessionUserId = sessionUser.id;
+  user = sessionUser;
 
-  // Reveal the owner menu immediately for the designated sign-in address.
-  // Do not wait for a database RPC before showing the menu: a slow or
-  // unavailable RPC must not hide the owner's controls.
   const email = (user.email || '').trim().toLowerCase();
   const emailOwner = OWNER_EMAILS.has(email);
   isOwner = emailOwner;
-  document.getElementById('owner-tab').classList.remove('hidden');
+  document.getElementById('owner-tab').classList.toggle('hidden', !emailOwner);
+  status('owner-status', emailOwner ? 'Verifying owner access…' : '');
 
-  // Keep the database owner check for diagnostics, but never let it block
-  // the rest of the dashboard if the request fails.
+  // Owner identity is based on the authenticated email, with the database check
+  // retained as a second confirmation for accounts granted owner status there.
   try {
-    const ownerCheck = await supabase.rpc('is_echo_owner');
-    if (ownerCheck.data === true) isOwner = true;
-    if (emailOwner && ownerCheck.error) {
-      status('owner-status', 'Owner access is being shown for '+email+'. Database check: '+ownerCheck.error.message, true);
-    }
+    const {data, error} = await supabase.rpc('is_echo_owner');
+    if (!error && data === true) isOwner = true;
+    if (error && emailOwner) status('owner-status', 'Owner email recognized; database verification failed: ' + error.message, true);
   } catch (error) {
-    if (emailOwner) status('owner-status', 'Owner access is being shown for '+email+'. Database check failed: '+(error?.message || 'network error'), true);
+    if (emailOwner) status('owner-status', 'Owner email recognized; database verification failed: ' + (error?.message || error), true);
   }
-  document.getElementById('owner-tab').classList.remove('hidden');
 
-  const {data, error} = await supabase.from('profiles')
-    .select('id,display_name,role').eq('id', user.id).maybeSingle();
-  profile = data || {id:user.id, display_name:user.email, role:'student'};
-  if (error) {
-    status('announcement-status', tr('setup')+' '+error.message, true);
-    status('messages-status', tr('setup')+' '+error.message, true);
-    if (isOwner) status('owner-status', 'Owner panel is visible, but profile loading failed: '+error.message, true);
-    return;
+  document.getElementById('owner-tab').classList.toggle('hidden', !isOwner);
+  let profileError = null;
+  try {
+    const result = await supabase.from('profiles')
+      .select('id,display_name,role').eq('id', user.id).maybeSingle();
+    if (result.error) throw result.error;
+    profile = result.data || {id:user.id, display_name:user.email, role:'student'};
+  } catch (error) {
+    profileError = error;
+    profile = {id:user.id, display_name:user.email, role:'student'};
   }
+
   document.getElementById('announcement-admin').classList.toggle('hidden', !professorMode());
-  const initialLoads = await Promise.allSettled([loadAnnouncements(), loadContacts()]);
-  for (const [index, result] of initialLoads.entries()) {
-    if (result.status === 'rejected') {
-      const target = index === 0 ? 'announcement-status' : 'messages-status';
-      status(target, 'Could not initialize this section: ' + (result.reason?.message || result.reason || 'Unknown error'), true);
-    }
+  if (profileError) {
+    status('announcement-status', 'Profile lookup failed; announcement controls may be limited: ' + (profileError.message || profileError), true);
+    status('messages-status', 'Profile lookup failed; message permissions may be limited: ' + (profileError.message || profileError), true);
   }
 
-  // Load owner controls independently so a problem in the optional
-  // announcement-recipient selector cannot prevent role management.
-  if (isOwner) {
-    try { await loadOwnerAccounts(); }
-    catch (error) { status('owner-status', 'Could not load accounts: ' + (error?.message || error), true); }
-  }
-  if (professorMode()) {
-    try { await loadAnnouncementStudents(); }
-    catch (error) { status('announcement-status', 'Could not load students: ' + (error?.message || error), true); }
-  }
+  const jobs = [
+    ['announcement-status', loadAnnouncements],
+    ['messages-status', loadContacts]
+  ];
+  if (isOwner) jobs.push(['owner-status', loadOwnerAccounts]);
+  if (professorMode()) jobs.push(['announcement-status', loadAnnouncementStudents]);
+
+  const results = await Promise.allSettled(jobs.map(([, task]) => task()));
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      const target = jobs[index][0];
+      status(target, 'Could not initialize this tab: ' + (result.reason?.message || result.reason || 'Unknown error'), true);
+    }
+  });
   startMessageRefresh();
   startIncomingCallRefresh();
 }
+
 function resetFeatureState() {
   if (messagePoller) { window.clearInterval(messagePoller); messagePoller = null; }
   if (incomingCallPoller) { window.clearInterval(incomingCallPoller); incomingCallPoller = null; }
   if (activeCall) void finishCall({updateServer:true, signal:false, statusText:tr('callEnded')});
   incomingCall = null;
   hideIncomingCall();
-  user = null; profile = null; isOwner = false; contactId = null; contacts = []; unreadCounts = new Map();
+  initializedSessionUserId = null;
+  user = null;
+  profile = null;
+  isOwner = false;
+  contactId = null;
+  contacts = [];
+  unreadCounts = new Map();
+  announcementStudents = [];
+  selectedAnnouncementStudents = new Set();
+  editingAnnouncementId = null;
   document.getElementById('owner-tab').classList.add('hidden');
   document.getElementById('announcement-admin').classList.add('hidden');
+  document.getElementById('message-contacts-list').replaceChildren();
+  document.getElementById('message-list').replaceChildren(el('p', 'message-empty', tr('selectConversation')));
+  document.getElementById('message-input').disabled = true;
+  document.getElementById('message-send').disabled = true;
+  document.getElementById('owner-role-list').replaceChildren();
+  document.getElementById('announcement-list').replaceChildren();
+  resetAnnouncementEditor();
 }
 
-document.getElementById('announcement-audience').addEventListener('change',()=>renderAnnouncementStudents());
-document.getElementById('announcement-cancel-edit').addEventListener('click',resetAnnouncementEditor);
+document.getElementById('announcement-audience').addEventListener('change', () => renderAnnouncementStudents());
+document.getElementById('announcement-cancel-edit').addEventListener('click', () => resetAnnouncementEditor());
+
 document.getElementById('announcement-form').addEventListener('submit', async event => {
   event.preventDefault();
-  if (!professorMode() || !user) return;
-  const title=document.getElementById('announcement-title').value.trim();
-  const body=document.getElementById('announcement-body').value.trim();
-  const audience=document.getElementById('announcement-audience').value;
-  const recipients=[...document.querySelectorAll('#announcement-students input:checked')].map(x=>x.value);
-  if(!title||!body)return;
-  if(audience==='selected'&&!recipients.length){status('announcement-status',tr('recipientsRequired'),true);return;}
-  const button=document.getElementById('announcement-submit');button.disabled=true;
-  const wasEditing=!!editingAnnouncementId;
-  const {error}=await supabase.rpc('save_echo_announcement',{
-    announcement_title:title,
-    announcement_body:body,
-    announcement_pinned:document.getElementById('announcement-pinned').checked,
-    announcement_audience:audience,
-    recipient_ids:recipients,
-    target_announcement_id:editingAnnouncementId
-  });
-  button.disabled=false;
-  if(error){status('announcement-status',error.message,true);return;}
-  resetAnnouncementEditor();
-  status('announcement-status',wasEditing?tr('updated'):tr('published'));
-  await loadAnnouncements();
+  if (!professorMode() || !user) {
+    status('announcement-status', tr('professorOnly'), true);
+    return;
+  }
+
+  const title = document.getElementById('announcement-title').value.trim();
+  const body = document.getElementById('announcement-body').value.trim();
+  const audience = document.getElementById('announcement-audience').value;
+  const recipients = [...selectedAnnouncementStudents];
+  if (!title || !body) return;
+  if (audience === 'selected' && !recipients.length) {
+    status('announcement-status', tr('recipientsRequired'), true);
+    return;
+  }
+
+  const button = document.getElementById('announcement-submit');
+  button.disabled = true;
+  const wasEditing = !!editingAnnouncementId;
+  try {
+    const {error} = await supabase.rpc('save_echo_announcement', {
+      announcement_title:title,
+      announcement_body:body,
+      announcement_pinned:document.getElementById('announcement-pinned').checked,
+      announcement_audience:audience,
+      recipient_ids:recipients,
+      target_announcement_id:editingAnnouncementId
+    });
+    if (error) throw error;
+    resetAnnouncementEditor();
+    status('announcement-status', wasEditing ? tr('updated') : tr('published'));
+    await loadAnnouncements();
+  } catch (error) {
+    status('announcement-status', 'Could not save announcement: ' + (error?.message || error), true);
+  } finally {
+    button.disabled = false;
+  }
 });
+
 document.getElementById('message-form').addEventListener('submit', async event => {
   event.preventDefault();
   const body = document.getElementById('message-input').value.trim();
-  if (!body || !contactId || !user || sendingPrivateMessage) return;
+  const recipient = contacts.find(item => item.id === contactId);
+  if (!body || !recipient || !user || sendingPrivateMessage) return;
+
   sendingPrivateMessage = true;
   const button = document.getElementById('message-send');
   button.disabled = true;
   try {
     const {error} = await supabase.from('private_messages').insert({
-      sender_id:user.id, recipient_id:contactId, body
+      sender_id:user.id,
+      recipient_id:recipient.id,
+      body
     });
     if (error) throw error;
     document.getElementById('message-input').value = '';
     status('messages-status', tr('sent'));
     await loadMessages();
   } catch (error) {
-    status('messages-status', 'Could not send message: ' + (error?.message || 'Network error'), true);
+    status('messages-status', 'Could not send message: ' + (error?.message || error), true);
   } finally {
     sendingPrivateMessage = false;
-    button.disabled = !contactId || !contacts.some(item => item.id === contactId);
+    button.disabled = !contacts.some(item => item.id === contactId);
   }
 });
+
 document.getElementById('start-call').addEventListener('click', () => { void startVoiceCall(); });
 document.getElementById('end-call').addEventListener('click', () => {
   void finishCall({updateServer:true, signal:true, statusText:tr('callEnded')});
