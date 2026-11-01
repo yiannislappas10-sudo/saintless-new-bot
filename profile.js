@@ -17,7 +17,7 @@ const copy = {
     notes:'Private staff notes', classes:'Assigned classes', noClasses:'No classes assigned yet.',
     privacy:'Profile visibility', privacyHelp:'Choose which details other ECHO users can see.',
     save:'Save changes', saving:'Saving…', saved:'Profile saved.', failed:'Could not save profile.',
-    directory:'Student profiles', searchStudents:'Search students by name…', noStudents:'No student profiles are available to manage.',
+    directory:'Student profiles', searchStudents:'Search students by name…', noStudents:'No student profiles are available to manage.', findStudent:'Find a student', globalSearchHint:'Type a student name to search.', noSearchMatches:'No students match that search.',
     selectStudent:'Select a student to view and edit their profile.',
     permission:'You can edit your profile. Academic fields are managed by your professor.',
     private:'Private', visible:'Visible', noBirthday:'Not provided', years:'years old',
@@ -39,7 +39,7 @@ const copy = {
     notes:'Ιδιωτικές σημειώσεις προσωπικού', classes:'Ανατεθειμένα μαθήματα', noClasses:'Δεν έχουν ανατεθεί μαθήματα.',
     privacy:'Ορατότητα προφίλ', privacyHelp:'Επιλέξτε ποια στοιχεία μπορούν να βλέπουν οι υπόλοιποι χρήστες του ECHO.',
     save:'Αποθήκευση αλλαγών', saving:'Αποθήκευση…', saved:'Το προφίλ αποθηκεύτηκε.', failed:'Δεν ήταν δυνατή η αποθήκευση.',
-    directory:'Προφίλ μαθητών', searchStudents:'Αναζήτηση μαθητών…', noStudents:'Δεν υπάρχουν προφίλ μαθητών για διαχείριση.',
+    directory:'Προφίλ μαθητών', searchStudents:'Αναζήτηση μαθητών…', noStudents:'Δεν υπάρχουν προφίλ μαθητών για διαχείριση.', findStudent:'Εύρεση μαθητή', globalSearchHint:'Πληκτρολογήστε το όνομα ενός μαθητή.', noSearchMatches:'Δεν βρέθηκαν μαθητές με αυτή την αναζήτηση.',
     selectStudent:'Επιλέξτε μαθητή για προβολή και επεξεργασία του προφίλ του.',
     permission:'Μπορείτε να επεξεργαστείτε το προφίλ σας. Τα ακαδημαϊκά στοιχεία τα διαχειρίζεται ο καθηγητής σας.',
     private:'Ιδιωτικό', visible:'Ορατό', noBirthday:'Δεν έχει οριστεί', years:'ετών',
@@ -60,6 +60,7 @@ let authProfile = null;
 let targetId = null;
 let targetProfile = null;
 let directoryRows = [];
+let directoryLoaded = false;
 let directoryOpen = false;
 let pendingAvatarFile = null;
 let headerAvatarToken = 0;
@@ -167,6 +168,27 @@ function mount() {
     $('profile-status').textContent=t('uploaded');
   });
   $('profile-directory-search').addEventListener('input',renderDirectory);
+  const globalSearch=$('echo-global-student-search');
+  const globalTrigger=$('echo-global-student-trigger');
+  const globalMenu=$('echo-global-student-menu');
+  const globalInput=$('echo-global-student-input');
+  globalTrigger?.addEventListener('click',async()=>{
+    const opening=globalMenu.classList.contains('hidden');
+    globalMenu.classList.toggle('hidden',!opening);
+    globalTrigger.setAttribute('aria-expanded',String(opening));
+    if(opening){
+      try{await loadStudentDirectory();renderGlobalStudentResults(globalInput.value);}
+      catch(error){$('echo-global-student-results').replaceChildren(make('p','echo-global-student-hint',error?.message||t('failed')));}
+      globalInput.focus();
+    }
+  });
+  globalInput?.addEventListener('input',()=>renderGlobalStudentResults(globalInput.value));
+  globalInput?.addEventListener('keydown',event=>{
+    if(event.key==='Escape'){closeGlobalStudentSearch();globalTrigger?.focus();}
+    if(event.key==='Enter')$('echo-global-student-results')?.querySelector('button')?.click();
+  });
+  document.addEventListener('pointerdown',event=>{if(globalSearch&&!globalSearch.contains(event.target))closeGlobalStudentSearch();});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeGlobalStudentSearch();});
   document.querySelectorAll('[data-profile-view]').forEach(button=>button.addEventListener('click',()=>{
     if(button.dataset.profileView==='directory')void openDirectory();else void openOwnProfile();
   }));
@@ -216,6 +238,9 @@ function applyLanguage() {
   set('profile-save','save');set('profile-back','back');set('profile-directory-heading','directory');
   set('profile-directory-help','selectStudent');
   const search=$('profile-directory-search');if(search)search.placeholder=t('searchStudents');
+  const globalInput=$('echo-global-student-input');if(globalInput)globalInput.placeholder=t('searchStudents');
+  const globalLabel=$('echo-global-student-label');if(globalLabel)globalLabel.textContent=t('findStudent');
+  const globalResults=$('echo-global-student-results');if(globalResults&&!globalInput?.value)globalResults.replaceChildren(make('p','echo-global-student-hint',t('globalSearchHint')));
   const close=$('profile-close');if(close)close.setAttribute('aria-label',t('close'));
   renderVisibility();
   if(targetProfile)renderClasses(targetProfile.assigned_classes||[]);
@@ -356,6 +381,38 @@ async function saveProfile(event) {
     button.disabled=false;button.textContent=t('save');
   }
 }
+function closeGlobalStudentSearch(){
+  $('echo-global-student-menu')?.classList.add('hidden');
+  $('echo-global-student-trigger')?.setAttribute('aria-expanded','false');
+}
+async function loadStudentDirectory(force=false){
+  if(!db||!user||!isProfessor())return;
+  if(directoryLoaded&&!force)return;
+  const {data,error}=await db.rpc('get_echo_profile_directory');
+  if(error)throw error;
+  directoryRows=data||[];
+  directoryLoaded=true;
+}
+function renderGlobalStudentResults(value=''){
+  const list=$('echo-global-student-results');if(!list)return;
+  list.replaceChildren();
+  const query=String(value||'').trim().toLocaleLowerCase();
+  if(!query){list.append(make('p','echo-global-student-hint',t('globalSearchHint')));return;}
+  const matches=directoryRows.filter(row=>(row.display_name||'').toLocaleLowerCase().includes(query)).slice(0,8);
+  if(!matches.length){list.append(make('p','echo-global-student-hint',t('noSearchMatches')));return;}
+  for(const row of matches){
+    const button=make('button','echo-global-student-result');
+    button.type='button';button.setAttribute('role','option');
+    button.append(make('strong','',row.display_name||'ECHO student'));
+    button.append(make('span','',String(row.class_count||0)+' '+t('assigned')));
+    button.addEventListener('click',async()=>{
+      closeGlobalStudentSearch();
+      const input=$('echo-global-student-input');if(input)input.value='';
+      await window.echoOpenProfile?.(row.profile_id);
+    });
+    list.append(button);
+  }
+}
 function renderDirectory() {
   const list=$('profile-directory-list');if(!list)return;
   const search=($('profile-directory-search').value||'').trim().toLowerCase();
@@ -376,9 +433,7 @@ async function openDirectory() {
   $('profile-directory-status').textContent='';
   $('profile-directory-list').replaceChildren(make('div','echo-profile-empty','Loading…'));
   try{
-    const {data,error}=await db.rpc('get_echo_profile_directory');
-    if(error)throw error;
-    directoryRows=data||[];
+    await loadStudentDirectory(true);
     renderDirectory();
   }catch(error){$('profile-directory-status').textContent=error?.message||t('failed');}
 }
@@ -418,7 +473,9 @@ async function start() {
       authProfile=null;targetProfile=null;
       if(!user){
         headerAvatarToken++;const avatar=$('avatar');if(avatar)avatar.textContent='E';
-        closeModal();return;
+        directoryRows=[];directoryLoaded=false;
+        $('echo-global-student-search')?.classList.add('hidden');
+        closeGlobalStudentSearch();closeModal();return;
       }
       void loadAuthProfile().catch(error=>console.warn('ECHO profile initialization failed:',error?.message||error));
     });
@@ -429,6 +486,7 @@ async function loadAuthProfile() {
   const {data,error}=await db.from('profiles').select('id,display_name,role').eq('id',user.id).maybeSingle();
   if(error)throw error;
   authProfile={...(data||{id:user.id,display_name:user.email||'ECHO user',role:'student'})};
+  $('echo-global-student-search')?.classList.toggle('hidden',!isProfessor());
   await updateHeaderAvatar();
 }
 window.echoOpenProfile = async profileId => {
