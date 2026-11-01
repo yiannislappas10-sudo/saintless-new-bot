@@ -11,37 +11,27 @@ const words = {
   en: {
     statusTab:'Class status', statusIntro:'See which lessons are upcoming, live, completed, or cancelled.',
     notifications:'Notifications', notificationsIntro:'Unread announcements and messages, plus your next lessons.',
-    profile:'Profile settings', profileIntro:'Manage your display name and language preference.',
     all:'All', upcoming:'Upcoming', live:'Live', completed:'Completed', cancelled:'Cancelled',
     noClasses:'No classes are available for your account yet.', refresh:'Refresh',
-    email:'Sign-in email', displayName:'Display name', language:'Language', english:'English', greek:'Greek',
-    saveProfile:'Save profile', profileSaved:'Profile settings saved.', profileFailed:'Could not save profile.',
-    nameRequired:'Enter a display name between 2 and 60 characters.',
     unreadAnnouncements:'Unread announcements', unreadMessages:'Unread private messages',
     markRead:'Mark as read', markAllRead:'Mark all as read', pin:'Pin', unpin:'Unpin', pinned:'Pinned', readAllDone:'All notifications marked as read.', pinSaved:'Notification pin updated.', open:'Open', noNotifications:'You are all caught up.',
     upcomingLessons:'Upcoming lessons', noUpcoming:'No upcoming lessons.',
     newAnnouncement:'New announcement', newMessage:'New private message',
     announcementRead:'Announcement marked as read.', messageRead:'Message marked as read.',
     failedNotifications:'Could not load notifications.', failedClasses:'Could not load classes.',
-    classChanged:'Class status', emailNote:'Your sign-in email cannot be changed here.',
     scheduled:'Scheduled'
   },
   el: {
     statusTab:'Κατάσταση μαθημάτων', statusIntro:'Δείτε ποια μαθήματα είναι προσεχή, σε εξέλιξη, ολοκληρωμένα ή ακυρωμένα.',
     notifications:'Ειδοποιήσεις', notificationsIntro:'Μη αναγνωσμένες ανακοινώσεις και μηνύματα, καθώς και τα επόμενα μαθήματά σας.',
-    profile:'Ρυθμίσεις προφίλ', profileIntro:'Διαχειριστείτε το όνομα εμφάνισης και τη γλώσσα σας.',
     all:'Όλα', upcoming:'Προσεχή', live:'Σε εξέλιξη', completed:'Ολοκληρωμένα', cancelled:'Ακυρωμένα',
     noClasses:'Δεν υπάρχουν ακόμη διαθέσιμα μαθήματα για τον λογαριασμό σας.', refresh:'Ανανέωση',
-    email:'Email σύνδεσης', displayName:'Όνομα εμφάνισης', language:'Γλώσσα', english:'Αγγλικά', greek:'Ελληνικά',
-    saveProfile:'Αποθήκευση προφίλ', profileSaved:'Οι ρυθμίσεις αποθηκεύτηκαν.', profileFailed:'Δεν ήταν δυνατή η αποθήκευση.',
-    nameRequired:'Πληκτρολογήστε όνομα εμφάνισης από 2 έως 60 χαρακτήρες.',
     unreadAnnouncements:'Μη αναγνωσμένες ανακοινώσεις', unreadMessages:'Μη αναγνωσμένα προσωπικά μηνύματα',
     markRead:'Σήμανση ως αναγνωσμένο', markAllRead:'Σήμανση όλων ως αναγνωσμένων', pin:'Καρφίτσωμα', unpin:'Ξεκαρφίτσωμα', pinned:'Καρφιτσωμένο', readAllDone:'Όλες οι ειδοποιήσεις σημειώθηκαν ως αναγνωσμένες.', pinSaved:'Η καρφίτσα ενημερώθηκε.', open:'Άνοιγμα', noNotifications:'Δεν υπάρχουν νέες ειδοποιήσεις.',
     upcomingLessons:'Επόμενα μαθήματα', noUpcoming:'Δεν υπάρχουν επόμενα μαθήματα.',
     newAnnouncement:'Νέα ανακοίνωση', newMessage:'Νέο προσωπικό μήνυμα',
     announcementRead:'Η ανακοίνωση σημειώθηκε ως αναγνωσμένη.', messageRead:'Το μήνυμα σημειώθηκε ως αναγνωσμένο.',
     failedNotifications:'Δεν ήταν δυνατή η φόρτωση ειδοποιήσεων.', failedClasses:'Δεν ήταν δυνατή η φόρτωση μαθημάτων.',
-    classChanged:'Κατάσταση μαθήματος', emailNote:'Το email σύνδεσης δεν μπορεί να αλλάξει από εδώ.',
     scheduled:'Προγραμματισμένο'
   }
 };
@@ -58,7 +48,7 @@ const fmtTime = value => {
 const make = (tag, cls, value) => {
   const node = document.createElement(tag);
   if (cls) node.className = cls;
-  if (value !== undefined) node.textContent = value;
+  if (value !== ) node.textContent = value;
   return node;
 };
 const css = document.createElement('link');
@@ -73,7 +63,6 @@ if (!nav || !host) throw new Error('ECHO personal dashboard layout was not found
 const panelMarkup = [
   ['class-status', 'statusTab', '<div class="panel-heading"><div><h2 id="class-status-title"></h2><p id="class-status-intro"></p></div><button class="btn" id="class-status-refresh" type="button"></button></div><div class="personal-status-filters" id="personal-status-filters"></div><div class="personal-status-list" id="personal-status-list"></div>'],
   ['notifications', 'notifications', '<div class="panel-heading"><div><h2 id="personal-notifications-title"></h2><p id="personal-notifications-intro"></p></div><button class="btn" id="personal-notifications-refresh" type="button"></button></div><div class="personal-notification-toolbar"><button class="personal-action personal-action-primary" id="personal-mark-all-read" type="button" hidden></button></div><div id="personal-notification-list" aria-live="polite"></div><p class="personal-data-status" id="personal-notification-status" role="status"></p>'],
-  ['profile', 'profile', '<div class="panel-heading"><div><h2 id="personal-profile-title"></h2><p id="personal-profile-intro"></p></div></div><form class="personal-profile-card" id="personal-profile-form"><label for="personal-profile-name" id="personal-profile-name-label"></label><input id="personal-profile-name" type="text" minlength="2" maxlength="60" autocomplete="name" required><label for="personal-profile-email" id="personal-profile-email-label"></label><input id="personal-profile-email" type="email" readonly><p class="personal-profile-note" id="personal-profile-email-note"></p><label for="personal-profile-language" id="personal-profile-language-label"></label><select id="personal-profile-language"><option value="en"></option><option value="el"></option></select><button class="btn btn-dark" id="personal-profile-save" type="submit"></button><p class="personal-data-status" id="personal-profile-status" role="status"></p></form>']
 ];
 
 const tabButtons = new Map();
@@ -118,19 +107,6 @@ function applyLanguage() {
   set('personal-notifications-intro',t('notificationsIntro'));
   set('personal-notifications-refresh',t('refresh'));
   set('personal-mark-all-read',t('markAllRead'));
-  set('personal-profile-title',t('profile'));
-  set('personal-profile-intro',t('profileIntro'));
-  set('personal-profile-name-label',t('displayName'));
-  set('personal-profile-email-label',t('email'));
-  set('personal-profile-email-note',t('emailNote'));
-  set('personal-profile-language-label',t('language'));
-  set('personal-profile-save',t('saveProfile'));
-  const select = $('personal-profile-language');
-  if (select) {
-    select.options[0].textContent = t('english');
-    select.options[1].textContent = t('greek');
-    select.value = language();
-  }
   renderClassStatuses();
   renderNotifications();
 }
@@ -422,57 +398,19 @@ async function refreshPanel(id) {
   try {
     if (id==='class-status') await loadClasses();
     if (id==='notifications') { await loadClasses(); await loadNotifications(); }
-    if (id==='profile') {
-      $('personal-profile-name').value = profile?.display_name || '';
-      $('personal-profile-email').value = user.email || '';
-      $('personal-profile-language').value = language();
-    }
   } catch (error) {
     const target = id==='notifications'?'personal-notification-status':null;
     if (target) $(target).textContent = error.message || t('failedClasses');
   }
 }
-async function saveProfile(event) {
-  event.preventDefault();
-  if (!db || !user) return;
-  const name = $('personal-profile-name').value.trim();
-  const status = $('personal-profile-status');
-  if (name.length<2||name.length>60) { status.textContent=t('nameRequired'); return; }
-  const button=$('personal-profile-save');
-  button.disabled=true;status.textContent='';
-  const {error}=await db.rpc('update_echo_profile',{new_display_name:name});
-  button.disabled=false;
-  if (error) { status.textContent=error.message||t('profileFailed'); return; }
-  profile.display_name=name;
-  const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join('');
-  if ($('avatar')) $('avatar').textContent=initials||'E';
-  status.textContent=t('profileSaved');
-}
-function changeLanguage(value) {
-  const current=language();
-  if (value===current) return;
-  const button=$('app-language');
-  if (button) button.click();
-  else {
-    try { localStorage.setItem('echo-language',value); } catch (_) {}
-  }
-  window.setTimeout(applyLanguage,0);
-}
 function reset() {
   if (notificationTimer) { clearInterval(notificationTimer); notificationTimer=null; }
-  user=null;profile=null;classes=[];liveClassIds=new Set();notificationRows=[];
+  user=null;classes=[];liveClassIds=new Set();notificationRows=[];
   renderClassStatuses();renderNotifications();
 }
 async function boot(session) {
   if (!session?.user) { reset(); return; }
   user=session.user;
-  const {data,error}=await db.from('profiles').select('id,display_name,role').eq('id',user.id).maybeSingle();
-  if (error) throw error;
-  profile=data||{id:user.id,display_name:user.email||'ECHO user',role:'student'};
-  isTeaching=OWNER_EMAILS.has((user.email||'').toLowerCase())||profile.role==='professor';
-  $('personal-profile-name').value=profile.display_name||'';
-  $('personal-profile-email').value=user.email||'';
-  $('personal-profile-language').value=language();
   await loadClasses();
   await loadNotifications();
   if (notificationTimer) clearInterval(notificationTimer);
@@ -483,8 +421,6 @@ for (const id of ['class-status-refresh']) {
   $(id).addEventListener('click',()=>{void loadClasses().catch(e=>{$('class-status-title').textContent=t('failedClasses')+': '+e.message;});});
 }
 $('personal-notifications-refresh').addEventListener('click',()=>{void loadClasses().then(loadNotifications).catch(e=>{$('personal-notification-status').textContent=e.message;});});
-$('personal-profile-language').addEventListener('change',event=>changeLanguage(event.target.value));
-$('personal-profile-form').addEventListener('submit',saveProfile);
 $('app-language')?.addEventListener('click',()=>window.setTimeout(applyLanguage,0));
 $('login-language')?.addEventListener('click',()=>window.setTimeout(applyLanguage,0));
 window.addEventListener('storage',event=>{if(event.key==='echo-language')applyLanguage();});
@@ -502,7 +438,7 @@ async function start() {
     });
     applyLanguage();
   } catch(error) {
-    $('personal-profile-status').textContent=error.message||t('profileFailed');
+    const notice=$('personal-notification-status'); if(notice)notice.textContent=error.message||t('failedNotifications');
   }
 }
 start();
