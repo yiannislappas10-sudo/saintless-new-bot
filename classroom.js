@@ -687,7 +687,6 @@ async function saveClass(event){
     const update={...base,updated_at:new Date().toISOString()};delete update.created_by;
     const {data,error}=await db.from('classes').update(update).eq('id',selected).select('id').single();
     if(error)throw error;savedRows=[data];
-    const {error:delError}=await db.from('class_enrollments').delete().eq('class_id',selected);if(delError)throw delError;
     const {error:demoDelError}=await db.from('class_demo_participants').delete().eq('class_id',selected);if(demoDelError)throw demoDelError;
    }else{
     const repeat=document.getElementById('class-repeat').checked?Math.max(2,Math.min(16,Number(document.getElementById('class-repeat-count').value)||4)):1;
