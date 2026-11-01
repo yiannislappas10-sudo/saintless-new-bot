@@ -32,6 +32,7 @@ const words = {
     migration:'Classroom database migration is required before classes can be used.',
     liveUnavailable:'Live audio/video is not configured yet. The class schedule and attendance are separate and remain available.',
     rosterError:'Could not update the student list. Review the class and try again.',
+    list:'List',searchClasses:'Search classes…',allStatuses:'All statuses',lifecycleStatus:'Class status',activeStatus:'Active',upcomingStatus:'Upcoming',archivedStatus:'Archived',location:'Classroom / meeting location',capacity:'Maximum students (optional)',assignedProfessor:'Assigned professor',studentSearch:'Search students…',selectedCount:'selected',studentCount:'students assigned',noMatchingStudents:'No matching students.',archive:'Archive class',unarchive:'Restore class',classArchived:'This class is archived.',saveRoster:'Save class and roster',statusLabel:'Status',scheduleLabel:'Schedule',classLocation:'Location',capacityReached:'Selected students exceed this class capacity.',
     fullScreen:'Full screen',exitFullScreen:'Exit full screen',shareScreen:'Share screen',stopSharing:'Stop sharing',screenShareUnavailable:'Screen sharing is not available in this browser.',screenShareDenied:'Screen sharing permission was denied.',raiseHand:'Raise hand',lowerHand:'Lower hand',handRaised:'Hand raised',reactions:'Reactions',muteParticipant:'Mute participant',unmuteParticipant:'Allow microphone',turnCameraOff:'Turn camera off',allowCamera:'Allow camera',stopParticipantShare:'Stop screen share',removeParticipant:'Remove from meeting',readmit:'Restore meeting access',removedFromMeeting:'The teacher removed you from this meeting.',mutedByTeacher:'Your microphone was muted by the teacher.',teacherMuted:'The teacher has muted your microphone.',teacherCameraOff:'The teacher turned off your camera.',reactionSent:'Reaction sent',meetingControls:'Meeting controls',sharing:'Sharing screen',noScreenShare:'No one is sharing a screen.',
   },
   el:{
@@ -56,6 +57,7 @@ const words = {
     runChecks:'Εκτέλεση ελέγχων',passed:'Επιτυχία',failed:'Αποτυχία',notTested:'Δεν ελέγχθηκε',
     migration:'Απαιτείται η μεταφορά της βάσης μαθημάτων.',liveUnavailable:'Δεν έχει ρυθμιστεί ακόμη η ζωντανή κλήση ήχου/εικόνας.',
     rosterError:'Δεν ήταν δυνατή η ενημέρωση των μαθητών.',
+    list:'Λίστα',searchClasses:'Αναζήτηση μαθημάτων…',allStatuses:'Όλες οι καταστάσεις',lifecycleStatus:'Κατάσταση μαθήματος',activeStatus:'Ενεργό',upcomingStatus:'Προσεχές',archivedStatus:'Αρχειοθετημένο',location:'Αίθουσα / τοποθεσία',capacity:'Μέγιστος αριθμός μαθητών (προαιρετικό)',assignedProfessor:'Ανατεθειμένος καθηγητής',studentSearch:'Αναζήτηση μαθητών…',selectedCount:'επιλεγμένοι',studentCount:'μαθητές',noMatchingStudents:'Δεν βρέθηκαν μαθητές.',archive:'Αρχειοθέτηση',unarchive:'Επαναφορά',classArchived:'Αυτό το μάθημα είναι αρχειοθετημένο.',saveRoster:'Αποθήκευση μαθήματος και μαθητών',statusLabel:'Κατάσταση',scheduleLabel:'Πρόγραμμα',classLocation:'Τοποθεσία',capacityReached:'Οι επιλεγμένοι μαθητές υπερβαίνουν τη χωρητικότητα.',
     fullScreen:'Πλήρης οθόνη',exitFullScreen:'Έξοδος πλήρους οθόνης',shareScreen:'Κοινή χρήση οθόνης',stopSharing:'Διακοπή κοινής χρήσης',screenShareUnavailable:'Η κοινή χρήση οθόνης δεν υποστηρίζεται σε αυτό το πρόγραμμα περιήγησης.',screenShareDenied:'Δεν δόθηκε άδεια για κοινή χρήση οθόνης.',raiseHand:'Σήκωμα χεριού',lowerHand:'Κατέβασμα χεριού',handRaised:'Σηκωμένο χέρι',reactions:'Αντιδράσεις',muteParticipant:'Σίγαση συμμετέχοντα',unmuteParticipant:'Ενεργοποίηση μικροφώνου',turnCameraOff:'Απενεργοποίηση κάμερας',allowCamera:'Ενεργοποίηση κάμερας',stopParticipantShare:'Διακοπή κοινής χρήσης οθόνης',removeParticipant:'Αφαίρεση από τη συνάντηση',readmit:'Επαναφορά πρόσβασης στη συνάντηση',removedFromMeeting:'Ο καθηγητής σας αφαίρεσε από τη συνάντηση.',mutedByTeacher:'Ο καθηγητής έκανε σίγαση στο μικρόφωνό σας.',teacherMuted:'Ο καθηγητής έχει κάνει σίγαση στο μικρόφωνό σας.',teacherCameraOff:'Ο καθηγητής απενεργοποίησε την κάμερά σας.',reactionSent:'Η αντίδραση στάλθηκε',meetingControls:'Έλεγχος συνάντησης',sharing:'Κοινή χρήση οθόνης',noScreenShare:'Κανείς δεν μοιράζεται την οθόνη του.'
   }
 };
@@ -73,7 +75,7 @@ function toAthensISO(value){
   return result.toISOString();
 }
 function fromISO(value){const p=athensParts(new Date(value));return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute;}
-let db=null,user=null,profile=null,isOwner=false,classes=[],students=[],selected=null,view='week',cursor=new Date(),ownerPreviewRole=null,waitingRoomTimer=null;
+let db=null,user=null,profile=null,isOwner=false,classes=[],students=[],professors=[],selected=null,selectedDemo=false,view='week',cursor=new Date(),ownerPreviewRole=null,waitingRoomTimer=null;
 const nav=document.querySelector('.nav-tabs');
 nav.querySelector('[data-tab="schedule"]')?.remove();
 nav.querySelector('[data-tab="join"]')?.remove();
@@ -85,7 +87,8 @@ const host=document.querySelector('.app-main');
 const panel=document.createElement('section');panel.className='panel';panel.id='panel-classes';
 panel.innerHTML=`
  <div class="panel-heading"><div><h2>${t('title')}</h2><p>${t('intro')}</p></div><button class="btn btn-dark class-primary-action" id="class-new">${t('create')}</button></div>
- <div class="class-toolbar"><div class="class-view-switch"><button type="button" data-view="day">${t('day')}</button><button type="button" data-view="week" class="active">${t('week')}</button><button type="button" data-view="month">${t('month')}</button></div><div class="class-date-nav"><button type="button" id="class-prev" aria-label="Previous period">‹</button><strong id="class-period"></strong><button type="button" id="class-next" aria-label="Next period">›</button></div></div>
+ <div class="class-toolbar class-manager-toolbar"><div class="class-view-switch"><button type="button" data-view="day">${t('day')}</button><button type="button" data-view="week" class="active">${t('week')}</button><button type="button" data-view="month">${t('month')}</button><button type="button" data-view="list">${t('list')}</button></div><div class="class-date-nav"><button type="button" id="class-prev" aria-label="Previous period">‹</button><strong id="class-period"></strong><button type="button" id="class-next" aria-label="Next period">›</button></div></div>
+ <div class="class-management-filters"><input id="class-search" type="search" placeholder="${t('searchClasses')}" autocomplete="off"><select id="class-lifecycle-filter" aria-label="${t('lifecycleStatus')}"><option value="">${t('allStatuses')}</option><option value="active">${t('activeStatus')}</option><option value="upcoming">${t('upcomingStatus')}</option><option value="archived">${t('archivedStatus')}</option></select></div>
  <div id="class-editor" class="class-editor hidden"><form id="class-form">
   <div class="class-form-grid">
    <label>${t('name')}<input id="class-title" maxlength="140" required></label>
@@ -94,8 +97,12 @@ panel.innerHTML=`
    <label class="class-form-wide">${t('image')}<input id="class-image" type="url" maxlength="2048"></label>
    <label>${t('start')}<input id="class-start" type="datetime-local" required></label>
    <label>${t('end')}<input id="class-end" type="datetime-local" required></label>
+   <label id="class-professor-wrap">${t('assignedProfessor')}<select id="class-professor"></select></label>
+   <label>${t('location')}<input id="class-location" maxlength="160"></label>
+   <label>${t('capacity')}<input id="class-capacity" type="number" min="1" max="5000" step="1"></label>
+   <label>${t('lifecycleStatus')}<select id="class-lifecycle"><option value="upcoming">${t('upcomingStatus')}</option><option value="active">${t('activeStatus')}</option><option value="archived">${t('archivedStatus')}</option></select></label>
   </div>
-  <div class="class-student-picker" id="class-real-student-picker"><strong>${t('students')}</strong><div id="class-student-options"></div></div>
+  <div class="class-student-picker" id="class-real-student-picker"><div class="class-picker-heading"><strong>${t('students')}</strong><span id="class-student-count"></span></div><input id="class-student-search" type="search" placeholder="${t('studentSearch')}" autocomplete="off"><div id="class-student-options"></div></div>
   <div class="class-demo-picker hidden" id="class-demo-picker"><label>${t('demoStudents')}<textarea id="class-demo-names" rows="3" maxlength="1200" placeholder="Demo Student 1&#10;Demo Student 2"></textarea></label></div>
   <div class="class-form-options"><label class="class-inline"><input id="class-open" type="checkbox"> Allow students not assigned to this class</label>
    <label class="class-inline"><input id="class-demo" type="checkbox"> ${t('demo')}</label>
@@ -156,6 +163,9 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
 document.getElementById('class-prev').addEventListener('click',()=>moveCursor(-1));
 document.getElementById('class-next').addEventListener('click',()=>moveCursor(1));
 document.getElementById('class-form').addEventListener('submit',saveClass);
+document.getElementById('class-student-search').addEventListener('input',filterStudentPicker);
+document.getElementById('class-search').addEventListener('input',renderClasses);
+document.getElementById('class-lifecycle-filter').addEventListener('change',renderClasses);
 document.getElementById('class-demo').addEventListener('change',toggleDemoEditor);
 document.getElementById('class-run-checks').addEventListener('click',runChecks);
 document.getElementById('class-preview-student').addEventListener('click',()=>setPreview('student'));
