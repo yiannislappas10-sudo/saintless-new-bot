@@ -291,10 +291,10 @@ async function loadProfile(targetUserId) {
     $('profile-student-id').value=record.student_id||'';
     $('profile-enrollment-date').value=dateValue(record.enrollment_date);
     $('profile-notes').value=record.additional_notes||'';
-    $('profile-academic-section').classList.toggle('hidden',!record.can_manage);
+    $('profile-academic-section').classList.toggle('hidden',!(record.can_manage&&(isOwner()||(staff&&!currentTarget))));
     $('profile-student-id').readOnly=!academicEditable;
     $('profile-enrollment-date').readOnly=!academicEditable;
-    $('profile-notes').readOnly=!record.can_manage;
+    $('profile-notes').readOnly=!(isOwner()||(staff&&!currentTarget));
     ['profile-full-name','profile-birthday','profile-gender','profile-phone','profile-biography'].forEach(id=>$(id).disabled=!record.can_manage);
     $('profile-picture-file').disabled=!record.can_manage;
     $('profile-visibility').classList.toggle('hidden',!record.can_manage);
