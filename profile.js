@@ -67,7 +67,7 @@ let headerAvatarToken = 0;
 
 const style = document.createElement('link');
 style.rel = 'stylesheet';
-style.href = '/profile.css?v=20261101-mobile-smooth';
+style.href = '/profile.css?v=20261101-student-search';
 document.head.append(style);
 
 function make(tag, className='', text='') {
