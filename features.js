@@ -26,8 +26,8 @@ const text = {
     callError:'Could not connect. Check your microphone and network, then try again.',
     callSecureError:'Could not open a private call channel. Run the updated ECHO SQL and disable public Realtime channel access.',
     failedMessages:'Could not load private messages. Run the ECHO setup SQL first.', sent:'Message sent.',
-    owner:'Owner panel', ownerIntro:'Manage professor access for ECHO accounts.',
-    ownerNotice:'Owner-only controls · Only the designated ECHO account can change roles.',
+    owner:'Professor access', ownerIntro:'Choose which ECHO accounts can teach and manage classes.',
+    ownerNotice:'Select an account below and choose “Make professor”. Professor access can be removed here at any time. Only designated ECHO owners can make these changes.',
     makeProfessor:'Make professor', removeProfessor:'Remove professor access',
     student:'Student', professor:'Professor', noAccounts:'No other ECHO accounts have signed in yet.',
     failedOwner:'Could not load accounts. Run the ECHO setup SQL first.',
@@ -53,8 +53,8 @@ const text = {
     callError:'Η σύνδεση απέτυχε. Ελέγξτε το μικρόφωνο και το δίκτυό σας και δοκιμάστε ξανά.',
     callSecureError:'Δεν ήταν δυνατή η δημιουργία ιδιωτικής σύνδεσης. Εκτελέστε το νέο SQL του ECHO και απενεργοποιήστε τη δημόσια πρόσβαση στα Realtime κανάλια.',
     failedMessages:'Δεν ήταν δυνατή η φόρτωση των μηνυμάτων. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.', sent:'Το μήνυμα στάλθηκε.',
-    owner:'Πίνακας ιδιοκτήτη', ownerIntro:'Διαχειριστείτε την πρόσβαση καθηγητών στους λογαριασμούς ECHO.',
-    ownerNotice:'Μόνο για τον ιδιοκτήτη · Μόνο ο καθορισμένος λογαριασμός ECHO μπορεί να αλλάζει ρόλους.',
+    owner:'Πρόσβαση καθηγητών', ownerIntro:'Επιλέξτε ποιοι λογαριασμοί ECHO μπορούν να διδάσκουν και να διαχειρίζονται μαθήματα.',
+    ownerNotice:'Επιλέξτε έναν λογαριασμό και πατήστε «Ορισμός ως καθηγητή». Η πρόσβαση μπορεί να αφαιρεθεί από εδώ. Μόνο ο ιδιοκτήτης ECHO μπορεί να κάνει αλλαγές.',
     makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
     student:'Μαθητής', professor:'Καθηγητής', noAccounts:'Δεν έχουν συνδεθεί ακόμη άλλοι λογαριασμοί ECHO.',
     failedOwner:'Δεν ήταν δυνατή η φόρτωση λογαριασμών. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
@@ -89,7 +89,7 @@ const tabsMarkup = [
   ['owner', 'owner']
 ];
 for (const [id, label] of tabsMarkup) {
-  const button = el('button', 'tab' + (id === 'owner' ? ' hidden' : ''), tr(label));
+  const button = el('button', 'tab', tr(label));
   button.type = 'button';
   button.dataset.tab = id;
   button.dataset.featureTab = id;
@@ -750,7 +750,7 @@ async function loadForSession(session) {
   const email = (user.email || '').trim().toLowerCase();
   const emailOwner = OWNER_EMAILS.has(email);
   isOwner = emailOwner;
-  document.getElementById('owner-tab').classList.toggle('hidden', !isOwner);
+  document.getElementById('owner-tab').classList.remove('hidden');
 
   // Keep the database owner check for diagnostics, but never let it block
   // the rest of the dashboard if the request fails.
@@ -763,7 +763,7 @@ async function loadForSession(session) {
   } catch (error) {
     if (emailOwner) status('owner-status', 'Owner access is being shown for '+email+'. Database check failed: '+(error?.message || 'network error'), true);
   }
-  document.getElementById('owner-tab').classList.toggle('hidden', !isOwner);
+  document.getElementById('owner-tab').classList.remove('hidden');
 
   const {data, error} = await supabase.from('profiles')
     .select('id,display_name,role').eq('id', user.id).maybeSingle();
@@ -844,6 +844,7 @@ document.getElementById('accept-call').addEventListener('click', () => { void ac
 document.getElementById('decline-call').addEventListener('click', () => { void declineIncomingCall(); });
 
 function activateTab(name) {
+  document.getElementById('dashboard-welcome')?.classList.toggle('hidden', name !== 'lessons');
   for (const button of nav.querySelectorAll('[data-tab]')) {
     const active = button.dataset.tab === name;
     button.classList.toggle('active', active);
