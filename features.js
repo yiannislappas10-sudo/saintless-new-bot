@@ -565,28 +565,6 @@ async function declineIncomingCall() {
   showCallStatus(error?.message || tr('callRejected'), !!error);
 }
 
-async function loadUnreadCounts(){
- if(!user)return;
- const {data,error}=await supabase.from('private_messages').select('sender_id')
-  .eq('recipient_id',user.id).is('read_at',null);
- if(error){status('messages-status',error.message,true);return;}
- unreadCounts=new Map();
- for(const row of data||[])unreadCounts.set(row.sender_id,(unreadCounts.get(row.sender_id)||0)+1);
- renderContacts();
-}
-function renderContacts() {
- const list=document.getElementById('message-contacts-list');list.replaceChildren();
- for(const contact of contacts){
-  const count=unreadCounts.get(contact.id)||0;
-  const button=el('button','message-contact'+(contact.id===contactId?' active':''));
-  button.type='button';
-  button.append(el('span','message-contact-name',contact.display_name||'ECHO user'));
-  if(count){button.append(el('span','message-unread-count',count>99?'99+':String(count)));button.setAttribute('aria-label',(contact.display_name||'ECHO user')+', '+count+' '+tr('unread'));}
-  button.addEventListener('click',()=>openConversation(contact.id));
-  list.append(button);
- }
- syncCallControls();
-}
 function resetAnnouncementEditor() {
   const form = document.getElementById('announcement-form');
   if (!form) return;
