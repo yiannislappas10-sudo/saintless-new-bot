@@ -245,3 +245,57 @@
  .class-manager-toolbar .class-view-switch{max-width:100%;overflow-x:auto}
  .class-picker-heading{align-items:flex-start}
 }
+
+
+/* Mobile-first interaction and rendering refinements */
+.class-card,.class-editor,.class-detail,.class-toolbar,.class-management-filters,
+.class-calendar-cell,.class-room-shell{min-width:0}
+.class-card,.class-calendar-event,.class-view-switch button,.class-date-nav button,
+.class-primary-action{transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.class-card:active,.class-calendar-event:active{transform:scale(.995)}
+.class-editor,.class-detail{scroll-margin-top:78px}
+.class-form-grid input,.class-form-grid select,.class-form-grid textarea,
+.class-management-filters input,.class-management-filters select,
+.class-material-form input{min-height:43px}
+.class-student-option{min-height:42px;cursor:pointer;touch-action:manipulation}
+.class-student-option input{width:18px;height:18px;flex:none}
+@media(max-width:760px){
+  .class-toolbar{gap:11px;margin:13px 0;padding:11px;border-radius:9px}
+  .class-management-filters{gap:8px}
+  .class-management-filters input,.class-management-filters select{height:44px;font-size:16px}
+  .class-manager-toolbar{gap:8px;overflow:hidden}
+  .class-manager-toolbar .class-view-switch{width:100%;padding-bottom:2px;scrollbar-width:none}
+  .class-manager-toolbar .class-view-switch::-webkit-scrollbar{display:none}
+  .class-view-switch button,.class-date-nav button{min-height:42px}
+  .class-date-nav strong{min-width:0;flex:1;font-size:11px}
+  .class-editor,.class-detail{margin:11px 0;padding:15px;border-radius:12px}
+  .class-form-grid{gap:12px}
+  .class-form-grid label{display:block;line-height:1.4}
+  .class-form-grid input,.class-form-grid select,.class-form-grid textarea,
+  .class-material-form input{min-height:45px;margin-top:6px;padding:11px 12px;border-radius:8px;font-size:16px}
+  .class-student-picker>div,#class-student-options{display:grid;grid-template-columns:1fr;gap:7px}
+  .class-student-option{width:100%;padding:10px 11px;border-radius:8px;font-size:12px}
+  .class-form-actions,.class-detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .class-form-actions .btn,.class-detail-actions .btn{width:100%;min-height:44px}
+  .class-card{padding:14px;border-radius:11px}
+  .class-card-meta{gap:6px}
+  .class-week-grid,.class-month-grid{min-width:560px}
+  .class-week-grid,.class-month-grid{gap:5px}
+  .class-calendar-scroll,.class-calendar-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .class-calendar-cell{min-height:88px;padding:6px}
+  .class-calendar-event{min-height:34px;padding:6px 5px;font-size:10px}
+  .class-room-overlay{padding:0;align-items:stretch}
+  .class-room-shell{width:100%;height:100dvh;max-height:100dvh;min-height:0;border-radius:0}
+  .class-room-stage{min-height:0;overflow:auto;overscroll-behavior:contain}
+  .class-room-footer{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+}
+@media(max-width:420px){
+  .class-form-actions,.class-detail-actions{grid-template-columns:1fr}
+  .class-room-header{padding-left:10px;padding-right:10px}
+  .class-room-header-actions .btn{min-height:36px}
+  .class-room-footer{gap:5px}
+}
+@media(prefers-reduced-motion:reduce){
+  .class-card,.class-calendar-event,.class-view-switch button,.class-date-nav button,.class-primary-action{transition:none}
+}
+
