@@ -66,7 +66,7 @@ let headerAvatarToken = 0;
 
 const style = document.createElement('link');
 style.rel = 'stylesheet';
-style.href = '/profile.css?v=20261101-profile-class-manager';
+style.href = '/profile.css?v=20261101-mobile-smooth';
 document.head.append(style);
 
 function make(tag, className='', text='') {
