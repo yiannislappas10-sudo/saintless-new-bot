@@ -210,7 +210,7 @@ html{scroll-behavior:smooth;scroll-padding-top:76px}
   <div class="ambient-bg" aria-hidden="true"><span class="orb orb-one"></span><span class="orb orb-two"></span><span class="orb orb-three"></span></div>
   <header class="topbar">
     <div class="brand"><span class="brand-mark"><svg viewBox="0 0 30 30" fill="none"><path d="M3 15h4l2.5-6 5 12 3.5-9 2.5 6H27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>ECHO</span></div>
-    <div class="topbar-right"><button class="language-switch" id="app-language" type="button" aria-label="Switch language">🇬🇷 ΕΛΛΗΝΙΚΑ</button><span class="account-email" id="account-email"></span><button class="avatar" id="avatar" type="button" aria-label="Open profile" aria-haspopup="dialog" aria-controls="profile-overlay">E</button><button class="btn signout" id="signout-btn" type="button" data-i18n="signOut">Sign out</button></div>
+    <div class="topbar-right"><button class="language-switch" id="app-language" type="button" aria-label="Switch language">🇬🇷 ΕΛΛΗΝΙΚΑ</button><div class="echo-global-student-search hidden" id="echo-global-student-search"><button class="echo-global-student-trigger" id="echo-global-student-trigger" type="button" aria-label="Find a student" aria-expanded="false" aria-controls="echo-global-student-menu"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.6" stroke="currentColor" stroke-width="1.5"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><div class="echo-global-student-menu hidden" id="echo-global-student-menu"><label for="echo-global-student-input" id="echo-global-student-label">Find a student</label><input id="echo-global-student-input" type="search" autocomplete="off" placeholder="Search students…" aria-autocomplete="list" aria-controls="echo-global-student-results"><div id="echo-global-student-results" class="echo-global-student-results" role="listbox"><p class="echo-global-student-hint">Type a student name to search.</p></div></div></div><span class="account-email" id="account-email"></span><button class="avatar" id="avatar" type="button" aria-label="Open profile" aria-haspopup="dialog" aria-controls="profile-overlay">E</button><button class="btn signout" id="signout-btn" type="button" data-i18n="signOut">Sign out</button></div>
   </header>
   <main class="app-content">
     <aside class="app-sidebar">
@@ -409,9 +409,9 @@ try{
   setNotice(error?.message||t('refreshError'),'error');
 }
 </script>
-<script type="module" src="/features.js?v=20261101-tabsrewrite-04ecaac"></script>
+<script type="module" src="/features.js?v=20261101-student-search"></script>
 <script type="module" src="/classroom.js?v=20261101-mobile-smooth"></script>
 <script type="module" src="/personal.js?v=20261101-mobile-smooth"></script>
-<script type="module" src="/profile.js?v=20261101-mobile-smooth"></script>
+<script type="module" src="/profile.js?v=20261101-student-search"></script>
 </body>
 </html>
