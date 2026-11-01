@@ -344,38 +344,57 @@ async function loadProfessors(){
  professors=(data||[]).map(row=>({id:row.user_id,display_name:row.display_name||'Professor'}));
 }
 async function loadClasses(){
- const query=db.from('classes').select('id,title,subject,description,image_url,starts_at,ends_at,status,allow_unassigned,is_demo,created_by,professor_id,classroom_location,capacity,lifecycle_status').order('starts_at',{ascending:true});
- const {data,error}=await query;if(error)throw error;
- const rows=data||[],ids=rows.map(x=>x.id);
- for(const row of rows){row.roster=[];row.liveRoom=null;}
+ const {data,error}=await db.from('classes')
+  .select('id,title,subject,description,image_url,starts_at,ends_at,status,allow_unassigned,is_demo,created_by,professor_id,classroom_location,capacity,lifecycle_status,publication_status')
+  .order('starts_at',{ascending:true});
+ if(error)throw error;
+ const rows=data||[],ids=rows.map(row=>row.id);
+ for(const row of rows){row.roster=[];row.liveRoom=null;row.groupIds=[];row.groupNames=[];row.student_count=0;row.group_count=0;}
  if(ids.length){
-  const {data:liveRows,error:liveError}=await db.from('class_live_rooms').select('class_id,status,started_at').in('class_id',ids).eq('status','live');
-  if(liveError)throw liveError;
-  const liveMap=new Map((liveRows||[]).map(x=>[x.class_id,x]));
-  for(const row of rows)row.liveRoom=liveMap.get(row.id)||null;
-  const {data:rosters,error:rosterError}=await db.rpc('get_echo_class_rosters',{target_class_ids:ids});
-  if(rosterError)throw rosterError;
-  for(const person of rosters||[]){
-   const row=rows.find(x=>x.id===person.class_id);
+  const [liveResult,rosterResult,assignmentResult,countResult]=await Promise.all([
+   db.from('class_live_rooms').select('class_id,status,started_at').in('class_id',ids).eq('status','live'),
+   db.rpc('get_echo_class_rosters',{target_class_ids:ids}),
+   db.rpc('get_echo_lesson_group_assignments',{target_lesson_ids:ids}),
+   db.rpc('get_echo_lesson_group_counts',{target_lesson_ids:ids})
+  ]);
+  if(liveResult.error)throw liveResult.error;
+  if(rosterResult.error)throw rosterResult.error;
+  if(assignmentResult.error)throw assignmentResult.error;
+  if(countResult.error)throw countResult.error;
+  const liveMap=new Map((liveResult.data||[]).map(item=>[item.class_id,item]));
+  const countMap=new Map((countResult.data||[]).map(item=>[item.lesson_id,item]));
+  for(const row of rows){
+   row.liveRoom=liveMap.get(row.id)||null;
+   const counts=countMap.get(row.id);
+   if(counts){row.group_count=Number(counts.group_count)||0;row.student_count=Number(counts.student_count)||0;}
+  }
+  for(const person of rosterResult.data||[]){
+   const row=rows.find(item=>item.id===person.class_id);
    if(row)row.roster.push({id:person.student_id,display_name:person.display_name||'Student'});
+  }
+  for(const assignment of assignmentResult.data||[]){
+   const row=rows.find(item=>item.id===assignment.lesson_id);
+   if(!row)continue;
+   row.groupIds.push(assignment.group_id);
+   row.groupNames.push(assignment.group_name);
   }
   if(isOwner){
    const {data:demoRows,error:demoError}=await db.rpc('get_echo_demo_rosters',{target_class_ids:ids});
    if(demoError)throw demoError;
    for(const person of demoRows||[]){
-    const row=rows.find(x=>x.id===person.class_id);
+    const row=rows.find(item=>item.id===person.class_id);
     if(row)row.roster.push({id:null,display_name:person.display_name});
    }
   }
  }
  if(rows.length){
-  const professorIds=[...new Set(rows.map(x=>x.professor_id||x.created_by).filter(Boolean))];
+  const professorIds=[...new Set(rows.map(row=>row.professor_id||row.created_by).filter(Boolean))];
   const {data:professorRows,error:professorError}=await db.from('profiles').select('id,display_name').in('id',professorIds);
   if(professorError)throw professorError;
-  const professorNames=new Map((professorRows||[]).map(x=>[x.id,x.display_name]));
+  const professorNames=new Map((professorRows||[]).map(item=>[item.id,item.display_name]));
   for(const row of rows){
    row.professorName=professorNames.get(row.professor_id||row.created_by)||'ECHO';
-   row.student_count=(row.roster||[]).filter(x=>x.id).length;
+   if(!row.group_count&&!row.student_count)row.student_count=(row.roster||[]).filter(person=>person.id).length;
   }
  }
  classes=rows;renderClasses();
