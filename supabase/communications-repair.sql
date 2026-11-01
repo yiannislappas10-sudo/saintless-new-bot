@@ -362,3 +362,39 @@ using (user_id=auth.uid());
 grant select,insert,delete on public.notification_pins to authenticated;
 
 commit;
+
+
+-- Role-aware private-message contacts. Owner email accounts count as professors
+-- even when their profile rows retain the default "student" role.
+create or replace function private.get_echo_message_contacts()
+returns table(user_id uuid, display_name text, role text)
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select
+    p.id,
+    coalesce(nullif(btrim(p.display_name), ''), 'ECHO user'),
+    case when private.is_echo_professor(p.id) then 'professor' else 'student' end
+  from public.profiles p
+  where p.id <> auth.uid()
+    and private.is_echo_professor(p.id) <> private.is_echo_professor(auth.uid())
+  order by lower(coalesce(p.display_name, ''));
+$function$;
+
+revoke all on function private.get_echo_message_contacts() from public, anon;
+grant execute on function private.get_echo_message_contacts() to authenticated, service_role;
+
+create or replace function public.get_echo_message_contacts()
+returns table(user_id uuid, display_name text, role text)
+language sql
+stable
+security invoker
+set search_path = ''
+as $function$
+  select * from private.get_echo_message_contacts();
+$function$;
+
+revoke all on function public.get_echo_message_contacts() from public, anon;
+grant execute on function public.get_echo_message_contacts() to authenticated, service_role;
