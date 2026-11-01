@@ -109,3 +109,29 @@ body.echo-profile-open{overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.echo-profile-dialog{animation:none}}
 
+
+
+/* Staff student finder: available from every dashboard tab */
+.echo-global-student-search{position:relative;display:flex;align-items:center;flex:none}
+.echo-global-student-search.hidden{display:none!important}
+.echo-global-student-trigger{width:38px;height:38px;display:grid;place-items:center;padding:0;border:1px solid #e4e4e4;border-radius:8px;background:rgba(255,255,255,.9);color:#292929;cursor:pointer;transition:background .16s,border-color .16s,transform .16s}
+.echo-global-student-trigger:hover{background:#f4f4f4;border-color:#bbb;transform:translateY(-1px)}
+.echo-global-student-trigger svg{width:19px;height:19px}
+.echo-global-student-menu{position:absolute;top:calc(100% + 10px);right:0;z-index:1200;width:min(340px,calc(100vw - 24px));padding:14px;border:1px solid #e8e8e8;border-radius:11px;background:rgba(255,255,255,.98);box-shadow:0 18px 50px rgba(15,20,28,.16);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.echo-global-student-menu.hidden{display:none!important}
+.echo-global-student-menu>label{display:block;margin:0 0 7px;color:#444;font-size:11px;font-weight:700}
+.echo-global-student-menu>input{display:block;width:100%;height:42px;padding:0 11px;border:1px solid #dedede;border-radius:7px;background:#fff;color:#222;font:inherit;font-size:14px}
+.echo-global-student-menu>input:focus{outline:2px solid #222;outline-offset:1px}
+.echo-global-student-results{display:grid;gap:5px;max-height:min(330px,55vh);overflow:auto;margin-top:9px}
+.echo-global-student-result{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid #ededed;border-radius:7px;background:#fff;color:#222;text-align:left;cursor:pointer}
+.echo-global-student-result:hover{border-color:#bdbdbd;background:#f8f8f8}
+.echo-global-student-result strong{min-width:0;font-size:12px;overflow-wrap:anywhere}
+.echo-global-student-result span{flex:none;color:#888;font-size:10px}
+.echo-global-student-hint{margin:0;padding:11px 8px;color:#888;font-size:11px;line-height:1.5}
+@media(max-width:760px){
+ .echo-global-student-trigger{width:38px;height:38px}
+ .echo-global-student-menu{position:fixed;top:calc(60px + env(safe-area-inset-top));right:10px;width:min(340px,calc(100vw - 20px))}
+ .echo-global-student-menu>input{height:44px;font-size:16px}
+ .echo-global-student-result{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){.echo-global-student-trigger{transition:none}}
