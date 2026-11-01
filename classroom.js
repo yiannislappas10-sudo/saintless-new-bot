@@ -273,9 +273,10 @@ function makeClassCard(c){
  const main=document.createElement('div');main.className='class-card-main';
  const h=document.createElement('h3');h.textContent=c.title;
  const sub=document.createElement('p');sub.textContent=(c.subject||'')+' · '+fmt(c.ends_at);
- const people=document.createElement('p');people.className='class-card-people';people.textContent=(roster.length||0)+' '+t('studentCount')+(c.capacity?' · '+roster.length+'/'+c.capacity:'');
+ const people=document.createElement('p');people.className='class-card-people';people.textContent=(c.student_count??roster.length)+' '+t('studentCount')+(c.capacity?' · '+(c.student_count??roster.length)+'/'+c.capacity:'');
  const professor=document.createElement('p');professor.className='class-card-professor';professor.textContent=t('classProfessor')+': '+(c.professorName||'ECHO');
  main.append(h,sub,professor,people);
+ if(c.groupNames?.length){const groupsLine=document.createElement('p');groupsLine.className='class-card-groups';groupsLine.textContent=t('assignedGroups')+': '+c.groupNames.join(', ');main.append(groupsLine);}
  const meta=document.createElement('div');meta.className='class-card-meta';
  const badge=document.createElement('span');badge.className='class-state '+st;badge.textContent=t(st);meta.append(badge);
  const lifeBadge=document.createElement('span');lifeBadge.className='class-state lifecycle-'+life;lifeBadge.textContent=t(life==='active'?'activeStatus':life==='archived'?'archivedStatus':'upcomingStatus');meta.append(lifeBadge);
@@ -299,7 +300,7 @@ function renderClasses(){
  const visibleClasses=isOwner&&ownerPreviewRole?classes.filter(c=>c.is_demo):classes;
  const searched=visibleClasses.filter(c=>
    (!lifeFilter||(c.lifecycle_status||'upcoming')===lifeFilter)
-   &&(!search||[c.title,c.subject,c.description,c.professorName,...(c.roster||[]).map(x=>x.display_name)].some(v=>String(v||'').toLowerCase().includes(search)))
+   &&(!search||[c.title,c.subject,c.description,c.professorName,...(c.groupNames||[]),...(c.roster||[]).map(x=>x.display_name)].some(v=>String(v||'').toLocaleLowerCase().includes(search)))
  );
  const rows=searched.filter(c=>view==='list'||(new Date(c.starts_at)>=start&&new Date(c.starts_at)<end)).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
  if(view==='list'||view==='day'){
@@ -1127,7 +1128,8 @@ async function showDetail(id){
  const desc=document.createElement('p');desc.textContent=c.description||c.subject;
  const state=classStatus(c),stateLine=document.createElement('p');stateLine.className='class-detail-meta';stateLine.textContent=t(state)+' · '+t('classProfessor')+': '+(c.professorName||'ECHO');
  const info=document.createElement('p');info.textContent=t('scheduleLabel')+': '+fmt(c.starts_at)+' – '+fmt(c.ends_at)+' · '+c.subject;
- const details=document.createElement('p');details.textContent=(c.classroom_location?t('classLocation')+': '+c.classroom_location+' · ':'')+(c.capacity?t('capacity')+': '+(c.roster||[]).filter(x=>x.id).length+'/'+c.capacity+' · ':'')+t(c.lifecycle_status==='active'?'activeStatus':c.lifecycle_status==='archived'?'archivedStatus':'upcomingStatus');
+ const details=document.createElement('p');details.textContent=(c.classroom_location?t('classLocation')+': '+c.classroom_location+' · ':'')+(c.capacity?t('capacity')+': '+(c.student_count??(c.roster||[]).filter(x=>x.id).length)+'/'+c.capacity+' · ':'')+t(c.lifecycle_status==='active'?'activeStatus':c.lifecycle_status==='archived'?'archivedStatus':'upcomingStatus');
+ if(c.groupNames?.length){const assigned=document.createElement('p');assigned.className='class-detail-meta';assigned.textContent=t('assignedGroups')+': '+c.groupNames.join(', ');detail.append(assigned);}
  const roster=document.createElement('div');roster.className='class-detail-roster';const rosterTitle=document.createElement('strong');rosterTitle.textContent=t('roster');roster.append(rosterTitle);
  for(const person of c.roster||[]){
   const p=document.createElement('p');
