@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const classroomStyle = document.createElement('link');
 classroomStyle.rel = 'stylesheet';
-classroomStyle.href = '/classroom.css';
+classroomStyle.href = '/classroom.css?v=20261101-class-manager';
 document.head.append(classroomStyle);
 
 const OWNER_EMAILS = new Set(['yiannislappas8@gmail.com', 'yiannislappas10@gmail.com']);
@@ -1108,8 +1108,19 @@ function applyLanguage(){
  document.getElementById('class-speaker-check').textContent=t('speakerOutput');
 document.getElementById('class-speaker-check').textContent=t('speakerOutput');
  const labels=panel.querySelectorAll('.class-form-grid label');
- const labelCopy=[t('name'),t('subject'),t('description'),t('image'),t('start'),t('end')];
+ const labelCopy=[t('name'),t('subject'),t('description'),t('image'),t('start'),t('end'),t('assignedProfessor'),t('location'),t('capacity'),t('lifecycleStatus')];
  labels.forEach((node,i)=>{if(labelCopy[i])node.childNodes[0].textContent=labelCopy[i];});
+ document.getElementById('class-search').placeholder=t('searchClasses');
+ document.getElementById('class-student-search').placeholder=t('studentSearch');
+ const lifecycleFilter=document.getElementById('class-lifecycle-filter');
+ lifecycleFilter.options[0].textContent=t('allStatuses');
+ lifecycleFilter.options[1].textContent=t('activeStatus');
+ lifecycleFilter.options[2].textContent=t('upcomingStatus');
+ lifecycleFilter.options[3].textContent=t('archivedStatus');
+ const lifecycle=document.getElementById('class-lifecycle');
+ lifecycle.options[0].textContent=t('upcomingStatus');
+ lifecycle.options[1].textContent=t('activeStatus');
+ lifecycle.options[2].textContent=t('archivedStatus');
  panel.querySelector('.class-student-picker strong').textContent=t('students');
  panel.querySelector('#class-demo-picker label').childNodes[0].textContent=t('demoStudents');
  document.getElementById('class-cancel').textContent=t('cancel');
@@ -1139,7 +1150,7 @@ async function boot(session){
  profile=data||{id:user.id,role:'student'};
  tab.classList.toggle('hidden',!user);testTab.classList.toggle('hidden',!isOwner);
  document.getElementById('class-new').classList.toggle('hidden',!professorMode());
- if(professorMode())await loadStudents();else students=[];
+ if(professorMode()){await loadStudents();if(isOwner)await loadProfessors();}else{students=[];professors=[];}
  await loadClasses().catch(e=>{document.getElementById('class-status').textContent=e.message||t('loadError');document.getElementById('class-status').classList.add('error');});
 }
 async function start(){
