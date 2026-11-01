@@ -161,7 +161,7 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
   <div class="ambient-bg" aria-hidden="true"><span class="orb orb-one"></span><span class="orb orb-two"></span><span class="orb orb-three"></span></div>
   <header class="topbar">
     <div class="brand"><span class="brand-mark"><svg viewBox="0 0 30 30" fill="none"><path d="M3 15h4l2.5-6 5 12 3.5-9 2.5 6H27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>ECHO</span></div>
-    <div class="topbar-right"><button class="language-switch" id="app-language" type="button" aria-label="Switch language">🇬🇷 ΕΛΛΗΝΙΚΑ</button><span class="account-email" id="account-email"></span><span class="avatar" id="avatar">E</span><button class="btn signout" id="signout-btn" type="button" data-i18n="signOut">Sign out</button></div>
+    <div class="topbar-right"><button class="language-switch" id="app-language" type="button" aria-label="Switch language">🇬🇷 ΕΛΛΗΝΙΚΑ</button><span class="account-email" id="account-email"></span><button class="avatar" id="avatar" type="button" aria-label="Open profile" aria-haspopup="dialog" aria-controls="profile-overlay">E</button><button class="btn signout" id="signout-btn" type="button" data-i18n="signOut">Sign out</button></div>
   </header>
   <main class="app-content">
     <aside class="app-sidebar">
@@ -362,6 +362,7 @@ try{
 </script>
 <script type="module" src="/features.js?v=20261101-tabsrewrite-04ecaac"></script>
 <script type="module" src="/classroom.js"></script>
-<script type="module" src="/personal.js?v=20261101-no-calendar"></script>
+<script type="module" src="/personal.js?v=20261101-profile-manager"></script>
+<script type="module" src="/profile.js?v=20261101-profile-class-manager"></script>
 </body>
 </html>
