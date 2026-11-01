@@ -80,3 +80,32 @@ body.echo-profile-open{overflow:hidden}
  .echo-profile-editor-head{align-items:flex-start}
 }
 @media(prefers-reduced-motion:reduce){.echo-profile-dialog,.echo-profile-close,#avatar{animation:none;transition:none}}
+
+
+/* Profile sheet: native-feeling mobile layout and safe-area handling */
+.echo-profile-overlay{overscroll-behavior:contain}
+.echo-profile-dialog{min-width:0}
+.echo-profile-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.echo-profile-section,.echo-profile-grid,.echo-profile-directory-list{min-width:0}
+.echo-profile-dialog input,.echo-profile-dialog select,.echo-profile-dialog textarea{max-width:100%;font-size:16px}
+@media(max-width:680px){
+  .echo-profile-overlay{padding:0;align-items:stretch}
+  .echo-profile-dialog{width:100%;height:100dvh;max-height:100dvh;border-radius:0;animation:echo-profile-rise .18s ease both}
+  .echo-profile-header{position:sticky;top:0;z-index:3;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 15px 12px;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .echo-profile-header h2{font-size:20px}
+  .echo-profile-close{width:42px;height:42px}
+  .echo-profile-switch{position:sticky;top:72px;z-index:2;gap:5px;padding:9px 13px;background:rgba(255,255,255,.96);overflow-x:auto;scrollbar-width:none}
+  .echo-profile-switch::-webkit-scrollbar{display:none}
+  .echo-profile-switch button{min-height:40px;flex:none;padding:0 12px;white-space:nowrap}
+  .echo-profile-body{flex:1;padding:14px 13px calc(24px + env(safe-area-inset-bottom))}
+  .echo-profile-editor-head{align-items:center;gap:12px;margin-bottom:16px}
+  .echo-profile-picture{width:66px;height:66px}
+  .echo-profile-section{margin-top:13px;padding:14px;border-radius:11px}
+  .echo-profile-grid{gap:12px}
+  .echo-profile-grid input,.echo-profile-grid select,.echo-profile-grid textarea{min-height:44px;padding:11px 12px;border-radius:8px}
+  .echo-profile-directory-list{gap:8px}
+  .echo-profile-directory-list button{min-height:48px}
+  .echo-profile-dialog .btn{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){.echo-profile-dialog{animation:none}}
+
