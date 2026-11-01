@@ -28,7 +28,7 @@ const text = {
     failedMessages:'Could not load private messages. Run the ECHO setup SQL first.', sent:'Message sent.',
     owner:'Professor access', ownerIntro:'Choose which ECHO accounts can teach and manage classes.',
     ownerNotice:'Select an account below and choose “Make professor”. Professor access can be removed here at any time. Only designated ECHO owners can make these changes.',
-    makeProfessor:'Make professor', removeProfessor:'Remove professor access',
+    searchStudents:'Search students…', noMatchingStudents:'No matching students.', makeProfessor:'Make professor', removeProfessor:'Remove professor access',
     student:'Student', professor:'Professor', noAccounts:'No other ECHO accounts have signed in yet.',
     failedOwner:'Could not load accounts. Run the ECHO setup SQL first.',
     roleUpdated:'Account permissions updated.', denied:'This account is not permitted to manage roles.',
@@ -55,7 +55,7 @@ const text = {
     failedMessages:'Δεν ήταν δυνατή η φόρτωση των μηνυμάτων. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.', sent:'Το μήνυμα στάλθηκε.',
     owner:'Πρόσβαση καθηγητών', ownerIntro:'Επιλέξτε ποιοι λογαριασμοί ECHO μπορούν να διδάσκουν και να διαχειρίζονται μαθήματα.',
     ownerNotice:'Επιλέξτε έναν λογαριασμό και πατήστε «Ορισμός ως καθηγητή». Η πρόσβαση μπορεί να αφαιρεθεί από εδώ. Μόνο ο ιδιοκτήτης ECHO μπορεί να κάνει αλλαγές.',
-    makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
+    searchStudents:'Αναζήτηση μαθητών…', noMatchingStudents:'Δεν βρέθηκαν μαθητές.', makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
     student:'Μαθητής', professor:'Καθηγητής', noAccounts:'Δεν έχουν συνδεθεί ακόμη άλλοι λογαριασμοί ECHO.',
     failedOwner:'Δεν ήταν δυνατή η φόρτωση λογαριασμών. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
     roleUpdated:'Τα δικαιώματα του λογαριασμού ενημερώθηκαν.', denied:'Αυτός ο λογαριασμός δεν έχει δικαίωμα διαχείρισης ρόλων.',
@@ -76,7 +76,7 @@ const el = (tag, cls, value) => {
 
 const css = document.createElement('link');
 css.rel = 'stylesheet';
-css.href = '/features.css';
+css.href = '/features.css?v=20261101-student-search';
 document.head.append(css);
 
 const nav = document.querySelector('.nav-tabs');
@@ -214,6 +214,7 @@ let editingAnnouncementId = null;
 let sendingPrivateMessage = false;
 let announcementStudents = [];
 let selectedAnnouncementStudents = new Set();
+let announcementStudentSearch = '';
 let messagePoller = null;
 let incomingCallPoller = null;
 let activeCallPoller = null;
@@ -749,8 +750,24 @@ function renderAnnouncementStudents() {
     return;
   }
 
+  const picker=el('div','announcement-student-picker');
+  const search=document.createElement('input');
+  search.type='search';search.id='announcement-student-search';search.className='announcement-student-search';
+  search.placeholder=tr('searchStudents');search.autocomplete='off';search.value=announcementStudentSearch;
+  search.setAttribute('aria-autocomplete','list');search.setAttribute('aria-controls','announcement-student-options');
+  const selected=el('div','announcement-student-selection');
+  const options=el('div','announcement-student-options');options.id='announcement-student-options';options.setAttribute('role','group');
+  const renderSelected=()=>{
+    selected.replaceChildren();
+    const names=announcementStudents.filter(student=>selectedAnnouncementStudents.has(student.user_id)).map(student=>student.display_name||'ECHO student');
+    if(!names.length){selected.append(el('span','announcement-student-count','0 selected'));return;}
+    selected.append(el('span','announcement-student-count',names.length+' selected'));
+    names.slice(0,6).forEach(name=>selected.append(el('span','announcement-recipient-chip',name)));
+    if(names.length>6)selected.append(el('span','announcement-recipient-chip more','+'+(names.length-6)));
+  };
   for (const student of announcementStudents) {
     const label = el('label', 'announcement-recipient');
+    label.dataset.search=(student.display_name||'ECHO student').toLocaleLowerCase();
     const checkbox = el('input');
     checkbox.type = 'checkbox';
     checkbox.value = student.user_id;
@@ -758,10 +775,24 @@ function renderAnnouncementStudents() {
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) selectedAnnouncementStudents.add(student.user_id);
       else selectedAnnouncementStudents.delete(student.user_id);
+      renderSelected();
     });
     label.append(checkbox, el('span', '', student.display_name || 'ECHO student'));
-    container.append(label);
+    options.append(label);
   }
+  const noMatch=el('p','announcement-student-no-match',tr('noMatchingStudents'));noMatch.classList.add('hidden');options.append(noMatch);
+  search.addEventListener('input',()=>{
+    announcementStudentSearch=search.value;
+    const query=announcementStudentSearch.trim().toLocaleLowerCase();
+    let visible=0;
+    options.querySelectorAll('.announcement-recipient').forEach(label=>{
+      const show=label.dataset.search.includes(query);label.classList.toggle('hidden',!show);if(show)visible++;
+    });
+    noMatch.classList.toggle('hidden',visible>0);
+  });
+  renderSelected();
+  picker.append(search,selected,options);container.append(picker);
+  search.dispatchEvent(new Event('input'));
 }
 
 async function loadUnreadCounts() {
@@ -1044,6 +1075,7 @@ function resetFeatureState() {
   unreadCounts = new Map();
   announcementStudents = [];
   selectedAnnouncementStudents = new Set();
+  announcementStudentSearch = '';
   editingAnnouncementId = null;
   document.getElementById('owner-tab').classList.add('hidden');
   document.getElementById('announcement-admin').classList.add('hidden');
