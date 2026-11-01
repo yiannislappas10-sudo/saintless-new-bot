@@ -173,9 +173,11 @@ input:focus{border-color:#666;outline:none;box-shadow:0 0 0 3px #0000000e}
       </nav>
     </aside>
     <div class="app-main">
-    <p class="kicker" data-i18n="kicker">Your teaching space</p>
-    <h1 class="welcome" data-i18n="welcome">Welcome to your classroom.</h1>
-    <p class="welcome-copy" data-i18n="welcomeCopy">Manage lessons, keep track of your schedule, and join live classes.</p>
+    <div id="dashboard-welcome">
+      <p class="kicker" data-i18n="kicker">Your teaching space</p>
+      <h1 class="welcome" data-i18n="welcome">Welcome to your classroom.</h1>
+      <p class="welcome-copy" data-i18n="welcomeCopy">Manage lessons, keep track of your schedule, and join live classes.</p>
+    </div>
 
     <section class="panel active" id="panel-lessons">
       <div class="panel-heading"><div><h2 data-i18n="yourLessons">Your lessons</h2><p data-i18n="lessonsIntro">Everything for your teaching sessions, in one place.</p></div></div>
@@ -323,6 +325,7 @@ classroomNav?.addEventListener('click',event=>{
   const button=event.target.closest('.nav-tabs [data-tab]');
   if(!button||button.disabled)return;
   const name=button.dataset.tab;
+  document.getElementById('dashboard-welcome')?.classList.toggle('hidden',name!=='lessons');
   document.querySelectorAll('.nav-tabs [data-tab]').forEach(item=>{
     const active=item===button;
     item.classList.toggle('active',active);
