@@ -9,11 +9,9 @@ const language = () => {
 };
 const words = {
   en: {
-    calendar:'Personal calendar', calendarIntro:'Your assigned lessons, arranged by date.',
     statusTab:'Class status', statusIntro:'See which lessons are upcoming, live, completed, or cancelled.',
     notifications:'Notifications', notificationsIntro:'Unread announcements and messages, plus your next lessons.',
     profile:'Profile settings', profileIntro:'Manage your display name and language preference.',
-    today:'Today', previous:'Previous month', next:'Next month', noClassesDay:'No classes scheduled for this day.',
     all:'All', upcoming:'Upcoming', live:'Live', completed:'Completed', cancelled:'Cancelled',
     noClasses:'No classes are available for your account yet.', refresh:'Refresh',
     email:'Sign-in email', displayName:'Display name', language:'Language', english:'English', greek:'Greek',
@@ -29,11 +27,9 @@ const words = {
     scheduled:'Scheduled'
   },
   el: {
-    calendar:'Προσωπικό ημερολόγιο', calendarIntro:'Τα μαθήματά σας οργανωμένα ανά ημερομηνία.',
     statusTab:'Κατάσταση μαθημάτων', statusIntro:'Δείτε ποια μαθήματα είναι προσεχή, σε εξέλιξη, ολοκληρωμένα ή ακυρωμένα.',
     notifications:'Ειδοποιήσεις', notificationsIntro:'Μη αναγνωσμένες ανακοινώσεις και μηνύματα, καθώς και τα επόμενα μαθήματά σας.',
     profile:'Ρυθμίσεις προφίλ', profileIntro:'Διαχειριστείτε το όνομα εμφάνισης και τη γλώσσα σας.',
-    today:'Σήμερα', previous:'Προηγούμενος μήνας', next:'Επόμενος μήνας', noClassesDay:'Δεν υπάρχουν μαθήματα για αυτή την ημέρα.',
     all:'Όλα', upcoming:'Προσεχή', live:'Σε εξέλιξη', completed:'Ολοκληρωμένα', cancelled:'Ακυρωμένα',
     noClasses:'Δεν υπάρχουν ακόμη διαθέσιμα μαθήματα για τον λογαριασμό σας.', refresh:'Ανανέωση',
     email:'Email σύνδεσης', displayName:'Όνομα εμφάνισης', language:'Γλώσσα', english:'Αγγλικά', greek:'Ελληνικά',
@@ -59,11 +55,6 @@ const fmtTime = value => {
   try { return new Intl.DateTimeFormat(locale(), {timeZone:ZONE,hour:'2-digit',minute:'2-digit'}).format(new Date(value)); }
   catch (_) { return ''; }
 };
-const dateKey = value => {
-  const parts = new Intl.DateTimeFormat('en-CA', {timeZone:ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
-  const p = Object.fromEntries(parts.map(x => [x.type,x.value]));
-  return p.year + '-' + p.month + '-' + p.day;
-};
 const make = (tag, cls, value) => {
   const node = document.createElement(tag);
   if (cls) node.className = cls;
@@ -80,7 +71,6 @@ const host = document.querySelector('.app-main');
 if (!nav || !host) throw new Error('ECHO personal dashboard layout was not found.');
 
 const panelMarkup = [
-  ['personal-calendar', 'calendar', '<div class="panel-heading"><div><h2 id="personal-calendar-title"></h2><p id="personal-calendar-intro"></p></div><button class="btn" id="personal-calendar-refresh" type="button"></button></div><div class="personal-calendar-toolbar"><button class="personal-month-nav" id="personal-month-prev" type="button" aria-label="Previous month">‹</button><strong id="personal-month-label"></strong><button class="personal-month-nav" id="personal-month-next" type="button" aria-label="Next month">›</button><button class="personal-today" id="personal-today" type="button"></button></div><div class="personal-weekdays" id="personal-weekdays"></div><div class="personal-calendar-grid" id="personal-calendar-grid"></div><section class="personal-day-detail"><h3 id="personal-selected-day"></h3><div id="personal-day-classes"></div></section>'],
   ['class-status', 'statusTab', '<div class="panel-heading"><div><h2 id="class-status-title"></h2><p id="class-status-intro"></p></div><button class="btn" id="class-status-refresh" type="button"></button></div><div class="personal-status-filters" id="personal-status-filters"></div><div class="personal-status-list" id="personal-status-list"></div>'],
   ['notifications', 'notifications', '<div class="panel-heading"><div><h2 id="personal-notifications-title"></h2><p id="personal-notifications-intro"></p></div><button class="btn" id="personal-notifications-refresh" type="button"></button></div><div class="personal-notification-toolbar"><button class="personal-action personal-action-primary" id="personal-mark-all-read" type="button" hidden></button></div><div id="personal-notification-list" aria-live="polite"></div><p class="personal-data-status" id="personal-notification-status" role="status"></p>'],
   ['profile', 'profile', '<div class="panel-heading"><div><h2 id="personal-profile-title"></h2><p id="personal-profile-intro"></p></div></div><form class="personal-profile-card" id="personal-profile-form"><label for="personal-profile-name" id="personal-profile-name-label"></label><input id="personal-profile-name" type="text" minlength="2" maxlength="60" autocomplete="name" required><label for="personal-profile-email" id="personal-profile-email-label"></label><input id="personal-profile-email" type="email" readonly><p class="personal-profile-note" id="personal-profile-email-note"></p><label for="personal-profile-language" id="personal-profile-language-label"></label><select id="personal-profile-language"><option value="en"></option><option value="el"></option></select><button class="btn btn-dark" id="personal-profile-save" type="submit"></button><p class="personal-data-status" id="personal-profile-status" role="status"></p></form>']
@@ -121,10 +111,6 @@ function activate(name) {
 function applyLanguage() {
   const set = (id, value) => { const node = $(id); if (node) node.textContent = value; };
   for (const [id,label] of panelMarkup) tabButtons.get(id).textContent = t(label);
-  set('personal-calendar-title',t('calendar'));
-  set('personal-calendar-intro',t('calendarIntro'));
-  set('personal-calendar-refresh',t('refresh'));
-  set('personal-today',t('today'));
   set('class-status-title',t('statusTab'));
   set('class-status-intro',t('statusIntro'));
   set('class-status-refresh',t('refresh'));
@@ -145,7 +131,6 @@ function applyLanguage() {
     select.options[1].textContent = t('greek');
     select.value = language();
   }
-  renderCalendar();
   renderClassStatuses();
   renderNotifications();
 }
@@ -158,8 +143,6 @@ let classes = [];
 let liveClassIds = new Set();
 let notificationRows = [];
 let notificationTimer = null;
-let calendarCursor = new Date(Date.UTC(new Date().getFullYear(),new Date().getMonth(),1));
-let selectedDay = dateKey(new Date());
 let statusFilter = 'all';
 
 function classStatus(klass) {
@@ -195,47 +178,7 @@ async function loadClasses() {
     if (roomError) throw roomError;
     liveClassIds = new Set((rooms || []).map(x=>x.class_id));
   }
-  renderCalendar();
   renderClassStatuses();
-}
-function renderCalendar() {
-  const grid = $('personal-calendar-grid');
-  if (!grid) return;
-  const year = calendarCursor.getUTCFullYear();
-  const month = calendarCursor.getUTCMonth();
-  const first = new Date(Date.UTC(year,month,1));
-  const offset = (first.getUTCDay()+6)%7;
-  const start = new Date(Date.UTC(year,month,1-offset));
-  $('personal-month-label').textContent = new Intl.DateTimeFormat(locale(),{month:'long',year:'numeric',timeZone:ZONE}).format(new Date(Date.UTC(year,month,15,12)));
-  const weekdays = $('personal-weekdays');
-  weekdays.replaceChildren();
-  const monday = new Date(Date.UTC(2024,0,1,12));
-  for (let i=0;i<7;i++) {
-    const day = new Date(monday.getTime()+i*86400000);
-    weekdays.append(make('span','',new Intl.DateTimeFormat(locale(),{weekday:'short',timeZone:ZONE}).format(day)));
-  }
-  grid.replaceChildren();
-  const todayKey = dateKey(new Date());
-  for (let i=0;i<42;i++) {
-    const date = new Date(start.getTime()+i*86400000);
-    const key = date.toISOString().slice(0,10);
-    const sameMonth = date.getUTCMonth() === month;
-    const events = classes.filter(c=>dateKey(c.starts_at)===key);
-    const cell = make('button','personal-calendar-day'+(sameMonth?'':' outside')+(key===selectedDay?' selected':'')+(key===todayKey?' today':''));
-    cell.type = 'button';
-    cell.setAttribute('aria-label',key+' · '+events.length+' classes');
-    cell.append(make('span','personal-day-number',String(date.getUTCDate())));
-    if (events.length) cell.append(make('span','personal-day-count',String(events.length)+' '+(events.length===1?'class':'classes')));
-    cell.addEventListener('click',()=>{selectedDay=key;renderCalendar();});
-    grid.append(cell);
-  }
-  const selectedDate = new Date(selectedDay+'T12:00:00Z');
-  $('personal-selected-day').textContent = fmtDate(selectedDate);
-  const list = $('personal-day-classes');
-  list.replaceChildren();
-  const dayClasses = classes.filter(c=>dateKey(c.starts_at)===selectedDay).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-  if (!dayClasses.length) list.append(make('p','personal-empty',t('noClassesDay')));
-  else dayClasses.forEach(c=>list.append(classRow(c,true)));
 }
 function renderClassStatuses() {
   const filterArea = $('personal-status-filters');
@@ -477,7 +420,7 @@ async function loadNotifications() {
 async function refreshPanel(id) {
   if (!db || !user) return;
   try {
-    if (id==='personal-calendar'||id==='class-status') await loadClasses();
+    if (id==='class-status') await loadClasses();
     if (id==='notifications') { await loadClasses(); await loadNotifications(); }
     if (id==='profile') {
       $('personal-profile-name').value = profile?.display_name || '';
@@ -518,7 +461,7 @@ function changeLanguage(value) {
 function reset() {
   if (notificationTimer) { clearInterval(notificationTimer); notificationTimer=null; }
   user=null;profile=null;classes=[];liveClassIds=new Set();notificationRows=[];
-  renderCalendar();renderClassStatuses();renderNotifications();
+  renderClassStatuses();renderNotifications();
 }
 async function boot(session) {
   if (!session?.user) { reset(); return; }
@@ -536,12 +479,9 @@ async function boot(session) {
   notificationTimer=setInterval(()=>{void loadNotifications();},45000);
 }
 $('personal-mark-all-read').addEventListener('click',()=>{void markAllNotificationsRead();});
-for (const id of ['personal-calendar-refresh','class-status-refresh']) {
+for (const id of ['class-status-refresh']) {
   $(id).addEventListener('click',()=>{void loadClasses().catch(e=>{$('class-status-title').textContent=t('failedClasses')+': '+e.message;});});
 }
-$('personal-month-prev').addEventListener('click',()=>{calendarCursor=new Date(Date.UTC(calendarCursor.getUTCFullYear(),calendarCursor.getUTCMonth()-1,1));renderCalendar();});
-$('personal-month-next').addEventListener('click',()=>{calendarCursor=new Date(Date.UTC(calendarCursor.getUTCFullYear(),calendarCursor.getUTCMonth()+1,1));renderCalendar();});
-$('personal-today').addEventListener('click',()=>{const now=new Date();calendarCursor=new Date(Date.UTC(now.getFullYear(),now.getMonth(),1));selectedDay=dateKey(now);renderCalendar();});
 $('personal-notifications-refresh').addEventListener('click',()=>{void loadClasses().then(loadNotifications).catch(e=>{$('personal-notification-status').textContent=e.message;});});
 $('personal-profile-language').addEventListener('change',event=>changeLanguage(event.target.value));
 $('personal-profile-form').addEventListener('submit',saveProfile);
