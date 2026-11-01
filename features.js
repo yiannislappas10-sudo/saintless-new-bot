@@ -28,7 +28,7 @@ const text = {
     failedMessages:'Could not load private messages. Run the ECHO setup SQL first.', sent:'Message sent.',
     owner:'Professor access', ownerIntro:'Choose which ECHO accounts can teach and manage classes.',
     ownerNotice:'Select an account below and choose “Make professor”. Professor access can be removed here at any time. Only designated ECHO owners can make these changes.',
-    searchStudents:'Search students…', noMatchingStudents:'No matching students.', makeProfessor:'Make professor', removeProfessor:'Remove professor access',
+    searchStudents:'Search students…', noMatchingStudents:'No matching students.', selectedCount:'selected', makeProfessor:'Make professor', removeProfessor:'Remove professor access',
     student:'Student', professor:'Professor', noAccounts:'No other ECHO accounts have signed in yet.',
     failedOwner:'Could not load accounts. Run the ECHO setup SQL first.',
     roleUpdated:'Account permissions updated.', denied:'This account is not permitted to manage roles.',
@@ -55,7 +55,7 @@ const text = {
     failedMessages:'Δεν ήταν δυνατή η φόρτωση των μηνυμάτων. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.', sent:'Το μήνυμα στάλθηκε.',
     owner:'Πρόσβαση καθηγητών', ownerIntro:'Επιλέξτε ποιοι λογαριασμοί ECHO μπορούν να διδάσκουν και να διαχειρίζονται μαθήματα.',
     ownerNotice:'Επιλέξτε έναν λογαριασμό και πατήστε «Ορισμός ως καθηγητή». Η πρόσβαση μπορεί να αφαιρεθεί από εδώ. Μόνο ο ιδιοκτήτης ECHO μπορεί να κάνει αλλαγές.',
-    searchStudents:'Αναζήτηση μαθητών…', noMatchingStudents:'Δεν βρέθηκαν μαθητές.', makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
+    searchStudents:'Αναζήτηση μαθητών…', noMatchingStudents:'Δεν βρέθηκαν μαθητές.', selectedCount:'επιλεγμένοι', makeProfessor:'Ορισμός ως καθηγητή', removeProfessor:'Αφαίρεση δικαιωμάτων καθηγητή',
     student:'Μαθητής', professor:'Καθηγητής', noAccounts:'Δεν έχουν συνδεθεί ακόμη άλλοι λογαριασμοί ECHO.',
     failedOwner:'Δεν ήταν δυνατή η φόρτωση λογαριασμών. Εκτελέστε πρώτα το SQL εγκατάστασης του ECHO.',
     roleUpdated:'Τα δικαιώματα του λογαριασμού ενημερώθηκαν.', denied:'Αυτός ο λογαριασμός δεν έχει δικαίωμα διαχείρισης ρόλων.',
@@ -760,8 +760,8 @@ function renderAnnouncementStudents() {
   const renderSelected=()=>{
     selected.replaceChildren();
     const names=announcementStudents.filter(student=>selectedAnnouncementStudents.has(student.user_id)).map(student=>student.display_name||'ECHO student');
-    if(!names.length){selected.append(el('span','announcement-student-count','0 selected'));return;}
-    selected.append(el('span','announcement-student-count',names.length+' selected'));
+    if(!names.length){selected.append(el('span','announcement-student-count','0 '+tr('selectedCount')));return;}
+    selected.append(el('span','announcement-student-count',names.length+' '+tr('selectedCount')));
     names.slice(0,6).forEach(name=>selected.append(el('span','announcement-recipient-chip',name)));
     if(names.length>6)selected.append(el('span','announcement-recipient-chip more','+'+(names.length-6)));
   };
@@ -1088,7 +1088,10 @@ function resetFeatureState() {
   resetAnnouncementEditor();
 }
 
-document.getElementById('announcement-audience').addEventListener('change', () => renderAnnouncementStudents());
+document.getElementById('announcement-audience').addEventListener('change', () => {
+  if(document.getElementById('announcement-audience').value!=='selected')announcementStudentSearch='';
+  renderAnnouncementStudents();
+});
 document.getElementById('announcement-cancel-edit').addEventListener('click', () => resetAnnouncementEditor());
 
 document.getElementById('announcement-form').addEventListener('submit', async event => {
