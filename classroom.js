@@ -380,47 +380,202 @@ async function loadClasses(){
  }
  classes=rows;renderClasses();
 }
-function updateStudentCount(){
- const checked=[...document.querySelectorAll('#class-student-options input:checked')];
- const picked=checked.length;
- const total=students.length;
- const count=document.getElementById('class-student-count');
- if(count)count.textContent=picked+' '+t('selectedCount')+' · '+total+' '+t('students').toLowerCase();
- const selected=document.getElementById('class-student-selection');
- if(selected){
-  selected.replaceChildren();
-  const names=checked.map(box=>students.find(student=>student.id===box.value)?.display_name||'Student');
-  names.slice(0,5).forEach(name=>{const chip=document.createElement('span');chip.className='class-student-selected-chip';chip.textContent=name;selected.append(chip);});
-  if(names.length>5){const more=document.createElement('span');more.className='class-student-selected-chip more';more.textContent='+'+(names.length-5);selected.append(more);}
+function groupCanManage(group){
+ return !!group&&(isOwner|| (profile?.role==='professor'&&group.professor_id===user?.id));
+}
+async function loadGroups(){
+ const status=document.getElementById('class-group-status');
+ if(status)status.textContent='';
+ try{
+  const {data,error}=await db.rpc('get_echo_group_directory');
+  if(error)throw error;
+  groups=(data||[]).map(row=>({...row,member_count:Number(row.member_count)||0}));
+  const ids=groups.map(group=>group.group_id);
+  if(professorMode()&&ids.length){
+   const {data:members,error:memberError}=await db.from('class_group_members')
+    .select('group_id,student_id').in('group_id',ids);
+   if(memberError)throw memberError;
+   groupMemberships=members||[];
+  }else{
+   groupMemberships=groups.filter(group=>group.is_member).map(group=>({group_id:group.group_id,student_id:user?.id}));
+  }
+  renderGroups();
+  buildLessonGroupPicker(selected?classes.find(item=>item.id===selected)?.groupIds||[]:[]);
+ }catch(error){
+  groups=[];groupMemberships=[];
+  renderGroups();
+  if(status)status.textContent=error?.message||t('groupSaveError');
+  throw error;
  }
 }
-function filterStudentPicker(){
- const q=(document.getElementById('class-student-search')?.value||'').trim().toLowerCase();
- const options=document.querySelectorAll('#class-student-options .class-student-option');
- let visible=0;
- for(const option of options){
-  const show=option.dataset.search.includes(q);
-  option.classList.toggle('hidden',!show);
-  if(show)visible++;
+function showGroupEmpty(message){
+ const node=document.createElement('p');node.className='class-empty';node.textContent=message;return node;
+}
+function renderGroups(){
+ const list=document.getElementById('class-group-list');if(!list)return;
+ list.replaceChildren();
+ const query=(document.getElementById('class-group-search-filter')?.value||'').trim().toLocaleLowerCase();
+ const rows=groups.filter(group=>[group.name,group.description,group.professor_name].some(value=>String(value||'').toLocaleLowerCase().includes(query)));
+ if(!rows.length){list.append(showGroupEmpty(groups.length?t('noMatchingGroups'):t('noGroups')));return;}
+ for(const group of rows){
+  const card=document.createElement('article');card.className='class-group-card';
+  const top=document.createElement('div');top.className='class-group-card-top';
+  const heading=document.createElement('div');heading.className='class-group-card-main';
+  const name=document.createElement('h3');name.textContent=group.name;
+  const description=document.createElement('p');description.textContent=group.description||'';
+  const meta=document.createElement('span');meta.className='class-group-card-meta';
+  meta.textContent=group.member_count+' '+t('memberCount')+' · '+t('classProfessor')+': '+(group.professor_name||'ECHO');
+  heading.append(name);if(group.description)heading.append(description);heading.append(meta);top.append(heading);
+  if(groupCanManage(group)){
+   const edit=document.createElement('button');edit.type='button';edit.className='btn class-group-edit';edit.textContent=t('edit');
+   edit.addEventListener('click',()=>openGroupEditor(group));top.append(edit);
+  }
+  card.append(top);
+  if(groupCanManage(group)){
+   const roster=document.createElement('div');roster.className='class-group-roster';
+   const groupStudents=groupMemberships.filter(member=>member.group_id===group.group_id);
+   for(const member of groupStudents){
+    const student=students.find(item=>item.id===member.student_id);
+    if(!student)continue;
+    const chip=document.createElement('button');chip.type='button';chip.className='class-group-member-chip';
+    chip.textContent=student.display_name;chip.addEventListener('click',()=>window.echoOpenProfile?.(student.id));
+    roster.append(chip);
+   }
+   card.append(roster);
+  }
+  list.append(card);
  }
- let empty=document.getElementById('class-student-no-match');
+}
+function buildGroupMemberPicker(assignedIds=[]){
+ const options=document.getElementById('class-group-member-options');if(!options)return;
+ options.replaceChildren();
+ const search=document.getElementById('class-group-member-search');if(search)search.value='';
+ const assigned=new Set(assignedIds);
+ for(const student of students){
+  const label=document.createElement('label');label.className='class-student-option';
+  label.dataset.search=(student.display_name||'Student').toLocaleLowerCase();
+  const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=student.id;checkbox.checked=assigned.has(student.id);
+  checkbox.addEventListener('change',updateGroupMemberSelection);
+  const name=document.createElement('span');name.textContent=student.display_name||'Student';
+  label.append(checkbox,name);options.append(label);
+ }
+ updateGroupMemberSelection();filterGroupMemberPicker();
+}
+function updateGroupMemberSelection(){
+ const checked=[...document.querySelectorAll('#class-group-member-options input:checked')];
+ const count=document.getElementById('class-group-member-count');
+ if(count)count.textContent=checked.length+' '+t('selectedCount')+' · '+students.length+' '+t('students').toLowerCase();
+ const selectedArea=document.getElementById('class-group-member-selection');if(!selectedArea)return;
+ selectedArea.replaceChildren();
+ const names=checked.map(box=>students.find(student=>student.id===box.value)?.display_name||'Student');
+ names.slice(0,5).forEach(name=>{const chip=document.createElement('span');chip.className='class-student-selected-chip';chip.textContent=name;selectedArea.append(chip);});
+ if(names.length>5){const more=document.createElement('span');more.className='class-student-selected-chip more';more.textContent='+'+(names.length-5);selectedArea.append(more);}
+}
+function filterGroupMemberPicker(){
+ const input=document.getElementById('class-group-member-search');if(!input)return;
+ const query=input.value.trim().toLocaleLowerCase();
+ const options=document.querySelectorAll('#class-group-member-options .class-student-option');
+ let visible=0;
+ options.forEach(option=>{const show=option.dataset.search.includes(query);option.classList.toggle('hidden',!show);if(show)visible++;});
+ let empty=document.getElementById('class-group-member-no-match');
  if(!visible){
-  if(!empty){empty=document.createElement('p');empty.id='class-student-no-match';empty.className='class-form-status';document.getElementById('class-student-options').append(empty);}
+  if(!empty){empty=document.createElement('p');empty.id='class-group-member-no-match';empty.className='class-form-status';document.getElementById('class-group-member-options').append(empty);}
   empty.textContent=t('noMatchingStudents');
  }else empty?.remove();
 }
-function buildStudentPicker(assignedIds=[]){
- const opts=document.getElementById('class-student-options');opts.replaceChildren();
- const search=document.getElementById('class-student-search');if(search)search.value='';
+function buildLessonGroupPicker(assignedIds=[]){
+ const options=document.getElementById('class-group-options');if(!options)return;
+ options.replaceChildren();
+ const search=document.getElementById('class-group-search');if(search)search.value='';
  const assigned=new Set(assignedIds);
- for(const student of students){
-  const label=document.createElement('label');label.className='class-student-option';label.dataset.search=(student.display_name||'Student').toLowerCase();
-  const box=document.createElement('input');box.type='checkbox';box.value=student.id;box.checked=assigned.has(student.id);
-  box.addEventListener('change',updateStudentCount);
-  const span=document.createElement('span');span.textContent=student.display_name||'Student';
-  label.append(box,span);opts.append(label);
+ for(const group of groups){
+  if(!groupCanManage(group))continue;
+  const label=document.createElement('label');label.className='class-student-option';
+  label.dataset.search=(group.name+' '+(group.description||'')).toLocaleLowerCase();
+  const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=group.group_id;checkbox.checked=assigned.has(group.group_id);
+  checkbox.addEventListener('change',updateLessonGroupSelection);
+  const name=document.createElement('span');name.textContent=group.name+' · '+group.member_count+' '+t('studentCountLabel');
+  label.append(checkbox,name);options.append(label);
  }
- updateStudentCount();filterStudentPicker();
+ updateLessonGroupSelection();filterLessonGroupPicker();
+}
+function updateLessonGroupSelection(){
+ const checked=[...document.querySelectorAll('#class-group-options input:checked')];
+ const ids=checked.map(box=>box.value);
+ const count=document.getElementById('class-group-count');
+ if(count)count.textContent=ids.length+' '+t('selectedCount');
+ const area=document.getElementById('class-group-selection');
+ if(area){
+  area.replaceChildren();
+  const names=ids.map(id=>groups.find(group=>group.group_id===id)?.name).filter(Boolean);
+  names.slice(0,5).forEach(name=>{const chip=document.createElement('span');chip.className='class-student-selected-chip';chip.textContent=name;area.append(chip);});
+  if(names.length>5){const more=document.createElement('span');more.className='class-student-selected-chip more';more.textContent='+'+(names.length-5);area.append(more);}
+ }
+ const studentIds=new Set(groupMemberships.filter(member=>ids.includes(member.group_id)).map(member=>member.student_id));
+ const summary=document.getElementById('class-group-summary');
+ if(summary)summary.textContent=studentIds.size+' '+t('groupsStudentCount');
+}
+function filterLessonGroupPicker(){
+ const input=document.getElementById('class-group-search');if(!input)return;
+ const query=input.value.trim().toLocaleLowerCase();
+ const options=document.querySelectorAll('#class-group-options .class-student-option');
+ let visible=0;
+ options.forEach(option=>{const show=option.dataset.search.includes(query);option.classList.toggle('hidden',!show);if(show)visible++;});
+ let empty=document.getElementById('class-group-no-match');
+ if(!visible){
+  if(!empty){empty=document.createElement('p');empty.id='class-group-no-match';empty.className='class-form-status';document.getElementById('class-group-options').append(empty);}
+  empty.textContent=t('noMatchingGroups');
+ }else empty?.remove();
+}
+function updateLessonSaveLabel(){
+ const button=document.getElementById('class-save');if(!button)return;
+ const draft=document.getElementById('class-publication')?.value==='draft';
+ button.textContent=draft?t('saveDraft'):t('publishLesson');
+}
+function fillGroupProfessorPicker(group=null){
+ const wrap=document.getElementById('class-group-professor-wrap'),select=document.getElementById('class-group-professor');
+ if(!isOwner){wrap.classList.add('hidden');select.replaceChildren();return;}
+ wrap.classList.remove('hidden');select.replaceChildren();
+ const choices=professors.length?professors:[{id:user.id,display_name:profile?.display_name||'Primary Owner'}];
+ for(const item of choices){const option=document.createElement('option');option.value=item.id;option.textContent=item.display_name;select.append(option);}
+ const wanted=group?.professor_id||user.id;
+ select.value=choices.some(item=>item.id===wanted)?wanted:(choices[0]?.id||user.id);
+}
+function openGroupEditor(group=null){
+ if(!professorMode())return;
+ selectedGroup=group?.group_id||null;
+ document.getElementById('class-group-form').reset();
+ document.getElementById('class-group-form-status').textContent='';
+ document.getElementById('class-group-editor').classList.remove('hidden');
+ document.getElementById('class-group-name').value=group?.name||'';
+ document.getElementById('class-group-description').value=group?.description||'';
+ const memberIds=groupMemberships.filter(member=>member.group_id===group?.group_id).map(member=>member.student_id);
+ fillGroupProfessorPicker(group);buildGroupMemberPicker(memberIds);
+ document.getElementById('class-group-save').textContent=group?t('save'):t('newGroup');
+ document.getElementById('class-group-editor').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeGroupEditor(){
+ document.getElementById('class-group-editor').classList.add('hidden');
+ selectedGroup=null;
+}
+async function saveGroup(event){
+ event.preventDefault();
+ if(!professorMode())return;
+ const status=document.getElementById('class-group-form-status');status.textContent='';status.classList.remove('error');
+ const name=document.getElementById('class-group-name').value.trim();
+ if(!name){status.textContent=t('groupName');return;}
+ const studentIds=[...document.querySelectorAll('#class-group-member-options input:checked')].map(box=>box.value);
+ const groupData={name,description:document.getElementById('class-group-description').value.trim()};
+ if(isOwner)groupData.professor_id=document.getElementById('class-group-professor').value;
+ const button=document.getElementById('class-group-save');button.disabled=true;
+ try{
+  const {data,error}=await db.rpc('save_echo_group',{target_group_id:selectedGroup,group_data:groupData,student_ids:studentIds});
+  if(error)throw error;
+  status.textContent=t('groupSaved');
+  closeGroupEditor();
+  await loadGroups();await loadClasses();
+ }catch(error){status.textContent=error?.message||t('groupSaveError');status.classList.add('error');}
+ finally{button.disabled=false;}
 }
 function fillProfessorPicker(c=null){
  const wrap=document.getElementById('class-professor-wrap'),select=document.getElementById('class-professor');
