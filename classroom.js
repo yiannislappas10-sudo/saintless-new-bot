@@ -177,13 +177,21 @@ let activeRoom=null,callJoinPending=false,roomAudioContext=null;
 const ROOM_REACTIONS=new Set(['👍','❤️','😂','👏','🎉','👀']);
 function activate(name){document.getElementById('dashboard-welcome')?.classList.toggle('hidden',name!=='lessons');document.querySelectorAll('.nav-tabs [data-tab]').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on));});document.querySelectorAll('#app-shell .panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));}
 nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab="classes"],[data-tab="testing"]');if(b)activate(b.dataset.tab);});
-document.getElementById('class-new').addEventListener('click',()=>openEditor());
+document.getElementById('class-new').addEventListener('click',()=>void openEditor());
 document.getElementById('class-cancel').addEventListener('click',closeEditor);
+document.getElementById('class-lessons-tab').addEventListener('click',()=>showClassSection('lessons'));
+document.getElementById('class-groups-tab').addEventListener('click',()=>showClassSection('groups'));
+document.getElementById('class-group-new').addEventListener('click',()=>openGroupEditor());
+document.getElementById('class-group-cancel').addEventListener('click',closeGroupEditor);
+document.getElementById('class-group-form').addEventListener('submit',saveGroup);
+document.getElementById('class-group-search-filter').addEventListener('input',renderGroups);
+document.getElementById('class-group-member-search').addEventListener('input',filterGroupMemberPicker);
+document.getElementById('class-group-search').addEventListener('input',filterLessonGroupPicker);
+document.getElementById('class-publication').addEventListener('change',updateLessonSaveLabel);
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));renderClasses();}));
 document.getElementById('class-prev').addEventListener('click',()=>moveCursor(-1));
 document.getElementById('class-next').addEventListener('click',()=>moveCursor(1));
 document.getElementById('class-form').addEventListener('submit',saveClass);
-document.getElementById('class-student-search').addEventListener('input',filterStudentPicker);
 document.getElementById('class-search').addEventListener('input',renderClasses);
 document.getElementById('class-lifecycle-filter').addEventListener('change',renderClasses);
 document.getElementById('class-demo').addEventListener('change',toggleDemoEditor);
@@ -205,10 +213,24 @@ document.getElementById('class-room-leave').addEventListener('click',()=>{void l
 document.getElementById('class-mic-toggle').addEventListener('click',toggleRoomMic);
 document.getElementById('class-camera-toggle').addEventListener('click',toggleRoomCamera);
 document.getElementById('class-speaker-test').addEventListener('click',testRoomSpeaker);
+function showClassSection(name){
+ classSection=name;
+ const lessons=name==='lessons';
+ document.getElementById('class-lessons-section').classList.toggle('hidden',!lessons);
+ document.getElementById('class-groups-section').classList.toggle('hidden',lessons);
+ document.getElementById('class-lessons-tab').classList.toggle('active',lessons);
+ document.getElementById('class-groups-tab').classList.toggle('active',!lessons);
+ document.getElementById('class-new').classList.toggle('hidden',!lessons||!professorMode());
+ document.getElementById('class-group-new').classList.toggle('hidden',lessons||!professorMode());
+ if(!lessons)void loadGroups();
+}
 function toggleDemoEditor(){
  const demo=isOwner&&document.getElementById('class-demo').checked;
- document.getElementById('class-real-student-picker').classList.toggle('hidden',demo);
+ document.getElementById('class-group-picker').classList.toggle('hidden',demo);
  document.getElementById('class-demo-picker').classList.toggle('hidden',!demo);
+ document.getElementById('class-publication').disabled=demo;
+ if(demo)document.getElementById('class-publication').value='draft';
+ updateLessonSaveLabel();
 }
 function shiftAthensDate(value,days){
  const [y,m,d]=value.split('-').map(Number);
